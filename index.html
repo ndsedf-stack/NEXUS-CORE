@@ -447,39 +447,6 @@
       }
     }
 
-    const xp = parseInt(localStorage.getItem('hybrid_xp') || '0');
-      let level = 1;
-      let nextXp = XP_LEVELS[1];
-      
-      // Calculate current level based on XP
-      for (let i = 0; i < XP_LEVELS.length; i++) {
-        if (xp >= XP_LEVELS[i]) {
-          level = i + 1;
-          nextXp = XP_LEVELS[i + 1] || 99999;
-        }
-      }
-      
-      const rank = RANKS[Math.min(level - 1, RANKS.length - 1)];
-      const progress = Math.min(100, (xp / nextXp) * 100);
-
-      // Update UI
-      document.getElementById('user-rank').textContent = `${rank} IV`;
-      document.getElementById('level-display').textContent = level;
-      document.getElementById('xp-display').textContent = `${xp} / ${nextXp} XP`;
-      document.getElementById('xp-bar').style.width = `${progress}%`;
-      
-      // Random Quote
-      const randomQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
-      const quoteEl = document.getElementById('daily-quote');
-      const parts = randomQuote.split('.');
-      
-      if (parts.length > 1) {
-        quoteEl.innerHTML = `${parts[0]}. <span class="text-[var(--magenta)] font-bold text-shadow-magenta">${parts[1]}</span>`;
-      } else {
-        quoteEl.textContent = randomQuote;
-      }
-    }
-
     // ========================================
     // DASHBOARD INITIALIZATION
     // ========================================

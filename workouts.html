@@ -379,8 +379,8 @@
       
       // Update block info banner
       document.getElementById('block-label').textContent = `BLOC ${weekData.block} • SEMAINE ${week}`; 
-      document.getElementById('block-name').textContent = weekData.blockName.toUpperCase(); 
-      document.getElementById('block-tech').textContent = weekData.technique; 
+      const blockName = programData.info.blockTechniques[`block${weekData.block}`]?.name || "Unknown";
+      document.getElementById("block-name").textContent = blockName.toUpperCase();
       
       const days = ['dimanche', 'mardi', 'vendredi', 'maison']; 
       
