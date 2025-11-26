@@ -413,6 +413,7 @@
 
   <script type="module">
     import programData from './program-data.js';
+    import { Gamification, Utils, Modal, initIcons } from './app.js';
 
     // ========================================
     // CONSTANTS
@@ -433,7 +434,20 @@
     // ========================================
     
     function loadGamification() {
-      const xp = parseInt(localStorage.getItem('hybrid_xp') || '0');
+      Gamification.updateUI();
+      
+      const quoteEl = document.getElementById('daily-quote');
+      const randomQuote = Gamification.getRandomQuote();
+      const parts = randomQuote.split('.');
+      
+      if (parts.length > 1) {
+        quoteEl.innerHTML = `${parts[0]}. <span class="text-[var(--magenta)] font-bold text-shadow-magenta">${parts[1]}</span>`;
+      } else {
+        quoteEl.textContent = randomQuote;
+      }
+    }
+
+    const xp = parseInt(localStorage.getItem('hybrid_xp') || '0');
       let level = 1;
       let nextXp = XP_LEVELS[1];
       
@@ -471,7 +485,7 @@
     // ========================================
     
     function initDashboard() {
-      lucide.createIcons();
+      initIcons();
       loadGamification();
       
       const currentWeek = parseInt(localStorage.getItem('hybrid_current_week') || 1);
@@ -484,7 +498,7 @@
       populateWorkoutCards(currentWeek);
       
       // Re-create Lucide icons after dynamic content
-      lucide.createIcons();
+      initIcons();
     }
     
     // ========================================
@@ -653,36 +667,15 @@
     // ========================================
     
     window.openDetails = (day) => {
-      const currentWeek = parseInt(localStorage.getItem('hybrid_current_week') || 1);
+      const currentWeek = Utils.getCurrentWeek();
       const workout = programData.getWorkout(currentWeek, day);
       
-      document.getElementById('modal-title').textContent = day.toUpperCase();
-      document.getElementById('modal-subtitle').textContent = workout.name;
-      
-      const list = document.getElementById('modal-body');
-      list.innerHTML = '';
-      
-      workout.exercises.forEach((ex, idx) => {
-        const item = document.createElement('div');
-        item.className = 'flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5';
-        item.innerHTML = `
-          <div class="flex items-center gap-3">
-            <div class="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-xs font-bold text-slate-400">${idx + 1}</div>
-            <div>
-              <div class="text-sm font-bold text-white">${ex.name}</div>
-              <div class="text-[10px] text-slate-500 font-mono">${ex.sets} SETS x ${ex.reps} REPS</div>
-            </div>
-          </div>
-          <div class="text-xs font-bold text-[var(--cyan)]">${ex.weight}kg</div>
-        `;
-        list.appendChild(item);
-      });
-      
-      document.getElementById('modal-start-btn').onclick = () => {
-        window.location.href = `session.html?week=${currentWeek}&day=${day}`;
-      };
-      
-      document.getElementById('details-modal').classList.add('open');
+      Modal.open(
+        day.toUpperCase(),
+        workout.name,
+        workout.exercises,
+        () => window.location.href = `session.html?week=${currentWeek}&day=${day}`
+      );
     };
 
     window.closeModal = () => {
