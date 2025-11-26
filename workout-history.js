@@ -42,7 +42,7 @@ export const WorkoutHistory = {
         notes: setData.notes || ''
       };
       
-      const history = WorkoutHistory.getAll();
+      const history = WorkoutHistory.getAll() || [];
       history.push(entry);
       
       // Limit history size
@@ -174,7 +174,7 @@ export const WorkoutHistory = {
    * @returns {string}
    */
   export: () => {
-    const history = WorkoutHistory.getAll();
+    const history = WorkoutHistory.getAll() || [];
     return JSON.stringify(history, null, 2);
   },
   
@@ -208,7 +208,7 @@ export const WorkoutStats = {
    * @returns {number}
    */
   getTotalWorkouts: () => {
-    const history = WorkoutHistory.getAll();
+    const history = WorkoutHistory.getAll() || [];
     const uniqueWorkouts = new Set(
       history.map(entry => `${entry.week}-${entry.day}`)
     );
@@ -271,7 +271,7 @@ export const WorkoutStats = {
    * @returns {number}
    */
   getStreak: () => {
-    const history = WorkoutHistory.getAll();
+    const history = WorkoutHistory.getAll() || [];
     if (history.length === 0) return 0;
     
     // Get unique workout dates
