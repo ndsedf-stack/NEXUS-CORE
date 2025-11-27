@@ -40,46 +40,6 @@ function waitForElement(selector, timeout = 5000) {
   });
 }
 
-function addBriefingButton(parentElement, day, position = 'before') {
-  const briefingBtn = document.createElement('button');
-  briefingBtn.className = 'briefing-btn w-10 h-10 rounded-full bg-black/30 border border-[var(--cyan)]/40 flex items-center justify-center backdrop-blur-md hover:bg-[var(--cyan)] hover:text-black transition-colors shadow-lg touch-pop';
-  briefingBtn.dataset.day = day;
-  briefingBtn.innerHTML = '<i data-lucide="file-text" class="w-5 h-5 pointer-events-none"></i>';
-  briefingBtn.style.zIndex = '30';
-  
-  // Add event listener with capture phase and multiple stops
-  briefingBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    
-    const currentWeek = Utils.getCurrentWeek();
-    
-    if (navigator.vibrate) {
-      navigator.vibrate(10);
-    }
-    
-    console.log(`📋 Opening briefing: Week ${currentWeek}, Day ${day}`);
-    window.location.href = `briefing.html?week=${currentWeek}&day=${day}`;
-    
-    return false;
-  }, true);
-  
-  // Insert button
-  if (position === 'before') {
-    parentElement.parentNode.insertBefore(briefingBtn, parentElement);
-  } else {
-    parentElement.parentNode.insertBefore(briefingBtn, parentElement.nextSibling);
-  }
-  
-  // Re-init Lucide icons
-  if (typeof lucide !== 'undefined') {
-    lucide.createIcons();
-  }
-  
-  return briefingBtn;
-}
-
 // ========================================
 // INDEX.HTML INTEGRATION
 // ========================================
@@ -109,36 +69,52 @@ async function integrateIndexPage() {
         return;
       }
       
-      // CRITICAL: Remove card onclick to prevent conflicts
-      card.onclick = null;
-      card.style.cursor = 'default';
-      
-      // Find button container
+      // Find the button container (should be the parent of scan button)
       const btnContainer = scanBtn.parentNode;
       
-      // Wrap buttons in flex container if not already
-      if (!btnContainer.classList.contains('flex')) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'flex gap-2 z-20';
-        btnContainer.insertBefore(wrapper, scanBtn);
-        wrapper.appendChild(scanBtn);
-        
-        // Add briefing button
-        addBriefingButton(scanBtn, day, 'before');
-      } else {
-        // Container already exists, just add button
-        addBriefingButton(scanBtn, day, 'before');
-      }
+      // Create briefing button
+      const briefingBtn = document.createElement('button');
+      briefingBtn.className = 'briefing-btn w-10 h-10 rounded-full bg-black/30 border border-[var(--cyan)]/40 flex items-center justify-center backdrop-blur-md hover:bg-[var(--cyan)] hover:text-black transition-colors shadow-lg touch-pop';
+      briefingBtn.dataset.day = day;
+      briefingBtn.innerHTML = '<i data-lucide="file-text" class="w-5 h-5 pointer-events-none"></i>';
+      briefingBtn.style.cssText = 'z-index: 999; position: relative; pointer-events: auto;';
       
-      // Re-attach onclick to scan button (for modal)
-      scanBtn.addEventListener('click', (e) => {
+      // CRITICAL: Add click handler that COMPLETELY blocks propagation
+      const handleClick = (e) => {
+        e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
+        
         const currentWeek = Utils.getCurrentWeek();
-        window.openDetails(day);
-      });
+        
+        if (navigator.vibrate) {
+          navigator.vibrate(10);
+        }
+        
+        console.log(`📋 FORCE Opening briefing: Week ${currentWeek}, Day ${day}`);
+        
+        // IMMEDIATE redirect - don't wait for anything
+        window.location.href = `briefing.html?week=${currentWeek}&day=${day}`;
+        
+        return false;
+      };
+      
+      // Attach to ALL event types on CAPTURE phase
+      briefingBtn.addEventListener('click', handleClick, true);
+      briefingBtn.addEventListener('mousedown', handleClick, true);
+      briefingBtn.addEventListener('touchstart', handleClick, true);
+      briefingBtn.addEventListener('pointerdown', handleClick, true);
+      
+      // Insert button BEFORE scan button
+      btnContainer.insertBefore(briefingBtn, scanBtn);
       
       console.log(`✅ Added briefing button for ${day}`);
     });
+    
+    // Re-init Lucide icons
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
     
     console.log('✨ Index.html integration complete');
   } catch (error) {
