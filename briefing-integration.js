@@ -245,16 +245,25 @@ function init() {
     }, 1500); // Wait for workout cards to be dynamically created
   } 
   else if (path.includes('workouts.html')) {
-    // Workouts page - wait for modal to be available
+    // Workouts page - Execute IMMEDIATELY and AGGRESSIVELY
+    
+    // Method 1: Try immediately
+    integrateWorkoutsPage();
+    
+    // Method 2: Try after 500ms
+    setTimeout(() => {
+      integrateWorkoutsPage();
+    }, 500);
+    
+    // Method 3: Try after 1000ms
     setTimeout(() => {
       integrateWorkoutsPage();
     }, 1000);
     
-    // Also listen for modal opens to re-inject button if needed
+    // Method 4: Listen for modal opens and re-inject
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.target.classList && mutation.target.classList.contains('open')) {
-          // Modal opened - check if button exists
           setTimeout(() => {
             if (!document.getElementById('modal-briefing-btn')) {
               integrateWorkoutsPage();
