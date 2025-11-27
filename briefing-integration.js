@@ -158,10 +158,13 @@ async function integrateWorkoutsPage() {
     btnContainer.insertBefore(briefingBtn, startBtn);
     
     // Add event listener - use global variables from workouts.html
-    briefingBtn.addEventListener('click', function() {
+    briefingBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
       // Try to get current week/day from various sources
       let weekNum = 1;
-      let dayKey = 'day1';
+      let dayKey = 'dimanche'; // default
       
       // Method 1: From Utils
       try {
@@ -174,22 +177,23 @@ async function integrateWorkoutsPage() {
       const modalTitle = document.getElementById('modal-title');
       if (modalTitle) {
         const titleText = modalTitle.textContent.toLowerCase();
-        if (titleText.includes('dimanche')) dayKey = 'day1';
-        else if (titleText.includes('mardi')) dayKey = 'day2';
-        else if (titleText.includes('vendredi')) dayKey = 'day3';
-        else if (titleText.includes('maison')) dayKey = 'day4';
+        if (titleText.includes('dimanche')) dayKey = 'dimanche';
+        else if (titleText.includes('mardi')) dayKey = 'mardi';
+        else if (titleText.includes('vendredi')) dayKey = 'vendredi';
+        else if (titleText.includes('maison')) dayKey = 'maison';
       }
       
-      // Method 3: From active workout card
-      const activeCard = document.querySelector('.workout-card.active');
-      if (activeCard && activeCard.dataset.day) {
-        dayKey = activeCard.dataset.day;
-      }
-      
-      // Method 4: From URL params (if coming from index)
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('week')) weekNum = parseInt(urlParams.get('week'));
-      if (urlParams.get('day')) dayKey = urlParams.get('day');
+      // Method 3: From scan button dataset (most reliable)
+      const scanButtons = document.querySelectorAll('.scan-btn');
+      scanButtons.forEach(btn => {
+        if (btn.dataset.day) {
+          // Check if this scan button was clicked recently
+          const btnDay = btn.dataset.day;
+          if (btnDay && modalTitle && modalTitle.textContent.toLowerCase().includes(btnDay)) {
+            dayKey = btnDay;
+          }
+        }
+      });
       
       console.log(`📋 Opening briefing from modal: Week ${weekNum}, Day ${dayKey}`);
       
