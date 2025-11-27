@@ -45,10 +45,14 @@ function addBriefingButton(parentElement, day, position = 'before') {
   briefingBtn.className = 'briefing-btn w-10 h-10 rounded-full bg-black/30 border border-[var(--cyan)]/40 flex items-center justify-center backdrop-blur-md hover:bg-[var(--cyan)] hover:text-black transition-colors shadow-lg touch-pop';
   briefingBtn.dataset.day = day;
   briefingBtn.innerHTML = '<i data-lucide="file-text" class="w-5 h-5 pointer-events-none"></i>';
+  briefingBtn.style.zIndex = '30';
   
-  // Add event listener
+  // Add event listener with capture phase and multiple stops
   briefingBtn.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
+    
     const currentWeek = Utils.getCurrentWeek();
     
     if (navigator.vibrate) {
@@ -57,7 +61,9 @@ function addBriefingButton(parentElement, day, position = 'before') {
     
     console.log(`📋 Opening briefing: Week ${currentWeek}, Day ${day}`);
     window.location.href = `briefing.html?week=${currentWeek}&day=${day}`;
-  });
+    
+    return false;
+  }, true);
   
   // Insert button
   if (position === 'before') {
@@ -85,30 +91,52 @@ async function integrateIndexPage() {
     // Wait for workout cards to be rendered
     await waitForElement('.scan-btn');
     
-    // Find all scan buttons (details buttons)
-    const scanButtons = document.querySelectorAll('.scan-btn');
-    console.log(`Found ${scanButtons.length} workout cards`);
+    // Find all workout cards
+    const workoutCards = document.querySelectorAll('#workout-stack > div');
+    console.log(`Found ${workoutCards.length} workout cards`);
     
-    scanButtons.forEach((scanBtn, index) => {
+    workoutCards.forEach((card, index) => {
+      // Find scan button to get the day
+      const scanBtn = card.querySelector('.scan-btn');
+      if (!scanBtn) return;
+      
       const day = scanBtn.dataset.day;
       
       // Check if briefing button already exists
-      const existingBriefingBtn = scanBtn.parentNode.querySelector('.briefing-btn');
+      const existingBriefingBtn = card.querySelector('.briefing-btn');
       if (existingBriefingBtn) {
         console.log(`⚠️ Briefing button already exists for ${day}`);
         return;
       }
       
+      // CRITICAL: Remove card onclick to prevent conflicts
+      card.onclick = null;
+      card.style.cursor = 'default';
+      
+      // Find button container
+      const btnContainer = scanBtn.parentNode;
+      
       // Wrap buttons in flex container if not already
-      if (!scanBtn.parentNode.classList.contains('flex')) {
+      if (!btnContainer.classList.contains('flex')) {
         const wrapper = document.createElement('div');
         wrapper.className = 'flex gap-2 z-20';
-        scanBtn.parentNode.insertBefore(wrapper, scanBtn);
+        btnContainer.insertBefore(wrapper, scanBtn);
         wrapper.appendChild(scanBtn);
+        
+        // Add briefing button
+        addBriefingButton(scanBtn, day, 'before');
+      } else {
+        // Container already exists, just add button
+        addBriefingButton(scanBtn, day, 'before');
       }
       
-      // Add briefing button before scan button
-      addBriefingButton(scanBtn, day, 'before');
+      // Re-attach onclick to scan button (for modal)
+      scanBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const currentWeek = Utils.getCurrentWeek();
+        window.openDetails(day);
+      });
+      
       console.log(`✅ Added briefing button for ${day}`);
     });
     
