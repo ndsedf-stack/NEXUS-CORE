@@ -110,36 +110,6 @@ async function integrateWorkoutsPage() {
     const startBtn = document.getElementById('modal-start-btn');
     const modal = document.getElementById('details-modal');
     
-    // NUCLEAR OPTION: Store day globally when ANY scan button is clicked
-    let currentDay = 'dimanche';
-    
-    // Wait a bit for scan buttons to be created
-    setTimeout(() => {
-      const scanButtons = document.querySelectorAll('.scan-btn');
-      console.log(`🔍 Found ${scanButtons.length} scan buttons in workouts.html`);
-      
-      scanButtons.forEach(btn => {
-        const day = btn.dataset.day;
-        if (day) {
-          // Remove ALL existing listeners by cloning
-          const newBtn = btn.cloneNode(true);
-          btn.parentNode.replaceChild(newBtn, btn);
-          
-          // Add NEW listener that stores the day
-          newBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            currentDay = day;
-            console.log(`🎯 Scan button clicked for day: ${day}`);
-            
-            // Call the original openDetails function
-            if (window.openDetails) {
-              window.openDetails(day);
-            }
-          });
-        }
-      });
-    }, 500);
-    
     // Check if briefing button already exists
     if (document.getElementById('modal-briefing-btn')) {
       console.log('⚠️ Modal briefing button already exists');
@@ -200,8 +170,13 @@ async function integrateWorkoutsPage() {
         weekNum = 1;
       }
       
-      console.log(`📋 FORCE REDIRECT: Week ${weekNum}, Day ${currentDay}`);
-      console.log(`Current day stored: ${currentDay}`);
+      // Get day from GLOBAL variable
+      const dayKey = window.CURRENT_BRIEFING_DAY || 'dimanche';
+      
+      console.log(`📋 BRIEFING CLICKED!`);
+      console.log(`   Week: ${weekNum}`);
+      console.log(`   Day: ${dayKey}`);
+      console.log(`   Global day: ${window.CURRENT_BRIEFING_DAY}`);
       
       // Vibration feedback
       if (navigator.vibrate) {
@@ -212,8 +187,11 @@ async function integrateWorkoutsPage() {
       modal.classList.remove('open');
       
       // FORCE redirect
+      const url = `briefing.html?week=${weekNum}&day=${dayKey}`;
+      console.log(`   Redirecting to: ${url}`);
+      
       setTimeout(() => {
-        window.location.href = `briefing.html?week=${weekNum}&day=${currentDay}`;
+        window.location.href = url;
       }, 100);
     });
     
@@ -245,25 +223,58 @@ function init() {
     }, 1500); // Wait for workout cards to be dynamically created
   } 
   else if (path.includes('workouts.html')) {
-    // Workouts page - Execute IMMEDIATELY and AGGRESSIVELY
+    // NUCLEAR OPTION: Wait for page load, then OVERRIDE EVERYTHING
     
-    // Method 1: Try immediately
-    integrateWorkoutsPage();
-    
-    // Method 2: Try after 500ms
     setTimeout(() => {
+      console.log('🔥 NUCLEAR INTEGRATION START');
+      
+      // Step 1: Integrate modal button
       integrateWorkoutsPage();
-    }, 500);
+      
+      // Step 2: OVERRIDE all scan buttons
+      setTimeout(() => {
+        const scanButtons = document.querySelectorAll('.scan-btn');
+        console.log(`🔍 Found ${scanButtons.length} scan buttons - OVERRIDING ALL`);
+        
+        // Store current day globally
+        window.CURRENT_BRIEFING_DAY = 'dimanche';
+        
+        scanButtons.forEach((btn, index) => {
+          const day = btn.dataset.day;
+          if (!day) return;
+          
+          console.log(`🎯 Overriding scan button ${index + 1}: ${day}`);
+          
+          // Clone to remove ALL listeners
+          const newBtn = btn.cloneNode(true);
+          btn.parentNode.replaceChild(newBtn, btn);
+          
+          // Add NEW listener
+          newBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            
+            // Store day globally
+            window.CURRENT_BRIEFING_DAY = day;
+            console.log(`💾 Stored global day: ${day}`);
+            
+            // Call modal function
+            if (typeof openDetails === 'function') {
+              openDetails(day);
+            } else {
+              console.error('❌ openDetails function not found!');
+            }
+          }, true); // Capture phase
+        });
+        
+        console.log('✅ All scan buttons overridden');
+      }, 500);
+      
+    }, 1500); // Wait 1.5s for page to fully load
     
-    // Method 3: Try after 1000ms
-    setTimeout(() => {
-      integrateWorkoutsPage();
-    }, 1000);
-    
-    // Method 4: Listen for modal opens and re-inject
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.target.classList && mutation.target.classList.contains('open')) {
+    // Also listen for modal opens
+    waitForElement('#details-modal').then((modal) => {
+      const observer = new MutationObserver(() => {
+        if (modal.classList.contains('open')) {
           setTimeout(() => {
             if (!document.getElementById('modal-briefing-btn')) {
               integrateWorkoutsPage();
@@ -271,9 +282,7 @@ function init() {
           }, 100);
         }
       });
-    });
-    
-    waitForElement('#details-modal').then((modal) => {
+      
       observer.observe(modal, {
         attributes: true,
         attributeFilter: ['class']
