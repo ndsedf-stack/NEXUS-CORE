@@ -773,16 +773,16 @@
     
     <script type="module">
         // Import program data
-        import { PROGRAM, CONSTANTS } from './program-data.js';
+        import programData from './program-data.js';
         
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const weekNum = parseInt(urlParams.get('week')) || 1;
         const dayKey = urlParams.get('day') || 'day1';
         
-        // Find week and day data
-        const weekData = PROGRAM.weeks.find(w => w.weekNumber === weekNum);
-        const dayData = weekData ? weekData.workouts[dayKey] : null;
+        // Find week and day data using programData methods
+        const weekData = programData.getWeek(weekNum);
+        const dayData = weekData ? weekData[dayKey] : null;
         
         if (!weekData || !dayData) {
             alert('Workout non trouvé!');
@@ -875,9 +875,10 @@
         
         // Update briefing text
         const briefingText = document.getElementById('briefingText');
+        
         briefingText.innerHTML = `
             <span class="text-highlight">Agent</span>, votre mission d'aujourd'hui cible le <span class="text-highlight">${dayData.name}</span> avec ${totalExercises} exercices stratégiques. 
-            Le protocole combine ${weekData.technique} pour maximiser l'hypertrophie durant le bloc <span class="text-highlight">${weekData.blockName}</span>. 
+            Le protocole combine <span class="text-highlight">${weekData.technique}</span> pour maximiser l'hypertrophie durant le bloc <span class="text-highlight">${weekData.block}</span>. 
             Avec ${totalSets} séries totales et une durée estimée de ${estimatedDuration}min, cette session vous rapportera <span class="text-highlight">+${xpReward} XP</span> à l'accomplissement. 
             Les groupes musculaires ciblés : ${mainMuscles.join(', ')}.
         `;
