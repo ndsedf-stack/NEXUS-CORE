@@ -337,7 +337,6 @@ function overrideWorkoutsScanButtons() {
   
   console.log('✅ Workouts scan buttons overridden');
 }
-}
 
 // Start integration when DOM is ready
 if (document.readyState === 'loading') {
