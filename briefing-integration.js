@@ -110,24 +110,41 @@ async function integrateWorkoutsPage() {
     const startBtn = document.getElementById('modal-start-btn');
     const modal = document.getElementById('details-modal');
     
+    // NUCLEAR OPTION: Store day globally when ANY scan button is clicked
+    let currentDay = 'dimanche';
+    
+    // Wait a bit for scan buttons to be created
+    setTimeout(() => {
+      const scanButtons = document.querySelectorAll('.scan-btn');
+      console.log(`🔍 Found ${scanButtons.length} scan buttons in workouts.html`);
+      
+      scanButtons.forEach(btn => {
+        const day = btn.dataset.day;
+        if (day) {
+          // Remove ALL existing listeners by cloning
+          const newBtn = btn.cloneNode(true);
+          btn.parentNode.replaceChild(newBtn, btn);
+          
+          // Add NEW listener that stores the day
+          newBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            currentDay = day;
+            console.log(`🎯 Scan button clicked for day: ${day}`);
+            
+            // Call the original openDetails function
+            if (window.openDetails) {
+              window.openDetails(day);
+            }
+          });
+        }
+      });
+    }, 500);
+    
     // Check if briefing button already exists
     if (document.getElementById('modal-briefing-btn')) {
       console.log('⚠️ Modal briefing button already exists');
       return;
     }
-    
-    // CRITICAL: Override the global openDetails function to store the day
-    const originalOpenDetails = window.openDetails;
-    window.openDetails = function(day) {
-      // Store the day in modal dataset
-      modal.dataset.currentDay = day;
-      console.log(`📝 Stored day in modal: ${day}`);
-      
-      // Call original function
-      if (originalOpenDetails) {
-        originalOpenDetails(day);
-      }
-    };
     
     // Create briefing button
     const briefingBtn = document.createElement('button');
@@ -180,13 +197,11 @@ async function integrateWorkoutsPage() {
       try {
         weekNum = Utils.getCurrentWeek();
       } catch (e) {
-        console.warn('Could not get week from Utils');
+        weekNum = 1;
       }
       
-      // Get day from modal dataset (stored by openDetails)
-      const dayKey = modal.dataset.currentDay || 'dimanche';
-      
-      console.log(`📋 Opening briefing from modal: Week ${weekNum}, Day ${dayKey}`);
+      console.log(`📋 FORCE REDIRECT: Week ${weekNum}, Day ${currentDay}`);
+      console.log(`Current day stored: ${currentDay}`);
       
       // Vibration feedback
       if (navigator.vibrate) {
@@ -196,8 +211,10 @@ async function integrateWorkoutsPage() {
       // Close modal
       modal.classList.remove('open');
       
-      // Redirect to briefing
-      window.location.href = `briefing.html?week=${weekNum}&day=${dayKey}`;
+      // FORCE redirect
+      setTimeout(() => {
+        window.location.href = `briefing.html?week=${weekNum}&day=${currentDay}`;
+      }, 100);
     });
     
     // Re-init Lucide icons
