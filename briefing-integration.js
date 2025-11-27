@@ -116,6 +116,19 @@ async function integrateWorkoutsPage() {
       return;
     }
     
+    // CRITICAL: Override the global openDetails function to store the day
+    const originalOpenDetails = window.openDetails;
+    window.openDetails = function(day) {
+      // Store the day in modal dataset
+      modal.dataset.currentDay = day;
+      console.log(`📝 Stored day in modal: ${day}`);
+      
+      // Call original function
+      if (originalOpenDetails) {
+        originalOpenDetails(day);
+      }
+    };
+    
     // Create briefing button
     const briefingBtn = document.createElement('button');
     briefingBtn.id = 'modal-briefing-btn';
@@ -157,43 +170,21 @@ async function integrateWorkoutsPage() {
     // Insert briefing button before start button
     btnContainer.insertBefore(briefingBtn, startBtn);
     
-    // Add event listener - use global variables from workouts.html
+    // Add event listener
     briefingBtn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       
-      // Try to get current week/day from various sources
+      // Get week from Utils
       let weekNum = 1;
-      let dayKey = 'dimanche'; // default
-      
-      // Method 1: From Utils
       try {
         weekNum = Utils.getCurrentWeek();
       } catch (e) {
         console.warn('Could not get week from Utils');
       }
       
-      // Method 2: From modal title/subtitle
-      const modalTitle = document.getElementById('modal-title');
-      if (modalTitle) {
-        const titleText = modalTitle.textContent.toLowerCase();
-        if (titleText.includes('dimanche')) dayKey = 'dimanche';
-        else if (titleText.includes('mardi')) dayKey = 'mardi';
-        else if (titleText.includes('vendredi')) dayKey = 'vendredi';
-        else if (titleText.includes('maison')) dayKey = 'maison';
-      }
-      
-      // Method 3: From scan button dataset (most reliable)
-      const scanButtons = document.querySelectorAll('.scan-btn');
-      scanButtons.forEach(btn => {
-        if (btn.dataset.day) {
-          // Check if this scan button was clicked recently
-          const btnDay = btn.dataset.day;
-          if (btnDay && modalTitle && modalTitle.textContent.toLowerCase().includes(btnDay)) {
-            dayKey = btnDay;
-          }
-        }
-      });
+      // Get day from modal dataset (stored by openDetails)
+      const dayKey = modal.dataset.currentDay || 'dimanche';
       
       console.log(`📋 Opening briefing from modal: Week ${weekNum}, Day ${dayKey}`);
       
