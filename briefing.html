@@ -36,12 +36,15 @@
             background: var(--bg-dark);
             color: var(--text-primary);
             overflow-x: hidden;
+            overflow-y: auto; /* Permettre le scroll vertical */
             max-width: 430px;
-            min-height: 932px;
+            min-height: 100vh; /* Changé de 932px à 100vh */
+            height: auto; /* CRITICAL pour le scroll */
             margin: 0 auto;
             position: relative;
             perspective: 3500px;
             perspective-origin: 50% 50%;
+            -webkit-overflow-scrolling: touch; /* Smooth scroll sur iOS */
         }
         
         /* Enhanced Deep Space Background */
@@ -130,13 +133,15 @@
         .container {
             position: relative;
             z-index: 2;
+            width: 100%;
             min-height: 100vh;
+            height: auto; /* CRITICAL pour iOS */
             display: flex;
             flex-direction: column;
             padding: 20px;
             padding-top: env(safe-area-inset-top, 20px);
-            padding-bottom: env(safe-area-inset-bottom, 20px);
-            overflow-y: auto;
+            padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 40px); /* Extra padding pour iOS */
+            overflow-y: visible; /* Changé de auto à visible */
             overflow-x: hidden;
             transform-style: preserve-3d;
         }
