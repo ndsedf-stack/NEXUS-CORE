@@ -1,999 +1,524 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Mission Briefing - Hybrid Master 63</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-        :root {
-            --cyan: #00d9ff;
-            --orange: #ff8c00;
-            --magenta: #ff0080;
-            --violet: #a855f7;
-            --green: #00ff88;
-            --red: #ff4444;
-            --yellow: #ffd700;
-            --gold: #ffd700;
-            --bg-dark: #0a0a0a;
-            --bg-card: #141414;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-        }
-        @font-face {
-            font-family: 'SF Pro Display';
-            src: local('SF Pro Display');
-        }
-        body {
-            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            overflow-y: auto; /* Permettre le scroll vertical */
-            max-width: 430px;
-            min-height: 100vh; /* Changé de 932px à 100vh */
-            height: auto; /* CRITICAL pour le scroll */
-            margin: 0 auto;
-            position: relative;
-            perspective: 3500px;
-            perspective-origin: 50% 50%;
-            -webkit-overflow-scrolling: touch; /* Smooth scroll sur iOS */
-        }
-        
-        /* Enhanced Deep Space Background */
-        .mesh-gradient {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 15% 15%, rgba(0, 217, 255, 0.06) 0%, transparent 60%),
-                radial-gradient(circle at 85% 85%, rgba(255, 140, 0, 0.05) 0%, transparent 60%),
-                radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.04) 0%, transparent 70%),
-                radial-gradient(circle at 92% 8%, rgba(255, 0, 128, 0.03) 0%, transparent 60%);
-            animation: mesh-shift 20s ease-in-out infinite;
-            filter: blur(100px);
-            z-index: 0;
-            opacity: 0.7;
-            transform-style: preserve-3d;
-        }
-        @keyframes mesh-shift {
-            0%, 100% { 
-                transform: scale(1) translateZ(0) rotate(0deg); 
-                opacity: 0.7; 
-            }
-            33% { 
-                transform: scale(1.1) translateZ(30px) rotate(2deg); 
-                opacity: 0.8; 
-            }
-            66% { 
-                transform: scale(0.95) translateZ(-20px) rotate(-2deg); 
-                opacity: 0.75; 
-            }
-        }
-        
-        /* Background Canvas */
-        .bg-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-        
-        /* Scanline Effect */
-        .scanline {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                0deg,
-                rgba(0, 217, 255, 0.03) 0px,
-                transparent 1px,
-                transparent 2px,
-                rgba(0, 217, 255, 0.03) 3px
-            );
-            pointer-events: none;
-            z-index: 100;
-            animation: scanline-move 8s linear infinite;
-        }
-        @keyframes scanline-move {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(20px); }
-        }
-        
-        /* Grid Overlay */
-        .grid-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(0, 217, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 217, 255, 0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
-            pointer-events: none;
-            opacity: 0.5;
-        }
-        
-        /* Container */
-        .container {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            min-height: 100vh;
-            height: auto; /* CRITICAL pour iOS */
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            padding-top: env(safe-area-inset-top, 20px);
-            padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 40px); /* Extra padding pour iOS */
-            overflow-y: visible; /* Changé de auto à visible */
-            overflow-x: hidden;
-            transform-style: preserve-3d;
-        }
-        
-        /* Header */
-        .header {
-            position: relative;
-            margin-bottom: 20px;
-            animation: header-enter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform-style: preserve-3d;
-        }
-        @keyframes header-enter {
-            from { 
-                opacity: 0; 
-                transform: translateY(-50px) translateZ(-100px) rotateX(20deg);
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0) translateZ(0) rotateX(0);
-            }
-        }
-        
-        .close-btn {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            backdrop-filter: blur(20px);
-            font-size: 20px;
-            color: var(--cyan);
-            z-index: 10;
-        }
-        .close-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: rotate(90deg) scale(1.1);
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
-        }
-        .close-btn:active {
-            transform: rotate(90deg) scale(0.9);
-        }
-        
-        /* Glitch Title */
-        .day-title {
-            font-size: 32px;
-            font-weight: 900;
-            font-style: italic;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            margin-bottom: 8px;
-            position: relative;
-            display: inline-block;
-            background: linear-gradient(135deg, var(--cyan) 0%, var(--magenta) 50%, var(--orange) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.6));
-            animation: title-glow 4s ease-in-out infinite;
-        }
-        @keyframes title-glow {
-            0%, 100% { 
-                filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.6));
-            }
-            25% { 
-                filter: drop-shadow(0 0 30px rgba(255, 0, 128, 0.8));
-            }
-            50% { 
-                filter: drop-shadow(0 0 25px rgba(255, 140, 0, 0.7));
-            }
-            75% { 
-                filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.8));
-            }
-        }
-        
-        .day-title::before {
-            content: attr(data-text);
-            position: absolute;
-            left: 2px;
-            top: 0;
-            background: linear-gradient(135deg, var(--cyan) 0%, var(--magenta) 50%, var(--orange) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            opacity: 0;
-            animation: glitch-1 3s infinite;
-        }
-        .day-title::after {
-            content: attr(data-text);
-            position: absolute;
-            left: -2px;
-            top: 0;
-            background: linear-gradient(135deg, var(--magenta) 0%, var(--orange) 50%, var(--cyan) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            opacity: 0;
-            animation: glitch-2 3s infinite;
-        }
-        @keyframes glitch-1 {
-            0%, 90%, 100% { opacity: 0; }
-            91%, 94% { opacity: 0.7; }
-        }
-        @keyframes glitch-2 {
-            0%, 90%, 100% { opacity: 0; }
-            92%, 95% { opacity: 0.7; }
-        }
-        
-        .muscle-groups {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--cyan);
-            letter-spacing: 2px;
-            margin-bottom: 16px;
-            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
-        }
-        
-        /* Stats Bar */
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-            animation: stats-enter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
-            transform-style: preserve-3d;
-        }
-        @keyframes stats-enter {
-            from {
-                opacity: 0;
-                transform: translateY(30px) translateZ(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) translateZ(0);
-            }
-        }
-        
-        .stat-badge {
-            position: relative;
-            padding: 12px 8px;
-            background: rgba(20, 20, 20, 0.3); /* Plus transparent */
-            border: 2px solid transparent;
-            border-radius: 12px;
-            backdrop-filter: blur(30px);
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            transform-style: preserve-3d;
-            cursor: pointer;
-        }
-        .stat-badge::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 12px;
-            padding: 2px;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .stat-badge:hover::before {
-            opacity: 1;
-            animation: border-rotate 2s linear infinite;
-        }
-        @keyframes border-rotate {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
-        }
-        .stat-badge:hover {
-            transform: translateY(-5px) translateZ(20px) rotateX(5deg);
-            box-shadow: 
-                0 20px 40px rgba(0, 217, 255, 0.3),
-                0 0 60px rgba(0, 217, 255, 0.2);
-        }
-        
-        .stat-label {
-            font-size: 9px;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-        .stat-value {
-            font-size: 20px;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(0 0 10px rgba(0, 217, 255, 0.5));
-        }
-        
-        /* Section Divider */
-        .section-divider {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 20px 0 16px;
-            animation: divider-enter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s backwards;
-        }
-        @keyframes divider-enter {
-            from {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        .section-icon {
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta));
-            border-radius: 8px;
-            font-size: 16px;
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
-            animation: icon-pulse 2s ease-in-out infinite;
-        }
-        @keyframes icon-pulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 217, 255, 0.5); }
-            50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(255, 0, 128, 0.7); }
-        }
-        
-        .section-title {
-            flex: 1;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: var(--cyan);
-            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
-        }
-        
-        /* Exercise Card */
-        .exercise-card {
-            position: relative;
-            background: rgba(20, 20, 20, 0.2); /* PRESQUE INVISIBLE */
-            border-radius: 20px;
-            padding: 18px;
-            margin-bottom: 12px;
-            border: 2px solid rgba(0, 217, 255, 0.2); /* Border cyan visible */
-            backdrop-filter: blur(50px); /* MAX blur */
-            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-            cursor: pointer;
-            overflow: hidden;
-            transform-style: preserve-3d;
-            z-index: 1;
-            box-shadow: 
-                0 10px 40px rgba(0, 0, 0, 0.5),
-                0 2px 10px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.03),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-            animation: card-enter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
-        }
-        @keyframes card-enter {
-            from {
-                opacity: 0;
-                transform: translateY(50px) translateZ(-100px) rotateX(-10deg);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) translateZ(0) rotateX(0);
-            }
-        }
-        
-        .exercise-card:hover {
-            border-color: rgba(0, 217, 255, 0.3);
-        }
-        
-        /* Card Header */
-        .card-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            margin-bottom: 14px;
-        }
-        
-        .exercise-number {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, rgba(0, 217, 255, 0.3), rgba(168, 85, 247, 0.3));
-            border: 2px solid var(--cyan);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: 900;
-            color: var(--cyan);
-            flex-shrink: 0;
-            box-shadow: 
-                0 0 30px rgba(0, 217, 255, 0.5),
-                inset 0 0 20px rgba(0, 217, 255, 0.2);
-            position: relative;
-            overflow: hidden;
-            animation: number-glow 2s ease-in-out infinite;
-        }
-        @keyframes number-glow {
-            0%, 100% { box-shadow: 0 0 30px rgba(0, 217, 255, 0.5), inset 0 0 20px rgba(0, 217, 255, 0.2); }
-            50% { box-shadow: 0 0 40px rgba(255, 0, 128, 0.7), inset 0 0 30px rgba(255, 0, 128, 0.3); }
-        }
-        
-        .exercise-info {
-            flex: 1;
-        }
-        .exercise-name {
-            font-size: 17px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            letter-spacing: 0.5px;
-        }
-        .exercise-meta {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        
-        .badge {
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border: 1.5px solid;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        .badge.muscle {
-            background: rgba(0, 217, 255, 0.15);
-            border-color: var(--cyan);
-            color: var(--cyan);
-            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
-        }
-        .badge.type {
-            background: rgba(255, 140, 0, 0.15);
-            border-color: var(--orange);
-            color: var(--orange);
-            box-shadow: 0 0 15px rgba(255, 140, 0, 0.3);
-        }
-        
-        /* Mission Briefing */
-        .mission-briefing {
-            background: linear-gradient(135deg, rgba(0, 217, 255, 0.02), rgba(168, 85, 247, 0.02)); /* PRESQUE invisible */
-            border-radius: 20px;
-            padding: 24px;
-            border: 1px solid rgba(0, 217, 255, 0.3); /* Border plus visible */
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(30px);
-            margin-bottom: 20px;
-            animation: summary-enter 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 1s backwards;
-        }
-        @keyframes summary-enter {
-            from {
-                opacity: 0;
-                transform: translateY(30px) translateZ(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) translateZ(0);
-            }
-        }
-        
-        .briefing-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        
-        .ai-avatar {
-            position: relative;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta));
-            box-shadow: 0 8px 24px rgba(0, 217, 255, 0.4);
-        }
-        .avatar-glow {
-            position: absolute;
-            inset: -4px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta));
-            filter: blur(12px);
-            opacity: 0.6;
-            animation: avatar-pulse 2s ease-in-out infinite;
-        }
-        @keyframes avatar-pulse {
-            0%, 100% { transform: scale(1); opacity: 0.6; }
-            50% { transform: scale(1.15); opacity: 0.9; }
-        }
-        
-        .avatar-icon {
-            font-size: 24px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .briefing-title {
-            flex: 1;
-        }
-        .title-main {
-            font-size: 14px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 4px;
-        }
-        .title-sub {
-            font-size: 10px;
-            color: var(--text-secondary);
-            letter-spacing: 0.5px;
-        }
-        
-        .briefing-text {
-            font-size: 13px;
-            line-height: 1.7;
-            color: var(--text-primary);
-            margin-bottom: 20px;
-            text-align: justify;
-        }
-        .text-highlight {
-            color: var(--cyan);
-            font-weight: 700;
-            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
-        }
-        
-        /* Launch Button */
-        .launch-mission-btn {
-            position: relative;
-            width: 100%;
-            padding: 0;
-            border: none;
-            border-radius: 16px;
-            background: linear-gradient(135deg, #00d9ff, #ff0080, #ffd700);
-            background-size: 200% 200%;
-            cursor: pointer;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            animation: gradient-shift 4s ease infinite;
-            box-shadow: 
-                0 12px 40px rgba(0, 217, 255, 0.4),
-                0 0 60px rgba(255, 0, 128, 0.3),
-                inset 0 2px 0 rgba(255, 255, 255, 0.2);
-        }
-        @keyframes gradient-shift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-        
-        .btn-glow {
-            position: absolute;
-            inset: -4px;
-            background: linear-gradient(135deg, var(--cyan), var(--magenta));
-            filter: blur(20px);
-            opacity: 0;
-            transition: opacity 0.4s;
-            z-index: 0;
-        }
-        .launch-mission-btn:hover .btn-glow {
-            opacity: 0.8;
-        }
-        
-        .btn-content {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            padding: 18px 24px;
-            z-index: 1;
-        }
-        
-        .btn-icon {
-            font-size: 28px;
-        }
-        
-        .btn-text {
-            text-align: left;
-        }
-        .btn-main {
-            font-size: 16px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #000;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            margin-bottom: 2px;
-        }
-        .btn-sub {
-            font-size: 10px;
-            font-weight: 700;
-            color: rgba(0, 0, 0, 0.7);
-            letter-spacing: 0.5px;
-        }
-        
-        .launch-mission-btn:hover {
-            transform: translateY(-4px) scale(1.02);
-        }
-        .launch-mission-btn:active {
-            transform: translateY(-2px) scale(0.99);
-        }
-        
-        /* Scrollbar */
-        .container::-webkit-scrollbar {
-            width: 6px;
-        }
-        .container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 3px;
-        }
-        .container::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, var(--cyan), var(--magenta));
-            border-radius: 3px;
-            box-shadow: 0 0 10px var(--cyan);
-        }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>NeonLift AI - Protocol</title>
     
-    <!-- SVG Definitions for Gradients -->
-    <svg width="0" height="0" style="position: absolute;">
-        <defs>
-            <linearGradient id="gradient-sets" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#00d9ff;stop-opacity:1" />
-                <stop offset="50%" style="stop-color:#00ff88;stop-opacity:1" />
-                <stop offset="100%" style="stop-color:#00d9ff;stop-opacity:1" />
-            </linearGradient>
-        </defs>
-    </svg>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Import Map for React & Dependencies -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.263.1",
+        "@google/genai": "https://esm.sh/@google/genai@0.1.1"
+      }
+    }
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #020408;
+        color: #f8fafc;
+        overflow-x: hidden;
+        margin: 0;
+      }
+      h1, h2, h3, .font-techno {
+        font-family: 'Chakra Petch', sans-serif;
+      }
+      
+      /* Scrollbar */
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+      
+      /* FLOATING GLASS CARD - FIXED TRANSPARENCY */
+      .glass-card {
+        background: rgba(20, 20, 30, 0.05) !important; /* Extremely transparent */
+        backdrop-filter: blur(12px); /* Blur the stars behind */
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      
+      .glass-card:hover {
+        background: rgba(20, 20, 30, 0.1) !important;
+        border-color: rgba(6, 182, 212, 0.3);
+        box-shadow: 0 0 40px rgba(6, 182, 212, 0.1);
+        transform: translateY(-2px);
+      }
+      
+      /* Neon Text Glow */
+      .neon-text-glow { 
+        text-shadow: 0 0 10px rgba(34, 211, 238, 0.8), 0 0 20px rgba(34, 211, 238, 0.4); 
+      }
+
+      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+      /* Shimmer Animation */
+      @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+      .animate-shimmer {
+        animation: shimmer 2s infinite linear;
+      }
+    </style>
 </head>
 <body>
-    <!-- Background Effects -->
-    <canvas class="bg-canvas" id="particleCanvas"></canvas>
-    <div class="mesh-gradient"></div>
-    <div class="scanline"></div>
-    <div class="grid-overlay"></div>
-    
-    <!-- Main Container -->
-    <div class="container" id="mainContainer">
-        <!-- Header -->
-        <div class="header">
-            <button class="close-btn" id="closeBtn">✕</button>
-            <h1 class="day-title" data-text="LOADING" id="dayTitle">LOADING...</h1>
-            <div class="muscle-groups" id="muscleGroups">LOADING...</div>
-        </div>
-        
-        <!-- Stats Bar -->
-        <div class="stats-bar">
-            <div class="stat-badge">
-                <div class="stat-label">Durée</div>
-                <div class="stat-value" data-target="0" id="statDuration">0</div>
-            </div>
-            <div class="stat-badge">
-                <div class="stat-label">Séries</div>
-                <div class="stat-value" data-target="0" id="statSets">0</div>
-            </div>
-            <div class="stat-badge">
-                <div class="stat-label">Exercices</div>
-                <div class="stat-value" data-target="0" id="statExercises">0</div>
-            </div>
-            <div class="stat-badge">
-                <div class="stat-label">XP</div>
-                <div class="stat-value" data-target="0" id="statXP">0</div>
-            </div>
-        </div>
-        
-        <!-- Section Divider -->
-        <div class="section-divider">
-            <div class="section-icon">⚡</div>
-            <div class="section-title">PROTOCOLE D'ENTRAÎNEMENT</div>
-        </div>
-        
-        <!-- Exercises Container -->
-        <div id="exercisesContainer">
-            <!-- Exercises will be dynamically loaded here -->
-        </div>
-        
-        <!-- Mission Briefing -->
-        <div class="mission-briefing">
-            <div class="briefing-header">
-                <div class="ai-avatar">
-                    <div class="avatar-glow"></div>
-                    <span class="avatar-icon">🤖</span>
-                </div>
-                <div class="briefing-title">
-                    <div class="title-main">BRIEFING DE MISSION</div>
-                    <div class="title-sub">Analyse tactique IA • Protocole Hypertrophie</div>
-                </div>
-            </div>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import ReactDOM from 'react-dom/client';
+        import { Zap, Activity, Clock, Trophy, Dumbbell, ChevronUp, ChevronDown, Sparkles, Send, Loader2, Bot } from 'lucide-react';
+        import { GoogleGenAI } from "@google/genai";
+
+        // --- MOCK DATA ---
+        const DEFAULT_WORKOUT_DATA = {
+          title: "DIMANCHE",
+          subtitle: "// DOS + JAMBES",
+          stats: [
+            { label: "DURÉE", value: "68m", color: "text-cyan-400" },
+            { label: "SÉRIES", value: "31", color: "text-slate-200" },
+            { label: "EXERCICES", value: "8", color: "text-slate-200" },
+            { label: "XP", value: "500", color: "text-purple-400" },
+          ],
+          exercises: [
+            {
+              id: 1,
+              name: "Trap Bar Deadlift",
+              tags: [
+                { label: "DOS", type: "cyan" },
+                { label: "COMPOUND", type: "pink" }
+              ],
+              sets: 5,
+              reps: "6-8",
+              load: "75kg",
+              aiTip: "Garde le dos neutre. Engage tes dorsaux avant de tirer.",
+              stats: { force: 90, hypertrophy: 60, endurance: 30 }
+            },
+            {
+              id: 2,
+              name: "Goblet Squat",
+              tags: [
+                { label: "JAMBES", type: "cyan" },
+                { label: "COMPOUND", type: "pink" }
+              ],
+              sets: 4,
+              reps: "10",
+              load: "25kg",
+              aiTip: "Belle profondeur. Attention à tes genoux à la remontée.",
+              stats: { force: 60, hypertrophy: 85, endurance: 40 }
+            },
+            {
+              id: 3,
+              name: "Leg Press",
+              tags: [
+                { label: "JAMBES", type: "cyan" },
+                { label: "ISOLATION", type: "pink" }
+              ],
+              sets: 4,
+              reps: "10",
+              load: "110kg",
+              aiTip: null,
+              stats: { force: 45, hypertrophy: 90, endurance: 50 }
+            }
+          ]
+        };
+
+        // --- BACKGROUND: STARFIELD ---
+        const StarField = () => {
+          const canvasRef = useRef(null);
+
+          useEffect(() => {
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
             
-            <div class="briefing-content">
-                <p class="briefing-text" id="briefingText">
-                    Chargement du briefing...
-                </p>
-            </div>
+            let stars = [];
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+
+            const init = () => {
+              width = window.innerWidth;
+              height = window.innerHeight;
+              canvas.width = width;
+              canvas.height = height;
+              stars = [];
+              const numStars = Math.floor((width * height) / 3000); // More stars
+              
+              for(let i=0; i<numStars; i++) {
+                stars.push({
+                  x: Math.random() * width,
+                  y: Math.random() * height,
+                  size: Math.random() * 1.5,
+                  speed: Math.random() * 0.15 + 0.05,
+                  opacity: Math.random(),
+                  fade: Math.random() * 0.01 + 0.005
+                });
+              }
+            };
+
+            const animate = () => {
+              ctx.clearRect(0, 0, width, height);
+              
+              stars.forEach(star => {
+                star.y -= star.speed;
+                if (star.y < 0) star.y = height;
+                
+                // Twinkle effect
+                star.opacity += star.fade;
+                if (star.opacity > 1 || star.opacity < 0.1) star.fade = -star.fade;
+                
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (star.size > 1.2 && star.opacity > 0.8) {
+                   ctx.shadowBlur = 10;
+                   ctx.shadowColor = "white";
+                   ctx.fill();
+                   ctx.shadowBlur = 0;
+                }
+              });
+              
+              requestAnimationFrame(animate);
+            };
+
+            init();
+            animate();
             
-            <button class="launch-mission-btn" id="launchMissionBtn">
-                <div class="btn-glow"></div>
-                <div class="btn-content">
-                    <span class="btn-icon">🚀</span>
-                    <div class="btn-text">
-                        <div class="btn-main">LANCER LA MISSION</div>
-                        <div class="btn-sub">Démarrer le protocole</div>
+            const handleResize = () => init();
+            window.addEventListener('resize', handleResize);
+            return () => window.removeEventListener('resize', handleResize);
+          }, []);
+
+          return <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full pointer-events-none z-0" />;
+        };
+
+        // --- COMPONENT: CIRCULAR GAUGE ---
+        const CircularGauge = ({ value, label, maxValue = 10, color = "text-slate-200", glow = false, delay = 0 }) => {
+          const [percent, setPercent] = useState(0);
+          
+          // Parse logic: "6-8" -> 8, "75kg" -> 75
+          const numericValue = parseFloat(String(value).match(/(\d+)/)?.[0] || 0);
+          // Calculate percentage proportional to max
+          const targetPercent = Math.min((numericValue / maxValue) * 100, 100);
+
+          useEffect(() => {
+            const timer = setTimeout(() => setPercent(targetPercent), 300 + delay);
+            return () => clearTimeout(timer);
+          }, [delay, targetPercent]);
+
+          const radius = 38;
+          const circumference = 2 * Math.PI * radius;
+          const strokeDashoffset = circumference - (percent / 100) * circumference;
+
+          // Unique ID for filter
+          const uid = Math.random().toString(36).substr(2, 9);
+          const strokeColor = glow ? "#06b6d4" : "#94a3b8"; // Cyan vs Slate
+
+          return (
+            <div className="flex flex-col items-center justify-center">
+              <div className="relative w-24 h-24 flex items-center justify-center">
+                <svg className="absolute w-full h-full -rotate-90 overflow-visible" viewBox="0 0 100 100">
+                  <defs>
+                    <linearGradient id={`grad_${uid}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor={glow ? "#22d3ee" : "#64748b"} stopOpacity="1" />
+                      <stop offset="100%" stopColor={glow ? "#0891b2" : "#334155"} stopOpacity="0.5" />
+                    </linearGradient>
+                    <filter id={`glow_${uid}`} x="-50%" y="-50%" width="200%" height="200%">
+                      <feGaussianBlur stdDeviation={glow ? "4" : "0"} result="coloredBlur"/>
+                      <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                      </feMerge>
+                    </filter>
+                  </defs>
+
+                  {/* Outer Dashed Ring (Tech Look) */}
+                  <circle
+                    cx="50" cy="50" r="46"
+                    stroke={glow ? "rgba(34, 211, 238, 0.2)" : "rgba(255,255,255,0.05)"}
+                    strokeWidth="1" fill="none"
+                    strokeDasharray="4 4"
+                  />
+
+                  {/* Track */}
+                  <circle
+                    cx="50" cy="50" r={radius}
+                    stroke="rgba(255,255,255,0.05)"
+                    strokeWidth="4" fill="none"
+                  />
+
+                  {/* Animated Stroke */}
+                  <circle
+                    cx="50" cy="50" r={radius}
+                    stroke={`url(#grad_${uid})`}
+                    strokeWidth="4" fill="none"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    className="transition-all duration-[1500ms] cubic-bezier(0.2, 0.8, 0.2, 1)"
+                    filter={glow ? `url(#glow_${uid})` : ""}
+                  />
+                </svg>
+                
+                {/* Value Content */}
+                <div className="z-10 flex flex-col items-center justify-center relative">
+                   {glow && <div className="absolute w-12 h-12 bg-cyan-500/10 rounded-full blur-xl"></div>}
+                   <span className={`text-xl font-bold font-techno tracking-wider ${color} ${glow ? 'neon-text-glow' : ''}`}>
+                    {value}
+                   </span>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest -mt-2">{label}</span>
+            </div>
+          );
+        };
+
+        // --- COMPONENT: STAT BAR (High Quality) ---
+        const StatBar = ({ label, value, colorClass, trackColorClass }) => (
+          <div className="flex items-center gap-3 w-full group/bar">
+            <span className="text-[9px] font-bold text-slate-500 w-12 uppercase tracking-widest text-right group-hover/bar:text-slate-300 transition-colors">{label}</span>
+            <div className={`flex-1 h-1.5 ${trackColorClass} rounded-full overflow-hidden relative`}>
+              <div 
+                className={`h-full rounded-full ${colorClass} relative z-10 transition-all duration-1000 ease-out`} 
+                style={{ width: `${value}%`, boxShadow: '0 0 8px currentColor' }}
+              />
+              <div className="absolute inset-0 z-20 bg-gradient-to-r from-transparent via-white/30 to-transparent w-full h-full -translate-x-full animate-shimmer"></div>
+            </div>
+          </div>
+        );
+
+        // --- COMPONENT: CHAT ---
+        const ChatInterface = ({ isOpen }) => {
+          const [messages, setMessages] = useState([
+            { role: 'model', text: "Je suis NeonLift. L'analyse biométrique est prête. En attente de vos instructions." }
+          ]);
+          const [input, setInput] = useState('');
+          const [isLoading, setIsLoading] = useState(false);
+          const bottomRef = useRef(null);
+
+          useEffect(() => {
+             if(isOpen) setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+          }, [messages, isOpen]);
+
+          const handleSend = async () => {
+            if (!input.trim() || isLoading) return;
+            const userMsg = input.trim();
+            setInput('');
+            setMessages(p => [...p, { role: 'user', text: userMsg }]);
+            setIsLoading(true);
+            try {
+               const apiKey = process.env.API_KEY || "YOUR_KEY"; // In standalone HTML, this needs a real key or backend
+               const ai = new GoogleGenAI({ apiKey });
+               const chat = ai.chats.create({ model: 'gemini-2.5-flash', history: messages.map(m => ({ role: m.role, parts: [{ text: m.text }] })) });
+               const result = await chat.sendMessageStream({ message: userMsg });
+               let fullRes = '';
+               setMessages(p => [...p, { role: 'model', text: '' }]);
+               for await (const chunk of result) {
+                 fullRes += chunk.text;
+                 setMessages(p => { const n = [...p]; n[n.length-1].text = fullRes; return n; });
+               }
+            } catch(e) {
+               setMessages(p => [...p, { role: 'model', text: "Connexion impossible (Mode démo/Standalone)." }]);
+            } finally { setIsLoading(false); }
+          };
+
+          return (
+             <div className="flex flex-col h-full bg-[#050a14]">
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide pb-20">
+                   {messages.map((m, i) => (
+                      <div key={i} className={`flex ${m.role==='user'?'justify-end':'justify-start'}`}>
+                         <div className={`max-w-[85%] rounded-2xl p-4 ${m.role==='user'?'bg-indigo-600 text-white':'bg-white/5 border border-white/10 text-slate-300'}`}>
+                            <p className="text-sm">{m.text}</p>
+                         </div>
+                      </div>
+                   ))}
+                   {isLoading && <Loader2 className="animate-spin text-indigo-400 m-4" />}
+                   <div ref={bottomRef}/>
+                </div>
+                <div className="absolute bottom-0 w-full p-4 bg-[#050a14]/90 border-t border-white/5">
+                   <div className="relative">
+                      <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleSend()} className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm text-white focus:outline-none" placeholder="Message..." />
+                      <button onClick={handleSend} className="absolute right-2 top-2 p-1.5 bg-indigo-600 rounded-lg text-white"><Send size={16}/></button>
+                   </div>
+                </div>
+             </div>
+          );
+        };
+
+        // --- MAIN APP ---
+        const App = () => {
+          const [isCoachOpen, setIsCoachOpen] = useState(false);
+          const [data] = useState(DEFAULT_WORKOUT_DATA);
+
+          return (
+            <div className="min-h-screen relative font-sans text-slate-100 selection:bg-cyan-500/30">
+              <StarField />
+              <div className="fixed top-[-20%] left-[-10%] w-[600px] h-[600px] bg-cyan-900/10 blur-[150px] rounded-full pointer-events-none mix-blend-screen animate-pulse"></div>
+              <div className="fixed bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-900/10 blur-[120px] rounded-full pointer-events-none mix-blend-screen opacity-60"></div>
+
+              <div className="max-w-md mx-auto min-h-screen flex flex-col relative z-10 pb-32">
+                
+                {/* HEADER */}
+                <header className="p-6 pt-10">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h1 className="text-4xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-400 font-techno uppercase drop-shadow-lg">
+                        {data.title}
+                      </h1>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="h-[2px] w-6 bg-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.8)] rounded-full"></span>
+                        <p className="text-[10px] font-mono tracking-[0.3em] text-cyan-400 font-bold uppercase opacity-90 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">
+                          {data.subtitle}
+                        </p>
+                      </div>
                     </div>
+                    <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/10 backdrop-blur-md transition-all">
+                      <span className="text-xs text-slate-400">✕</span>
+                    </div>
+                  </div>
+                </header>
+
+                {/* STATS */}
+                <div className="grid grid-cols-4 gap-2 px-6 mb-8">
+                  {data.stats.map((stat, i) => (
+                    <div key={i} className="glass-card rounded-xl p-2.5 flex flex-col items-center justify-center text-center">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">{stat.label}</span>
+                      <span className={`text-lg font-bold font-techno ${stat.color} filter drop-shadow-sm`}>{stat.value}</span>
+                    </div>
+                  ))}
                 </div>
-            </button>
-        </div>
-    </div>
-    
-    <script type="module">
-        // Import program data
-        import programData from './program-data.js';
-        
-        // Get URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const weekNum = parseInt(urlParams.get('week')) || 1;
-        const dayKey = urlParams.get('day') || 'day1';
-        
-        // Find week and day data using programData methods
-        const weekData = programData.getWeek(weekNum);
-        const dayData = weekData ? weekData[dayKey] : null;
-        
-        if (!weekData || !dayData) {
-            alert('Workout non trouvé!');
-            window.location.href = 'index.html';
-        }
-        
-        // Update page title
-        document.title = `Mission Briefing - ${dayData.name}`;
-        
-        // Update header
-        const dayTitle = document.getElementById('dayTitle');
-        dayTitle.textContent = dayData.name.toUpperCase();
-        dayTitle.setAttribute('data-text', dayData.name.toUpperCase());
-        
-        // Update muscle groups
-        const muscleGroups = document.getElementById('muscleGroups');
-        const mainMuscles = dayData.exercises
-            .map(ex => {
-                // muscle peut être un string ou un array
-                if (Array.isArray(ex.muscle)) {
-                    return ex.muscle[0]; // Prendre le premier muscle si array
-                }
-                return ex.muscle;
-            })
-            .filter((v, i, a) => a.indexOf(v) === i && v);
-        muscleGroups.textContent = mainMuscles.join(' + ').toUpperCase();
-        
-        // Calculate stats
-        const totalSets = dayData.exercises.reduce((sum, ex) => sum + ex.sets, 0);
-        const totalExercises = dayData.exercises.length;
-        const estimatedDuration = totalSets * 3; // 3 min per set average
-        const xpReward = totalSets * 50;
-        
-        // Update stats with animation
-        function animateCounter(element, target) {
-            const duration = 2000;
-            const step = target / (duration / 16);
-            let current = 0;
-            
-            const timer = setInterval(() => {
-                current += step;
-                if (current >= target) {
-                    element.textContent = target;
-                    clearInterval(timer);
-                } else {
-                    element.textContent = Math.floor(current);
-                }
-            }, 16);
-        }
-        
-        setTimeout(() => {
-            document.getElementById('statDuration').textContent = estimatedDuration + 'm';
-            animateCounter(document.getElementById('statSets'), totalSets);
-            animateCounter(document.getElementById('statExercises'), totalExercises);
-            animateCounter(document.getElementById('statXP'), xpReward);
-        }, 600);
-        
-        // Render exercises
-        const exercisesContainer = document.getElementById('exercisesContainer');
-        dayData.exercises.forEach((exercise, index) => {
-            const card = document.createElement('div');
-            card.className = 'exercise-card';
-            card.style.animationDelay = `${0.5 + index * 0.1}s`;
-            
-            const repsDisplay = Array.isArray(exercise.reps) 
-                ? `${exercise.reps[0]}-${exercise.reps[exercise.reps.length - 1]}`
-                : exercise.reps;
-            
-            const muscleDisplay = Array.isArray(exercise.muscle) ? exercise.muscle[0] : exercise.muscle;
-            
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="exercise-number">${index + 1}</div>
-                    <div class="exercise-info">
-                        <div class="exercise-name">${exercise.name}</div>
-                        <div class="exercise-meta">
-                            <span class="badge muscle">🔥 ${muscleDisplay.toUpperCase()}</span>
-                            <span class="badge type">${exercise.category.toUpperCase()}</span>
+
+                {/* PROTOCOL LABEL */}
+                <div className="px-6 flex items-center gap-3 mb-6 opacity-80">
+                  <div className="w-7 h-7 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+                    <Zap size={14} className="text-cyan-400 fill-cyan-400/20" />
+                  </div>
+                  <h2 className="text-xs font-bold tracking-[0.2em] uppercase font-techno text-slate-300">
+                    Protocole d'entraînement
+                  </h2>
+                </div>
+
+                {/* EXERCISES LIST */}
+                <div className="px-4 space-y-6 flex-1">
+                  {data.exercises.map((ex, idx) => (
+                    <div key={ex.id} className="glass-card rounded-[2rem] p-6 relative group overflow-hidden">
+                      
+                      {/* Grid Pattern Overlay inside card for tech feel */}
+                      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none opacity-20"></div>
+
+                      <div className="relative z-10">
+                        {/* Header */}
+                        <div className="flex justify-between items-start mb-6">
+                          <div className="flex gap-4 items-center">
+                            <div className="w-10 h-10 rounded-2xl bg-[#0F1522]/60 border border-white/5 text-slate-400 flex items-center justify-center font-techno font-bold text-lg shadow-inner">
+                              {ex.id}
+                            </div>
+                            <div>
+                              <h3 className="text-lg font-bold text-slate-100 font-techno leading-none mb-2 tracking-wide drop-shadow-md">{ex.name}</h3>
+                              <div className="flex gap-2">
+                                {ex.tags.map((tag, tIdx) => (
+                                  <span key={tIdx} className={`text-[9px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider backdrop-blur-md ${tag.type === 'cyan' ? 'border-cyan-500/20 text-cyan-300 bg-cyan-500/5' : 'border-pink-500/20 text-pink-300 bg-pink-500/5'}`}>
+                                    {tag.label}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          {ex.aiTip && (
+                             <div className="bg-indigo-500/10 border border-indigo-500/20 text-[9px] text-indigo-300 px-2 py-1 rounded-lg uppercase tracking-wider font-bold shadow-[0_0_10px_rgba(99,102,241,0.1)] flex items-center gap-1">
+                               <Sparkles size={10} /> IA TIP
+                             </div>
+                          )}
                         </div>
+
+                        {/* PROPORTIONAL GAUGES */}
+                        <div className="flex justify-around items-center mb-6 px-1">
+                           <CircularGauge value={ex.sets} label="SÉRIES" maxValue={8} delay={idx * 100} />
+                           <CircularGauge value={ex.reps} label="REPS" maxValue={20} delay={idx * 100 + 100} />
+                           <CircularGauge value={ex.load} label="CHARGE" maxValue={150} color="text-cyan-300" glow={true} delay={idx * 100 + 200} />
+                        </div>
+
+                        {/* STATS BARS + LIGHTNING ICON */}
+                        {ex.stats && (
+                          <div className="bg-[#050a14]/40 rounded-xl p-3 border border-white/5 flex gap-4 backdrop-blur-sm shadow-inner">
+                             {/* Requested Lightning Icon Container */}
+                             <div className="w-10 rounded-lg bg-gradient-to-br from-slate-800/30 to-slate-900/30 border border-white/5 flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                                <Zap size={18} className="text-yellow-400 fill-yellow-400/20 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]" />
+                             </div>
+                             
+                             <div className="flex-1 flex flex-col justify-center gap-2">
+                                <StatBar label="FORCE" value={ex.stats.force} colorClass="bg-gradient-to-r from-orange-600 to-orange-400" trackColorClass="bg-orange-950/20" />
+                                <StatBar label="HYPER" value={ex.stats.hypertrophy} colorClass="bg-gradient-to-r from-purple-600 to-purple-400" trackColorClass="bg-purple-950/20" />
+                                <StatBar label="ENDUR." value={ex.stats.endurance} colorClass="bg-gradient-to-r from-cyan-600 to-cyan-400" trackColorClass="bg-cyan-950/20" />
+                             </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  ))}
                 </div>
-                <div style="display: flex; justify-content: space-around; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <div style="text-align: center;">
-                        <div style="font-size: 20px; font-weight: 900; color: var(--cyan);">${exercise.sets}</div>
-                        <div style="font-size: 9px; text-transform: uppercase; color: var(--text-secondary); margin-top: 4px;">Séries</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 20px; font-weight: 900; color: var(--orange);">${repsDisplay}</div>
-                        <div style="font-size: 9px; text-transform: uppercase; color: var(--text-secondary); margin-top: 4px;">Reps</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 20px; font-weight: 900; color: var(--magenta);">${exercise.rest}s</div>
-                        <div style="font-size: 9px; text-transform: uppercase; color: var(--text-secondary); margin-top: 4px;">Repos</div>
-                    </div>
+
+                {/* COACH OVERLAY */}
+                <div 
+                  className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-500 cubic-bezier(0.19, 1, 0.22, 1) ${isCoachOpen ? 'h-[85vh]' : 'h-24'}`}
+                >
+                   <div 
+                      className={`absolute -top-[100vh] left-0 w-full h-[200vh] bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${isCoachOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                      onClick={() => setIsCoachOpen(false)}
+                   />
+
+                   <div className="h-full max-w-md mx-auto bg-[#0a101d] rounded-t-[2.5rem] border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.8)] flex flex-col relative overflow-hidden">
+                      <div 
+                        onClick={() => setIsCoachOpen(!isCoachOpen)}
+                        className="p-5 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors relative z-20 bg-[#0a101d]/90 backdrop-blur-md border-b border-white/5"
+                      >
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-[1px] shadow-[0_0_20px_rgba(99,102,241,0.3)]">
+                           <div className="w-full h-full rounded-2xl bg-[#0a101d] flex items-center justify-center relative">
+                              <Sparkles size={20} className="text-indigo-400" />
+                           </div>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-techno font-bold text-lg text-white tracking-wide">COACH IA</h3>
+                          <p className="text-xs text-indigo-300/60 font-medium">Gemini 2.5 Active</p>
+                        </div>
+                        <div className={`w-10 h-10 rounded-full bg-white/5 flex items-center justify-center transition-transform duration-500 ${isCoachOpen ? 'rotate-180' : ''}`}>
+                          <ChevronUp size={20} className="text-slate-400" />
+                        </div>
+                      </div>
+
+                      <div className={`flex-1 relative flex flex-col transition-all duration-500 ${isCoachOpen ? 'opacity-100' : 'opacity-0'}`}>
+                         <ChatInterface isOpen={isCoachOpen} />
+                      </div>
+                   </div>
                 </div>
-            `;
-            
-            exercisesContainer.appendChild(card);
-        });
-        
-        // Update briefing text
-        const briefingText = document.getElementById('briefingText');
-        
-        briefingText.innerHTML = `
-            <span class="text-highlight">Agent</span>, votre mission d'aujourd'hui cible le <span class="text-highlight">${dayData.name}</span> avec ${totalExercises} exercices stratégiques. 
-            Le protocole combine <span class="text-highlight">${weekData.technique}</span> pour maximiser l'hypertrophie durant le bloc <span class="text-highlight">${weekData.block}</span>. 
-            Avec ${totalSets} séries totales et une durée estimée de ${estimatedDuration}min, cette session vous rapportera <span class="text-highlight">+${xpReward} XP</span> à l'accomplissement. 
-            Les groupes musculaires ciblés : ${mainMuscles.join(', ')}.
-        `;
-        
-        // Close button
-        document.getElementById('closeBtn').addEventListener('click', function() {
-            window.location.href = 'workouts.html';
-        });
-        
-        // Launch Mission button
-        document.getElementById('launchMissionBtn').addEventListener('click', function() {
-            // Save to localStorage for session page
-            localStorage.setItem('activeWorkout', JSON.stringify({
-                week: weekNum,
-                day: dayKey,
-                dayName: dayData.name,
-                exercises: dayData.exercises
-            }));
-            
-            // Redirect to session page
-            window.location.href = `session.html?week=${weekNum}&day=${dayKey}`;
-        });
-        
-        // ===== STARDUST BACKGROUND =====
-        const canvas = document.getElementById('particleCanvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth > 430 ? 430 : window.innerWidth;
-        canvas.height = window.innerHeight;
-        
-        const stars = [];
-        const starCount = 200;
-        
-        class Star {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 0.5 + 0.1; // PETITES étoiles
-                this.brightness = Math.random();
-                this.twinkleSpeed = Math.random() * 0.008 + 0.002;
-                this.color = this.getStarColor();
-            }
-            
-            getStarColor() {
-                const rand = Math.random();
-                if (rand > 0.92) return '#00d9ff';
-                if (rand > 0.85) return '#ffd700';
-                if (rand > 0.78) return '#ff0080';
-                return '#ffffff';
-            }
-            
-            update() {
-                this.brightness += this.twinkleSpeed;
-                if (this.brightness > 1) this.brightness = 0;
-            }
-            
-            draw() {
-                const alpha = Math.abs(Math.sin(this.brightness * Math.PI)) * 0.5 + 0.3;
-                const glowSize = this.size * (1.5 + alpha * 0.3);
-                
-                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, glowSize);
-                gradient.addColorStop(0, this.color + 'AA');
-                gradient.addColorStop(0.4, this.color + '30');
-                gradient.addColorStop(1, this.color + '00');
-                
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, glowSize, 0, Math.PI * 2);
-                ctx.fillStyle = gradient;
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.globalAlpha = alpha;
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            }
-        }
-        
-        for (let i = 0; i < starCount; i++) {
-            stars.push(new Star());
-        }
-        
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            stars.forEach(star => {
-                star.update();
-                star.draw();
-            });
-            
-            requestAnimationFrame(animate);
-        }
-        
-        animate();
-        
-        // Resize handler
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth > 430 ? 430 : window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
+
+              </div>
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
