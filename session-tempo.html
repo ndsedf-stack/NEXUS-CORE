@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>NEON FIT // TIMER GUIDE</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Rajdhani:wght@500;600;700;800&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  
+  <style>
+    :root { 
+      --cyan: #22d3ee; 
+      --magenta: #c084fc; 
+      --orange: #f97316; 
+      --red: #ef4444;
+      --yellow: #fbbf24;
+      --green: #22c55e;
+      --purple: #a855f7;
+      --void: #020408;
+      --descent-color: #22d3ee;
+      --pause-color: #fbbf24;
+      --lift-color: #ef4444;
+    }
+    
+    html, body { 
+      height: 100%; 
+      overflow: hidden; 
+      background: var(--void);
+    }
+    
+    body { 
+      font-family: 'Inter', sans-serif; 
+      color: white; 
+      display: flex; 
+      flex-direction: column;
+      padding-top: env(safe-area-inset-top);
+      touch-action: manipulation;
+      position: fixed;
+      inset: 0;
+    }
+    
+    .font-hud { font-family: 'Chakra Petch', 'Rajdhani', sans-serif; }
+    
+    /* Cercles concentriques */
+    .circle-ring {
+      fill: none;
+      stroke-linecap: round;
+      -webkit-transition: stroke-dashoffset 0.1s linear;
+      transition: stroke-dashoffset 0.1s linear;
+    }
+    
+    /* Animation respiration mode repos */
+    @-webkit-keyframes breathe {
+      0%, 100% { -webkit-transform: scale(1); transform: scale(1); }
+      50% { -webkit-transform: scale(1.05); transform: scale(1.05); }
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    .breathing {
+      -webkit-animation: breathe 4s ease-in-out infinite;
+      animation: breathe 4s ease-in-out infinite;
+    }
+    
+    /* Glow effects */
+    .glow-cyan { filter: drop-shadow(0 0 10px rgba(34,211,238,0.6)); }
+    .glow-yellow { filter: drop-shadow(0 0 10px rgba(251,191,36,0.6)); }
+    .glow-red { filter: drop-shadow(0 0 10px rgba(239,68,68,0.6)); }
+    .glow-purple { filter: drop-shadow(0 0 10px rgba(168,85,247,0.6)); }
+    
+    /* Barres tempo */
+    .tempo-bar {
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.1);
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .tempo-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      width: 0%;
+      -webkit-transition: width 0.1s linear;
+      transition: width 0.1s linear;
+    }
+    
+    .tempo-bar.active {
+      box-shadow: 0 0 15px currentColor;
+    }
+    
+    /* Particules explosion */
+    @-webkit-keyframes particle-explode {
+      0% { -webkit-transform: translate(0,0) scale(1); transform: translate(0,0) scale(1); opacity: 1; }
+      100% { -webkit-transform: translate(var(--tx), var(--ty)) scale(0); transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+    }
+    @keyframes particle-explode {
+      0% { transform: translate(0,0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+    }
+    
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      -webkit-animation: particle-explode 0.8s ease-out forwards;
+      animation: particle-explode 0.8s ease-out forwards;
+    }
+    
+    /* Modal */
+    .modal-backdrop {
+      background: rgba(0,0,0,0.85);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
+    
+    .glass-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+    }
+    
+    /* Touch button */
+    .touch-btn {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-transition: transform 0.1s, filter 0.1s;
+      transition: transform 0.1s, filter 0.1s;
+    }
+    .touch-btn:active {
+      -webkit-transform: scale(0.95);
+      transform: scale(0.95);
+    }
+    
+    /* Safe area */
+    .safe-bottom {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Particle container -->
+  <div id="particle-container" class="fixed inset-0 pointer-events-none z-50"></div>
+  
+  <!-- HEADER -->
+  <header class="flex-none h-14 px-4 flex justify-between items-center bg-black/50 backdrop-blur-md border-b border-white/10 z-40">
+    <button onclick="confirmExit()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center touch-btn">
+      <i data-lucide="x" class="w-5 h-5 text-white/60"></i>
+    </button>
+    
+    <div class="flex items-center gap-3">
+      <span class="text-xs font-bold text-white/40 uppercase tracking-wider" id="session-time">00:00</span>
+      <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+    </div>
+    
+    <button onclick="togglePause()" id="pause-btn" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center touch-btn">
+      <i data-lucide="pause" class="w-5 h-5 text-white/60" id="pause-icon"></i>
+    </button>
+  </header>
+  
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 flex flex-col items-center justify-center px-4 relative overflow-hidden">
+    <!-- Background nebulas -->
+    <div class="absolute top-[-20%] left-[-30%] w-[500px] h-[500px] rounded-full bg-cyan-900/20 blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-[-20%] right-[-30%] w-[400px] h-[400px] rounded-full bg-purple-900/20 blur-[100px] pointer-events-none"></div>
+    
+    <!-- Exercise Name -->
+    <div class="text-center mb-4">
+      <span class="text-xs font-bold text-[var(--cyan)] uppercase tracking-[0.2em]" id="muscle-tag">DOS • JAMBES</span>
+      <h1 class="text-2xl font-hud font-bold text-white uppercase mt-1" id="exercise-name">TRAP BAR DEADLIFT</h1>
+    </div>
+    
+    <!-- Cercles concentriques -->
+    <div class="relative w-72 h-72 mb-4" id="circles-container">
+      <svg width="100%" height="100%" viewBox="0 0 300 300" class="absolute inset-0">
+        <defs>
+          <linearGradient id="repGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--descent-color)" />
+            <stop offset="50%" stop-color="var(--pause-color)" />
+            <stop offset="100%" stop-color="var(--lift-color)" />
+          </linearGradient>
+        </defs>
+        
+        <!-- Session ring (outermost) -->
+        <circle cx="150" cy="150" r="145" class="circle-ring" stroke="rgba(255,255,255,0.05)" stroke-width="3" />
+        <circle id="ring-session" cx="150" cy="150" r="145" class="circle-ring" stroke="rgba(34,211,238,0.3)" stroke-width="3" stroke-dasharray="911" stroke-dashoffset="911" transform="rotate(-90 150 150)" />
+        
+        <!-- Exercise ring -->
+        <circle cx="150" cy="150" r="130" class="circle-ring" stroke="rgba(255,255,255,0.05)" stroke-width="4" />
+        <circle id="ring-exercise" cx="150" cy="150" r="130" class="circle-ring" stroke="var(--green)" stroke-width="4" stroke-dasharray="816" stroke-dashoffset="816" transform="rotate(-90 150 150)" />
+        
+        <!-- Set ring (5 segments) -->
+        <circle cx="150" cy="150" r="115" class="circle-ring" stroke="rgba(255,255,255,0.05)" stroke-width="5" />
+        <circle id="ring-set" cx="150" cy="150" r="115" class="circle-ring" stroke="var(--purple)" stroke-width="5" stroke-dasharray="722.57" stroke-dashoffset="722.57" transform="rotate(-90 150 150)" />
+        
+        <!-- Rep ring (tempo progress) -->
+        <circle cx="150" cy="150" r="95" class="circle-ring" stroke="rgba(255,255,255,0.08)" stroke-width="12" />
+        <circle id="ring-rep" cx="150" cy="150" r="95" class="circle-ring glow-cyan" stroke="url(#repGradient)" stroke-width="12" stroke-dasharray="596.9" stroke-dashoffset="596.9" transform="rotate(-90 150 150)" />
+      </svg>
+      
+      <!-- Center display -->
+      <div class="absolute inset-0 flex flex-col items-center justify-center" id="center-display">
+        <!-- Phase indicator -->
+        <div class="flex items-center gap-2 mb-2">
+          <i data-lucide="chevron-down" class="w-5 h-5 text-[var(--cyan)]" id="phase-icon"></i>
+          <span class="text-sm font-bold uppercase tracking-wider" id="phase-label" style="color: var(--cyan)">DESCENT</span>
+        </div>
+        
+        <!-- Timer -->
+        <span class="text-6xl font-hud font-black text-white" id="main-timer">3.0</span>
+        
+        <!-- Rep counter -->
+        <span class="text-sm text-white/60 mt-2">REP <span id="current-rep">1</span>/<span id="total-reps">8</span></span>
+      </div>
+    </div>
+    
+    <!-- Tempo bars -->
+    <div class="w-full max-w-xs mb-6">
+      <div class="grid grid-cols-3 gap-3">
+        <!-- Descent -->
+        <div class="text-center">
+          <div class="tempo-bar mb-2" id="tempo-descent" style="color: var(--cyan)">
+            <div class="tempo-bar-fill" id="tempo-descent-fill" style="background: var(--cyan)"></div>
+          </div>
+          <span class="text-[10px] uppercase tracking-wider text-white/50">Descent</span>
+          <span class="block text-lg font-hud font-bold text-[var(--cyan)]" id="tempo-descent-val">3s</span>
+        </div>
+        
+        <!-- Pause -->
+        <div class="text-center">
+          <div class="tempo-bar mb-2" id="tempo-pause" style="color: var(--yellow)">
+            <div class="tempo-bar-fill" id="tempo-pause-fill" style="background: var(--yellow)"></div>
+          </div>
+          <span class="text-[10px] uppercase tracking-wider text-white/50">Pause</span>
+          <span class="block text-lg font-hud font-bold text-[var(--yellow)]" id="tempo-pause-val">1s</span>
+        </div>
+        
+        <!-- Lift -->
+        <div class="text-center">
+          <div class="tempo-bar mb-2" id="tempo-lift" style="color: var(--red)">
+            <div class="tempo-bar-fill" id="tempo-lift-fill" style="background: var(--red)"></div>
+          </div>
+          <span class="text-[10px] uppercase tracking-wider text-white/50">Lift</span>
+          <span class="block text-lg font-hud font-bold text-[var(--red)]" id="tempo-lift-val">2s</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Serie info -->
+    <div class="glass-card px-6 py-3 flex items-center gap-6">
+      <div class="text-center">
+        <span class="text-[10px] text-white/40 uppercase">Série</span>
+        <span class="block text-xl font-hud font-bold text-white"><span id="current-set">1</span>/<span id="total-sets">5</span></span>
+      </div>
+      <div class="w-px h-10 bg-white/10"></div>
+      <div class="text-center">
+        <span class="text-[10px] text-white/40 uppercase">Charge</span>
+        <span class="block text-xl font-hud font-bold text-[var(--cyan)]" id="weight-display">120kg</span>
+      </div>
+      <div class="w-px h-10 bg-white/10"></div>
+      <div class="text-center">
+        <span class="text-[10px] text-white/40 uppercase">TUT</span>
+        <span class="block text-xl font-hud font-bold text-[var(--purple)]" id="tut-display">0s</span>
+      </div>
+    </div>
+  </main>
+  
+  <!-- VALIDATION MODAL (after each rep) -->
+  <div id="modal-validation" class="fixed inset-0 z-50 hidden">
+    <div class="modal-backdrop absolute inset-0"></div>
+    <div class="relative z-10 h-full flex items-center justify-center p-6">
+      <div class="glass-card p-6 w-full max-w-sm text-center">
+        <div class="w-16 h-16 rounded-full bg-[var(--cyan)]/20 flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="check-circle" class="w-8 h-8 text-[var(--cyan)]"></i>
+        </div>
+        <h2 class="text-xl font-hud font-bold text-white mb-2">REP <span id="val-rep-num">1</span>/8</h2>
+        <p class="text-white/60 mb-6">Tempo respecté ?</p>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <button onclick="validateRep(true)" class="h-14 rounded-2xl bg-[var(--green)]/20 border border-[var(--green)]/50 flex items-center justify-center gap-2 touch-btn hover:bg-[var(--green)]/30">
+            <i data-lucide="check" class="w-5 h-5 text-[var(--green)]"></i>
+            <span class="font-bold text-[var(--green)]">OUI</span>
+          </button>
+          <button onclick="validateRep(false)" class="h-14 rounded-2xl bg-[var(--orange)]/20 border border-[var(--orange)]/50 flex items-center justify-center gap-2 touch-btn hover:bg-[var(--orange)]/30">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-[var(--orange)]"></i>
+            <span class="font-bold text-[var(--orange)]">NON</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- SET COMPLETE MODAL -->
+  <div id="modal-set-complete" class="fixed inset-0 z-50 hidden">
+    <div class="modal-backdrop absolute inset-0"></div>
+    <div class="relative z-10 h-full flex items-center justify-center p-6">
+      <div class="glass-card p-6 w-full max-w-sm">
+        <div class="text-center mb-6">
+          <div class="w-20 h-20 rounded-full bg-[var(--purple)]/20 flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="trophy" class="w-10 h-10 text-[var(--purple)]"></i>
+          </div>
+          <h2 class="text-2xl font-hud font-bold text-white">SÉRIE TERMINÉE !</h2>
+        </div>
+        
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-3 mb-6">
+          <div class="glass-card p-3 text-center">
+            <span class="text-2xl font-hud font-bold text-white" id="stat-reps">8/8</span>
+            <span class="block text-[10px] text-white/40 uppercase mt-1">Reps</span>
+          </div>
+          <div class="glass-card p-3 text-center">
+            <span class="text-2xl font-hud font-bold text-[var(--green)]" id="stat-tempo">7/8</span>
+            <span class="block text-[10px] text-white/40 uppercase mt-1">Tempo OK</span>
+          </div>
+          <div class="glass-card p-3 text-center">
+            <span class="text-2xl font-hud font-bold text-[var(--purple)]" id="stat-tut">48s</span>
+            <span class="block text-[10px] text-white/40 uppercase mt-1">TUT</span>
+          </div>
+        </div>
+        
+        <!-- Adjust reps -->
+        <div class="flex items-center justify-center gap-4 mb-6">
+          <span class="text-sm text-white/60">Ajuster reps :</span>
+          <button onclick="adjustReps(-1)" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center touch-btn">
+            <i data-lucide="minus" class="w-5 h-5 text-white"></i>
+          </button>
+          <span class="text-2xl font-hud font-bold text-white w-10 text-center" id="adjust-reps">8</span>
+          <button onclick="adjustReps(1)" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center touch-btn">
+            <i data-lucide="plus" class="w-5 h-5 text-white"></i>
+          </button>
+        </div>
+        
+        <!-- Validate button -->
+        <button onclick="validateSet()" class="w-full h-14 rounded-2xl bg-gradient-to-r from-[var(--cyan)] to-[var(--purple)] flex items-center justify-center gap-2 touch-btn font-bold text-white text-lg">
+          <i data-lucide="check" class="w-6 h-6"></i>
+          VALIDER
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- REST MODE OVERLAY -->
+  <div id="rest-overlay" class="fixed inset-0 z-40 hidden">
+    <div class="absolute inset-0 bg-[var(--void)]/95 backdrop-blur-xl"></div>
+    
+    <!-- Purple nebulas for rest -->
+    <div class="absolute top-[-20%] left-[-20%] w-[500px] h-[500px] rounded-full bg-purple-900/30 blur-[100px] pointer-events-none"></div>
+    <div class="absolute bottom-[-20%] right-[-20%] w-[400px] h-[400px] rounded-full bg-violet-900/30 blur-[100px] pointer-events-none"></div>
+    
+    <div class="relative z-10 h-full flex flex-col items-center justify-center px-6">
+      <!-- Breathing circle -->
+      <div class="relative w-64 h-64 mb-6 breathing" id="rest-circle-container">
+        <svg width="100%" height="100%" viewBox="0 0 280 280">
+          <circle cx="140" cy="140" r="120" fill="none" stroke="rgba(168,85,247,0.2)" stroke-width="8" />
+          <circle id="rest-progress" cx="140" cy="140" r="120" fill="none" stroke="var(--purple)" stroke-width="8" stroke-linecap="round" stroke-dasharray="753.98" stroke-dashoffset="0" transform="rotate(-90 140 140)" class="glow-purple" />
+        </svg>
+        
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <i data-lucide="moon" class="w-8 h-8 text-[var(--purple)] mb-2"></i>
+          <span class="text-xs text-[var(--purple)] uppercase tracking-widest mb-1">REPOS</span>
+          <span id="rest-timer" class="text-5xl font-hud font-black text-white">1:30</span>
+        </div>
+      </div>
+      
+      <!-- Next set info -->
+      <div class="glass-card px-6 py-4 text-center mb-6">
+        <span class="text-sm text-white/60">Prochaine série</span>
+        <span class="block text-xl font-hud font-bold text-white mt-1">SÉRIE <span id="next-set">2</span>/5</span>
+      </div>
+      
+      <!-- Skip button -->
+      <button onclick="skipRest()" class="px-8 py-4 rounded-2xl bg-[var(--purple)]/20 border border-[var(--purple)]/50 flex items-center gap-3 touch-btn">
+        <i data-lucide="skip-forward" class="w-5 h-5 text-[var(--purple)]"></i>
+        <span class="font-bold text-[var(--purple)]">PASSER LE REPOS</span>
+      </button>
+    </div>
+  </div>
+  
+  <!-- EXERCISE COMPLETE MODAL -->
+  <div id="modal-exercise-complete" class="fixed inset-0 z-50 hidden">
+    <div class="modal-backdrop absolute inset-0"></div>
+    <div class="relative z-10 h-full flex items-center justify-center p-6">
+      <div class="glass-card p-6 w-full max-w-sm text-center">
+        <div class="w-20 h-20 rounded-full bg-[var(--green)]/20 flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="award" class="w-10 h-10 text-[var(--green)]"></i>
+        </div>
+        <h2 class="text-2xl font-hud font-bold text-white mb-2">EXERCICE TERMINÉ !</h2>
+        <p class="text-white/60 mb-6" id="exercise-summary">5 séries • 40 reps • 240s TUT</p>
+        
+        <button onclick="nextExercise()" class="w-full h-14 rounded-2xl bg-gradient-to-r from-[var(--green)] to-[var(--cyan)] flex items-center justify-center gap-2 touch-btn font-bold text-white text-lg">
+          <i data-lucide="arrow-right" class="w-6 h-6"></i>
+          EXERCICE SUIVANT
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // ========================================
+    // STATE
+    // ========================================
+    let state = {
+      phase: 0,              // 0=descent, 1=pause, 2=lift
+      rep: 1,
+      set: 1,
+      totalReps: 8,
+      totalSets: 5,
+      tempo: [3, 1, 2],      // [descent, pause, lift] in seconds
+      timeRemaining: 3,
+      isPaused: false,
+      isResting: false,
+      restTime: 90,
+      restRemaining: 90,
+      tempoRespected: [],
+      repsCompleted: 0,
+      exerciseName: "TRAP BAR DEADLIFT",
+      muscles: ["DOS", "JAMBES"],
+      weight: 120,
+      totalTUT: 0,
+      sessionStart: Date.now(),
+      timerInterval: null,
+      restInterval: null
+    };
+    
+    const phases = [
+      { name: 'DESCENT', icon: 'chevron-down', color: 'var(--cyan)' },
+      { name: 'PAUSE', icon: 'pause', color: 'var(--yellow)' },
+      { name: 'LIFT', icon: 'chevron-up', color: 'var(--red)' }
+    ];
+    
+    // ========================================
+    // INITIALIZATION
+    // ========================================
+    function init() {
+      lucide.createIcons();
+      updateDisplay();
+      startSessionTimer();
+      startTimer();
+    }
+    
+    function startSessionTimer() {
+      setInterval(() => {
+        const elapsed = Math.floor((Date.now() - state.sessionStart) / 1000);
+        const mins = Math.floor(elapsed / 60);
+        const secs = elapsed % 60;
+        document.getElementById('session-time').textContent = 
+          `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }, 1000);
+    }
+    
+    // ========================================
+    // TIMER LOGIC
+    // ========================================
+    function startTimer() {
+      if (state.timerInterval) clearInterval(state.timerInterval);
+      
+      state.timeRemaining = state.tempo[state.phase];
+      state.timerInterval = setInterval(updateTimer, 100);
+      
+      vibrate(50);
+    }
+    
+    function updateTimer() {
+      if (state.isPaused || state.isResting) return;
+      
+      state.timeRemaining -= 0.1;
+      
+      if (state.timeRemaining <= 0) {
+        state.timeRemaining = 0;
+        nextPhase();
+      }
+      
+      updateDisplay();
+    }
+    
+    function nextPhase() {
+      state.phase++;
+      
+      if (state.phase > 2) {
+        // Rep complete
+        clearInterval(state.timerInterval);
+        state.totalTUT += state.tempo[0] + state.tempo[1] + state.tempo[2];
+        showValidation();
+      } else {
+        // Next phase
+        state.timeRemaining = state.tempo[state.phase];
+        vibrate(50);
+      }
+    }
+    
+    // ========================================
+    // DISPLAY
+    // ========================================
+    function updateDisplay() {
+      // Phase display
+      const phase = phases[state.phase];
+      document.getElementById('phase-label').textContent = phase.name;
+      document.getElementById('phase-label').style.color = phase.color;
+      
+      const iconEl = document.getElementById('phase-icon');
+      iconEl.setAttribute('data-lucide', phase.icon);
+      iconEl.style.color = phase.color;
+      lucide.createIcons({ nodes: [iconEl] });
+      
+      // Timer
+      document.getElementById('main-timer').textContent = state.timeRemaining.toFixed(1);
+      
+      // Rep counter
+      document.getElementById('current-rep').textContent = state.rep;
+      document.getElementById('total-reps').textContent = state.totalReps;
+      
+      // Set counter
+      document.getElementById('current-set').textContent = state.set;
+      document.getElementById('total-sets').textContent = state.totalSets;
+      
+      // Weight
+      document.getElementById('weight-display').textContent = state.weight + 'kg';
+      
+      // TUT
+      document.getElementById('tut-display').textContent = state.totalTUT + 's';
+      
+      // Exercise info
+      document.getElementById('exercise-name').textContent = state.exerciseName;
+      document.getElementById('muscle-tag').textContent = state.muscles.join(' • ');
+      
+      // Update progress rings
+      updateProgressRings();
+      
+      // Update tempo bars
+      updateTempoBars();
+    }
+    
+    function updateProgressRings() {
+      // Rep ring (tempo progress)
+      const totalTempoTime = state.tempo[0] + state.tempo[1] + state.tempo[2];
+      let elapsedTempo = 0;
+      
+      for (let i = 0; i < state.phase; i++) {
+        elapsedTempo += state.tempo[i];
+      }
+      elapsedTempo += (state.tempo[state.phase] - state.timeRemaining);
+      
+      const repProgress = elapsedTempo / totalTempoTime;
+      const repCircumference = 596.9; // 2 * PI * 95
+      const repOffset = repCircumference * (1 - repProgress);
+      document.getElementById('ring-rep').style.strokeDashoffset = repOffset;
+      
+      // Set ring (reps progress)
+      const setProgress = (state.rep - 1) / state.totalReps;
+      const setCircumference = 722.57; // 2 * PI * 115
+      const setOffset = setCircumference * (1 - setProgress);
+      document.getElementById('ring-set').style.strokeDashoffset = setOffset;
+      
+      // Exercise ring (sets progress)
+      const exProgress = (state.set - 1) / state.totalSets;
+      const exCircumference = 816; // 2 * PI * 130
+      const exOffset = exCircumference * (1 - exProgress);
+      document.getElementById('ring-exercise').style.strokeDashoffset = exOffset;
+    }
+    
+    function updateTempoBars() {
+      // Reset all bars
+      document.querySelectorAll('.tempo-bar').forEach(bar => bar.classList.remove('active'));
+      document.querySelectorAll('.tempo-bar-fill').forEach(fill => fill.style.width = '0%');
+      
+      // Activate current phase bar
+      const barIds = ['tempo-descent', 'tempo-pause', 'tempo-lift'];
+      const fillIds = ['tempo-descent-fill', 'tempo-pause-fill', 'tempo-lift-fill'];
+      
+      const currentBar = document.getElementById(barIds[state.phase]);
+      const currentFill = document.getElementById(fillIds[state.phase]);
+      
+      currentBar.classList.add('active');
+      const progress = 1 - (state.timeRemaining / state.tempo[state.phase]);
+      currentFill.style.width = (progress * 100) + '%';
+      
+      // Fill completed phases
+      for (let i = 0; i < state.phase; i++) {
+        document.getElementById(fillIds[i]).style.width = '100%';
+      }
+    }
+    
+    // ========================================
+    // VALIDATION
+    // ========================================
+    function showValidation() {
+      document.getElementById('val-rep-num').textContent = state.rep;
+      document.getElementById('modal-validation').classList.remove('hidden');
+    }
+    
+    function validateRep(respected) {
+      state.tempoRespected.push(respected);
+      state.repsCompleted++;
+      
+      document.getElementById('modal-validation').classList.add('hidden');
+      createParticles();
+      
+      if (state.rep >= state.totalReps) {
+        // Set complete
+        showSetComplete();
+      } else {
+        // Next rep
+        state.rep++;
+        state.phase = 0;
+        startTimer();
+      }
+    }
+    
+    function showSetComplete() {
+      const tempoOK = state.tempoRespected.filter(v => v).length;
+      const tutTime = state.repsCompleted * (state.tempo[0] + state.tempo[1] + state.tempo[2]);
+      
+      document.getElementById('stat-reps').textContent = `${state.repsCompleted}/${state.totalReps}`;
+      document.getElementById('stat-tempo').textContent = `${tempoOK}/${state.repsCompleted}`;
+      document.getElementById('stat-tut').textContent = tutTime + 's';
+      document.getElementById('adjust-reps').textContent = state.repsCompleted;
+      
+      document.getElementById('modal-set-complete').classList.remove('hidden');
+    }
+    
+    function adjustReps(delta) {
+      const newVal = parseInt(document.getElementById('adjust-reps').textContent) + delta;
+      if (newVal >= 0 && newVal <= 20) {
+        document.getElementById('adjust-reps').textContent = newVal;
+      }
+    }
+    
+    function validateSet() {
+      const finalReps = parseInt(document.getElementById('adjust-reps').textContent);
+      
+      // Save set data
+      console.log({
+        set: state.set,
+        reps: finalReps,
+        tempo: `${state.tempoRespected.filter(v => v).length}/${state.repsCompleted}`,
+        tut: finalReps * (state.tempo[0] + state.tempo[1] + state.tempo[2]),
+        weight: state.weight
+      });
+      
+      document.getElementById('modal-set-complete').classList.add('hidden');
+      
+      vibrate([100, 50, 100]);
+      
+      if (state.set >= state.totalSets) {
+        showExerciseComplete();
+      } else {
+        startRest();
+      }
+    }
+    
+    // ========================================
+    // REST MODE
+    // ========================================
+    function startRest() {
+      state.isResting = true;
+      state.restRemaining = state.restTime;
+      
+      document.getElementById('rest-overlay').classList.remove('hidden');
+      document.getElementById('next-set').textContent = state.set + 1;
+      
+      if (state.restInterval) clearInterval(state.restInterval);
+      state.restInterval = setInterval(updateRest, 100);
+    }
+    
+    function updateRest() {
+      state.restRemaining -= 0.1;
+      
+      if (state.restRemaining <= 0) {
+        endRest();
+        return;
+      }
+      
+      // Update display
+      const mins = Math.floor(state.restRemaining / 60);
+      const secs = Math.floor(state.restRemaining % 60);
+      document.getElementById('rest-timer').textContent = 
+        `${mins}:${secs.toString().padStart(2, '0')}`;
+      
+      // Update circle
+      const progress = 1 - (state.restRemaining / state.restTime);
+      const circumference = 753.98; // 2 * PI * 120
+      document.getElementById('rest-progress').style.strokeDashoffset = circumference * progress;
+    }
+    
+    function endRest() {
+      clearInterval(state.restInterval);
+      document.getElementById('rest-overlay').classList.add('hidden');
+      
+      // Reset for next set
+      state.isResting = false;
+      state.set++;
+      state.rep = 1;
+      state.phase = 0;
+      state.tempoRespected = [];
+      state.repsCompleted = 0;
+      
+      vibrate([100, 50, 100, 50, 100]);
+      startTimer();
+    }
+    
+    function skipRest() {
+      endRest();
+    }
+    
+    // ========================================
+    // EXERCISE COMPLETE
+    // ========================================
+    function showExerciseComplete() {
+      const totalReps = state.totalSets * state.totalReps;
+      const totalTUT = state.totalTUT;
+      
+      document.getElementById('exercise-summary').textContent = 
+        `${state.totalSets} séries • ${totalReps} reps • ${totalTUT}s TUT`;
+      
+      document.getElementById('modal-exercise-complete').classList.remove('hidden');
+    }
+    
+    function nextExercise() {
+      document.getElementById('modal-exercise-complete').classList.add('hidden');
+      alert('TODO: Charger exercice suivant');
+    }
+    
+    // ========================================
+    // CONTROLS
+    // ========================================
+    function togglePause() {
+      state.isPaused = !state.isPaused;
+      
+      const icon = document.getElementById('pause-icon');
+      icon.setAttribute('data-lucide', state.isPaused ? 'play' : 'pause');
+      lucide.createIcons({ nodes: [icon] });
+    }
+    
+    function confirmExit() {
+      if (confirm('Quitter la session ?')) {
+        window.location.href = 'workouts.html';
+      }
+    }
+    
+    // ========================================
+    // EFFECTS
+    // ========================================
+    function createParticles() {
+      const container = document.getElementById('particle-container');
+      const colors = ['var(--cyan)', 'var(--yellow)', 'var(--red)', 'var(--purple)'];
+      
+      for (let i = 0; i < 12; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        
+        const angle = (i / 12) * Math.PI * 2;
+        const distance = 80 + Math.random() * 40;
+        const tx = Math.cos(angle) * distance;
+        const ty = Math.sin(angle) * distance;
+        
+        particle.style.cssText = `
+          left: 50%;
+          top: 50%;
+          background: ${colors[i % colors.length]};
+          --tx: ${tx}px;
+          --ty: ${ty}px;
+        `;
+        
+        container.appendChild(particle);
+        
+        setTimeout(() => particle.remove(), 800);
+      }
+    }
+    
+    function vibrate(pattern) {
+      if (navigator.vibrate) {
+        navigator.vibrate(pattern);
+      }
+    }
+    
+    // ========================================
+    // INIT
+    // ========================================
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
