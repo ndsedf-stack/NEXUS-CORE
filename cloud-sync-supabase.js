@@ -87,6 +87,7 @@
 
     async logout() {
       if (!this.supabase) return;
+      this.stopAutoSync();
       await this.supabase.auth.signOut();
       this.user = null;
       this.isAuthenticated = false;
@@ -193,20 +194,38 @@
       await this.pushToCloud();
     },
 
+    _originalSetItem: null,
+    _autoSyncInterval: null,
+    _autoSyncEnabled: false,
+
     setupAutoSync(intervalMs = 60000) {
-      setInterval(async () => {
+      if (this._autoSyncEnabled) return;
+      this._autoSyncEnabled = true;
+
+      this._autoSyncInterval = setInterval(async () => {
         if (this.isAuthenticated) {
           await this.pushToCloud();
         }
       }, intervalMs);
 
-      const originalSetItem = localStorage.setItem.bind(localStorage);
-      localStorage.setItem = (key, value) => {
-        originalSetItem(key, value);
-        if (SYNC_KEYS.includes(key) && this.isAuthenticated) {
-          this.debouncedPush(key);
-        }
-      };
+      if (!this._originalSetItem) {
+        this._originalSetItem = localStorage.setItem.bind(localStorage);
+        const self = this;
+        localStorage.setItem = function(key, value) {
+          self._originalSetItem(key, value);
+          if (SYNC_KEYS.includes(key) && self.isAuthenticated) {
+            self.debouncedPush(key);
+          }
+        };
+      }
+    },
+
+    stopAutoSync() {
+      if (this._autoSyncInterval) {
+        clearInterval(this._autoSyncInterval);
+        this._autoSyncInterval = null;
+      }
+      this._autoSyncEnabled = false;
     },
 
     _pushTimeout: null,
