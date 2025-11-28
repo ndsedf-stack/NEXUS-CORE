@@ -293,13 +293,21 @@
         /* ═══════════════════════════════════════════════════════════
            PROGRESS RAILS - Premium Multi-Layer Design
            ═══════════════════════════════════════════════════════════ */
+        @-webkit-keyframes rail-shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
         @keyframes rail-shimmer {
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
+        @-webkit-keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; box-shadow: 0 0 8px currentColor; }
+            50% { opacity: 1; box-shadow: 0 0 16px 4px currentColor; }
+        }
         @keyframes pulse-glow {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
+            0%, 100% { opacity: 0.6; box-shadow: 0 0 8px currentColor; }
+            50% { opacity: 1; box-shadow: 0 0 16px 4px currentColor; }
         }
         
         .stats-zone {
@@ -383,11 +391,12 @@
             background: linear-gradient(
                 90deg,
                 transparent 0%,
-                rgba(255, 255, 255, 0.25) 50%,
+                rgba(255, 255, 255, 0.4) 50%,
                 transparent 100%
             );
             background-size: 200% 100%;
-            animation: rail-shimmer 2.5s ease-in-out infinite;
+            -webkit-animation: rail-shimmer 2s ease-in-out infinite;
+            animation: rail-shimmer 2s ease-in-out infinite;
             border-radius: 5px;
         }
         
@@ -406,13 +415,14 @@
         /* End cap glow */
         .rail-cap {
             position: absolute;
-            top: -2px;
-            bottom: -2px;
-            width: 6px;
+            top: -3px;
+            bottom: -3px;
+            width: 8px;
             background: white;
-            border-radius: 3px;
-            box-shadow: 0 0 12px 2px currentColor, 0 0 20px 4px currentColor;
-            animation: pulse-glow 1.5s ease-in-out infinite;
+            border-radius: 4px;
+            box-shadow: 0 0 12px 3px currentColor, 0 0 24px 6px currentColor;
+            -webkit-animation: pulse-glow 1.2s ease-in-out infinite;
+            animation: pulse-glow 1.2s ease-in-out infinite;
         }
         
         /* Rail color variants */
