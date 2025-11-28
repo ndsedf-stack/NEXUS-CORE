@@ -17,3 +17,7 @@ build/
 # Fichiers d'environnement
 .env
 .env.local
+
+# Replit specific
+package.json
+package-lock.json
