@@ -290,70 +290,247 @@
             border: 1px solid var(--badge-color);
         }
         
-        /* Progress Bars - V2 */
-        .bar-row {
+        /* ═══════════════════════════════════════════════════════════
+           PROGRESS RAILS - Premium Multi-Layer Design
+           ═══════════════════════════════════════════════════════════ */
+        @keyframes rail-shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        .stats-zone {
+            display: flex;
+            align-items: stretch;
+            gap: 16px;
+            padding: 20px;
+            margin-top: 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        
+        .icon-box {
+            width: 52px;
+            height: 52px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 10px;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(34, 211, 238, 0.05) 100%);
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            border-radius: 14px;
+            flex-shrink: 0;
+            align-self: center;
         }
-        .bar-label {
-            width: 55px;
-            text-align: right;
-            font-size: 10px;
-            font-weight: 800;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
+        .icon-box svg {
+            width: 24px;
+            height: 24px;
+            color: #22d3ee;
+            filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.5));
         }
-        .bar-track {
+        
+        .progress-rails {
             flex: 1;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 4px;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .bar-fill {
-            height: 100%;
-            border-radius: 4px;
+        
+        .rail {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        
+        .rail-label {
+            width: 50px;
+            font-size: 11px;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-align: right;
+        }
+        
+        .rail-track {
+            flex: 1;
+            height: 10px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 5px;
             position: relative;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
         }
-        .bar-fill::after {
+        
+        /* Base fill layer */
+        .rail-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            border-radius: 5px;
+            transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        /* Shimmer overlay */
+        .rail-fill::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.25) 50%,
+                transparent 100%
+            );
+            background-size: 200% 100%;
+            animation: rail-shimmer 2.5s ease-in-out infinite;
+            border-radius: 5px;
+        }
+        
+        /* Gloss highlight */
+        .rail-fill::after {
             content: '';
             position: absolute;
             top: 1px;
-            right: 0;
-            bottom: 1px;
-            width: 3px;
-            background: white;
-            border-radius: 2px;
-            box-shadow: 0 0 6px white;
+            left: 2px;
+            right: 2px;
+            height: 3px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 100%);
+            border-radius: 3px 3px 0 0;
         }
         
-        /* Glass Card - Unified */
+        /* End cap glow */
+        .rail-cap {
+            position: absolute;
+            top: -2px;
+            bottom: -2px;
+            width: 6px;
+            background: white;
+            border-radius: 3px;
+            box-shadow: 0 0 12px 2px currentColor, 0 0 20px 4px currentColor;
+            animation: pulse-glow 1.5s ease-in-out infinite;
+        }
+        
+        /* Rail color variants */
+        .rail--force .rail-fill {
+            background: linear-gradient(90deg, #dc2626 0%, #ea580c 40%, #f59e0b 100%);
+        }
+        .rail--force .rail-cap { color: #f59e0b; }
+        
+        .rail--hyper .rail-fill {
+            background: linear-gradient(90deg, #7c3aed 0%, #a855f7 50%, #d946ef 100%);
+        }
+        .rail--hyper .rail-cap { color: #d946ef; }
+        
+        .rail--endur .rail-fill {
+            background: linear-gradient(90deg, #0891b2 0%, #06b6d4 50%, #22d3ee 100%);
+        }
+        .rail--endur .rail-cap { color: #22d3ee; }
+        
+        /* ═══════════════════════════════════════════════════════════
+           GLASS CARDS - Unified Premium Style
+           ═══════════════════════════════════════════════════════════ */
         .glass-card {
-            background: linear-gradient(135deg, rgba(13, 17, 23, 0.95) 0%, rgba(6, 10, 15, 0.98) 100%);
+            background: linear-gradient(165deg, 
+                rgba(15, 23, 42, 0.95) 0%, 
+                rgba(8, 12, 20, 0.98) 50%,
+                rgba(5, 8, 15, 0.99) 100%
+            );
             border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 24px;
+            border-radius: 20px;
             padding: 24px;
-            margin: 0 20px 20px;
+            margin: 0 16px 16px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            box-shadow: 
+                0 4px 24px rgba(0, 0, 0, 0.5),
+                0 1px 2px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
+        
+        /* Top edge light sweep */
         .glass-card::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
+            left: 20%;
+            right: 20%;
             height: 1px;
-            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(34, 211, 238, 0.3) 30%,
+                rgba(255, 255, 255, 0.15) 50%, 
+                rgba(192, 132, 252, 0.3) 70%,
+                transparent 100%
+            );
+        }
+        
+        /* Corner accent flare */
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        /* Exercise notes styling */
+        .ex-notes {
+            background: rgba(34, 211, 238, 0.06);
+            border: 1px solid rgba(34, 211, 238, 0.15);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        
+        /* Metrics Row (TEMPO/REPOS/RPE) */
+        .metrics-row {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            padding: 20px 0;
+            margin-bottom: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            background: rgba(0, 0, 0, 0.2);
+            margin-left: -24px;
+            margin-right: -24px;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .metric-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #64748b;
+            font-weight: 700;
+        }
+        .metric-value {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: #f1f5f9;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
         }
     </style>
-  <script src="program-data-v2.js?v=1764352000"></script>
-  <script src="app-v2.js?v=1764352000"></script>
+  <script src="program-data-v2.js?v=1764353000"></script>
+  <script src="app-v2.js?v=1764353000"></script>
   <script src="workout-history-v2.js"></script>
   <script src="cloud-sync.js"></script>
 </head>
@@ -557,11 +734,12 @@ ${hasProgress ? `<div class="gauge-badge" style="--badge-bg:${pColor}20;--badge-
 </div>`;
         }
 
-        function renderBar(label, value, c1, c2) {
-            return `<div class="bar-row">
-<span class="bar-label">${label}</span>
-<div class="bar-track">
-<div class="bar-fill" style="width:${value}%;background:linear-gradient(90deg,${c1},${c2});box-shadow:0 0 12px ${c2}60"></div>
+        function renderRail(type, label, value) {
+            return `<div class="rail rail--${type}">
+<span class="rail-label">${label}</span>
+<div class="rail-track">
+<div class="rail-fill" style="width:${value}%"></div>
+<div class="rail-cap" style="left:calc(${value}% - 3px)"></div>
 </div>
 </div>`;
         }
@@ -585,31 +763,31 @@ ${renderGauge(ex.sets, 'SÉRIES', 8, false, ex.progress.completedSets > 0 ? { co
 ${renderGauge(ex.reps, 'REPS', 15, false)}
 ${renderGauge(ex.load, 'CHARGE', 140, true, ex.progress.lastWeight > 0 ? { completed: ex.progress.lastWeight, target: parseFloat(ex.load) } : null)}
 </div>
-<div style="display:flex;justify-content:center;gap:40px;padding:20px 0;margin-bottom:16px;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05)">
-<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-<span style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#64748b;font-weight:700">TEMPO</span>
-<span style="font-family:'Chakra Petch',sans-serif;font-size:20px;font-weight:800;color:#f1f5f9">${ex.tempo}</span>
+<div class="metrics-row">
+<div class="metric-item">
+<span class="metric-label">TEMPO</span>
+<span class="metric-value">${ex.tempo}</span>
 </div>
-<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-<span style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#64748b;font-weight:700">REPOS</span>
-<span style="font-family:'Chakra Petch',sans-serif;font-size:20px;font-weight:800;color:#f1f5f9">${ex.rest}s</span>
+<div class="metric-item">
+<span class="metric-label">REPOS</span>
+<span class="metric-value">${ex.rest}s</span>
 </div>
-<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
-<span style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:#64748b;font-weight:700">RPE</span>
-<span style="font-family:'Chakra Petch',sans-serif;font-size:20px;font-weight:800;color:#f1f5f9">${ex.rpe}</span>
+<div class="metric-item">
+<span class="metric-label">RPE</span>
+<span class="metric-value">${ex.rpe}</span>
 </div>
 </div>
-${ex.notes ? `<div class="ex-notes">💡 ${ex.notes}</div>` : ''}
+${ex.notes ? `<div class="ex-notes">${ex.notes}</div>` : ''}
 <div class="stats-zone">
 <div class="icon-box">
-<svg class="lightning-svg" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
 </svg>
 </div>
-<div style="flex:1">
-${renderBar('FORCE', ex.stats.f, '#ea580c', '#facc15')}
-${renderBar('HYPER', ex.stats.h, '#7e22ce', '#e879f9')}
-${renderBar('ENDUR', ex.stats.e, '#0e7490', '#22d3ee')}
+<div class="progress-rails">
+${renderRail('force', 'FORCE', ex.stats.f)}
+${renderRail('hyper', 'HYPER', ex.stats.h)}
+${renderRail('endur', 'ENDUR', ex.stats.e)}
 </div>
 </div>
 </div>`;
