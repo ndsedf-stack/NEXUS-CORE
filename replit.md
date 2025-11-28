@@ -1,10 +1,12 @@
-# NEON FIT V3.0 - Replit Configuration
+# NEON FIT V4.0 - Replit Configuration
 
 ## Quick Start
 
 ```bash
 node server/index.js
 # App runs on port 5000
+# V3: /index.html (production)
+# V4: /index-v4.html (development)
 ```
 
 ## File Structure
@@ -16,6 +18,7 @@ node server/index.js
 │   ├── replitAuth.js         # Replit Auth (OpenID Connect)
 │   └── db.js                 # PostgreSQL connection
 │
+│── V3 PRODUCTION ─────────────────────────────────
 ├── index.html                # Dashboard (QG)
 ├── workouts.html             # Workout list (OPS)
 ├── briefing.html             # Mission Briefing
@@ -23,9 +26,17 @@ node server/index.js
 ├── session-tempo.html        # Timer Guide with tempo phases
 ├── stats.html                # Stats React page
 │
+│── V4 DEVELOPMENT ────────────────────────────────
+├── session-v4.html           # Mode Combat - Full workout interface
+├── debrief-v4.html           # Mission Complete - End workout screen
+├── index-v4.html             # QG Dashboard - Rank, heatmap, stats
+├── v4-styles.css             # V4 Design system
+├── gamification-v4.js        # Ranks, badges, XP system
+│
+│── SHARED MODULES ────────────────────────────────
 ├── app.js                    # ES6 module (session.html only)
 ├── app-v2.js                 # Classic script version
-├── program-data.js           # ES6 module (session.html only)
+├── program-data.js           # ES6 module + window.programData
 ├── program-data-v2.js        # Classic script version
 ├── workout-history.js        # ES6 module (session.html only)
 ├── workout-history-v2.js     # Classic script version
@@ -125,5 +136,49 @@ const CACHE_VERSION = 'vtimestamp';
 | hybrid_xp | number | User XP |
 | hybrid_current_week | number | Week 1-4 |
 | neon_fit_workout_history | array | Workout entries |
+
+## V4 Design System
+
+### Muscle Color Palette
+
+```css
+--muscle-dos: #22d3ee;      /* Cyan */
+--muscle-pectoraux: #c084fc; /* Magenta */
+--muscle-jambes: #a3e635;   /* Lime */
+--muscle-epaules: #f59e0b;  /* Amber */
+--muscle-bras: #8b5cf6;     /* Purple */
+--muscle-abdos: #34d399;    /* Emerald */
+```
+
+### Military Ranks
+
+| Rang | XP Min | XP Max |
+|------|--------|--------|
+| Recrue | 0 | 999 |
+| Operateur | 1000 | 4999 |
+| Specialiste | 5000 | 14999 |
+| Commando | 15000 | 34999 |
+| Elite | 35000 | 74999 |
+| Legende | 75000 | 149999 |
+| Titan | 150000 | - |
+
+### V4 Features
+
+- **Mode Combat**: Full-screen exercise interface with 120px rep counter
+- **Timer Repos**: Circular countdown with optimal window (green/amber/red)
+- **Intensification**: Drop set, Rest-pause, Myo-reps, Iso-hold modules
+- **RPE/RIR Slider**: 4 options with quick tags (Parfait/Tough/Grind)
+- **Heatmap Musculaire**: SVG body visualization with muscle activity
+- **Confetti Debrief**: Celebration screen with mission stats
+
+### V4 LocalStorage Keys
+
+| Key | Type | Description |
+|-----|------|-------------|
+| neon_fit_v4_xp | number | V4 XP total |
+| neon_fit_v4_streak | number | Current streak days |
+| neon_fit_v4_badges | array | Unlocked badges |
+| neon_fit_v4_rank | string | Current rank ID |
+| neon_fit_v4_session | object | Current workout session |
 
 ## See README.md for full documentation
