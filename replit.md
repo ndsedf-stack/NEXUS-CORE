@@ -19,13 +19,15 @@ NEON FIT is a Progressive Web App (PWA) for fitness tracking with a cyberpunk/sc
 .
 ├── index.html              # Dashboard principal
 ├── workouts.html           # Liste des workouts
-├── session.html            # Session active
+├── session.html            # Session active (ES6 modules)
 ├── stats.html              # Statistiques React
 ├── briefing.html           # Mission Briefing
 │
-├── app-v2.js               # Module utilitaires (global)
-├── program-data-v2.js      # Données programme (global)
-├── workout-history.js      # Historique workouts (global)
+├── app-v2.js               # Classic script - utilitaires (window.X)
+├── program-data-v2.js      # Classic script - données (window.X)
+├── app.js                  # ES6 module version of app-v2.js
+├── program-data.js         # ES6 module version of program-data-v2.js
+├── workout-history.js      # Historique workouts (both versions)
 ├── briefing-integration.js # Override boutons scan
 ├── sw.js                   # Service Worker
 └── version.js              # Version tracking
@@ -90,7 +92,19 @@ This is a static site that can be deployed using Replit's static deployment opti
 - Conventions: 2 spaces indentation, camelCase JS
 - Commit style: Gitmoji (✨ feature, 🐛 bug, 📝 docs)
 
+## iOS/iPhone Compatibility
+All pages include iOS Safari optimizations:
+- `viewport-fit=cover` for full-screen on notched devices
+- `env(safe-area-inset-*)` padding for notch and home indicator
+- `-webkit-backdrop-filter` prefixes for blur effects
+- `-webkit-tap-highlight-color: transparent` for clean taps
+- `-webkit-overflow-scrolling: touch` for smooth scrolling
+- Apple Web App meta tags for PWA homescreen support
+
 ## Recent Changes (Replit Import)
 - Updated service worker path from `/neon-fit2/sw.js` to `/sw.js`
 - Configured http-server workflow on port 5000
 - Added Replit deployment configuration
+- Created ES6 module versions (app.js, program-data.js) for session.html
+- Added iOS Safari compatibility (viewport-fit, safe-area, webkit prefixes)
+- Fixed all pages to work with program-data integration
