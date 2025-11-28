@@ -179,9 +179,9 @@
       <h1 class="text-2xl font-hud font-bold text-white uppercase mt-1" id="exercise-name">TRAP BAR DEADLIFT</h1>
     </div>
     
-    <!-- Cercles concentriques -->
-    <div class="relative w-72 h-72 mb-4" id="circles-container">
-      <svg width="100%" height="100%" viewBox="0 0 300 300" class="absolute inset-0">
+    <!-- Cercle tempo simple -->
+    <div class="relative w-64 h-64 mb-4" id="circles-container" style="filter: drop-shadow(0 0 30px rgba(34,211,238,0.2));">
+      <svg width="100%" height="100%" viewBox="0 0 280 280" class="absolute inset-0">
         <defs>
           <linearGradient id="repGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="var(--descent-color)" />
@@ -190,21 +190,11 @@
           </linearGradient>
         </defs>
         
-        <!-- Session ring (outermost) -->
-        <circle cx="150" cy="150" r="145" class="circle-ring" stroke="rgba(255,255,255,0.05)" stroke-width="3" />
-        <circle id="ring-session" cx="150" cy="150" r="145" class="circle-ring" stroke="rgba(34,211,238,0.3)" stroke-width="3" stroke-dasharray="911" stroke-dashoffset="911" transform="rotate(-90 150 150)" />
-        
-        <!-- Exercise ring -->
-        <circle cx="150" cy="150" r="130" class="circle-ring" stroke="rgba(255,255,255,0.05)" stroke-width="4" />
-        <circle id="ring-exercise" cx="150" cy="150" r="130" class="circle-ring" stroke="var(--green)" stroke-width="4" stroke-dasharray="816" stroke-dashoffset="816" transform="rotate(-90 150 150)" />
-        
-        <!-- Set ring (5 segments) -->
-        <circle cx="150" cy="150" r="115" class="circle-ring" stroke="rgba(255,255,255,0.05)" stroke-width="5" />
-        <circle id="ring-set" cx="150" cy="150" r="115" class="circle-ring" stroke="var(--purple)" stroke-width="5" stroke-dasharray="722.57" stroke-dashoffset="722.57" transform="rotate(-90 150 150)" />
+        <!-- Background track -->
+        <circle cx="140" cy="140" r="115" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="12" />
         
         <!-- Rep ring (tempo progress) -->
-        <circle cx="150" cy="150" r="95" class="circle-ring" stroke="rgba(255,255,255,0.08)" stroke-width="12" />
-        <circle id="ring-rep" cx="150" cy="150" r="95" class="circle-ring glow-cyan" stroke="url(#repGradient)" stroke-width="12" stroke-dasharray="596.9" stroke-dashoffset="596.9" transform="rotate(-90 150 150)" />
+        <circle id="ring-rep" cx="140" cy="140" r="115" fill="none" stroke="url(#repGradient)" stroke-width="12" stroke-linecap="round" stroke-dasharray="722.57" stroke-dashoffset="722.57" transform="rotate(-90 140 140)" />
       </svg>
       
       <!-- Center display -->
@@ -357,11 +347,11 @@
     <div class="absolute bottom-[-20%] right-[-20%] w-[400px] h-[400px] rounded-full bg-violet-900/30 blur-[100px] pointer-events-none"></div>
     
     <div class="relative z-10 h-full flex flex-col items-center justify-center px-6">
-      <!-- Breathing circle -->
-      <div class="relative w-64 h-64 mb-6 breathing" id="rest-circle-container">
+      <!-- Breathing circle - simple -->
+      <div class="relative w-64 h-64 mb-6 breathing" id="rest-circle-container" style="filter: drop-shadow(0 0 30px rgba(168,85,247,0.3));">
         <svg width="100%" height="100%" viewBox="0 0 280 280">
-          <circle cx="140" cy="140" r="120" fill="none" stroke="rgba(168,85,247,0.2)" stroke-width="8" />
-          <circle id="rest-progress" cx="140" cy="140" r="120" fill="none" stroke="var(--purple)" stroke-width="8" stroke-linecap="round" stroke-dasharray="753.98" stroke-dashoffset="0" transform="rotate(-90 140 140)" class="glow-purple" />
+          <circle cx="140" cy="140" r="115" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" />
+          <circle id="rest-progress" cx="140" cy="140" r="115" fill="none" stroke="var(--purple)" stroke-width="10" stroke-linecap="round" stroke-dasharray="722.57" stroke-dashoffset="0" transform="rotate(-90 140 140)" />
         </svg>
         
         <div class="absolute inset-0 flex flex-col items-center justify-center">
@@ -550,21 +540,9 @@
       elapsedTempo += (state.tempo[state.phase] - state.timeRemaining);
       
       const repProgress = elapsedTempo / totalTempoTime;
-      const repCircumference = 596.9; // 2 * PI * 95
+      const repCircumference = 722.57; // 2 * PI * 115
       const repOffset = repCircumference * (1 - repProgress);
       document.getElementById('ring-rep').style.strokeDashoffset = repOffset;
-      
-      // Set ring (reps progress)
-      const setProgress = (state.rep - 1) / state.totalReps;
-      const setCircumference = 722.57; // 2 * PI * 115
-      const setOffset = setCircumference * (1 - setProgress);
-      document.getElementById('ring-set').style.strokeDashoffset = setOffset;
-      
-      // Exercise ring (sets progress)
-      const exProgress = (state.set - 1) / state.totalSets;
-      const exCircumference = 816; // 2 * PI * 130
-      const exOffset = exCircumference * (1 - exProgress);
-      document.getElementById('ring-exercise').style.strokeDashoffset = exOffset;
     }
     
     function updateTempoBars() {
@@ -687,7 +665,7 @@
       
       // Update circle
       const progress = 1 - (state.restRemaining / state.restTime);
-      const circumference = 753.98; // 2 * PI * 120
+      const circumference = 722.57; // 2 * PI * 115
       document.getElementById('rest-progress').style.strokeDashoffset = circumference * progress;
     }
     
