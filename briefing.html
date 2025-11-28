@@ -241,21 +241,45 @@
             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
         }
 
-        /* SVG Gauge Styling */
+        /* SVG Gauge Styling - ULTRA PREMIUM */
         .gauge-container {
-            display: flex; flex-direction: column; align-items: center; position: relative;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            position: relative;
+            padding: 8px;
         }
         .gauge-svg {
-            width: 96px; height: 96px;
-            transform: rotate(-90deg); /* 12 o'clock start */
+            width: 110px; 
+            height: 110px;
+            transform: rotate(-90deg);
             overflow: visible;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
         }
         .gauge-value {
-            position: absolute; top: 34px; width: 100%; text-align: center;
-            font-family: var(--font-tech); font-size: 18px; font-weight: 700;
-            color: #cbd5e1;
+            position: absolute; 
+            top: 40px; 
+            width: 100%; 
+            text-align: center;
+            font-family: var(--font-tech); 
+            font-size: 22px; 
+            font-weight: 800;
+            color: #e2e8f0;
+            letter-spacing: 0.5px;
         }
-        .gauge-value.glow { color: var(--cyan); text-shadow: 0 0 10px rgba(34, 211, 238, 0.8); }
+        .gauge-value.glow { 
+            color: var(--cyan); 
+            text-shadow: 
+                0 0 15px rgba(34, 211, 238, 1),
+                0 0 30px rgba(34, 211, 238, 0.6),
+                0 0 45px rgba(34, 211, 238, 0.3);
+            animation: pulse-text 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-text {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
 
         /* Stat Bars Zone */
         .stats-zone {
@@ -281,69 +305,154 @@
             filter: drop-shadow(0 0 6px rgba(250, 204, 21, 0.6));
         }
 
-        .bars-stack { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-        .bar-row { display: flex; align-items: center; gap: 12px; }
+        .bars-stack { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .bar-row { display: flex; align-items: center; gap: 14px; }
         .bar-label {
-            width: 45px; text-align: right;
-            font-size: 9px; font-weight: 700; color: #475569;
-            text-transform: uppercase; letter-spacing: 0.1em;
+            width: 50px; 
+            text-align: right;
+            font-size: 10px; 
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase; 
+            letter-spacing: 0.15em;
         }
         .bar-track {
-            flex: 1; height: 4px; background: rgba(255,255,255,0.05);
+            flex: 1; 
+            height: 6px; 
+            background: rgba(255,255,255,0.03);
             position: relative;
-            border-radius: 2px;
+            border-radius: 3px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
         }
         .bar-fill {
             height: 100%;
             position: relative;
-            box-shadow: 0 0 10px currentColor;
+            box-shadow: 
+                0 0 15px currentColor,
+                0 0 25px currentColor,
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bar-fill::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.3) 50%, 
+                transparent 100%);
+            animation: shimmer-bar 2s infinite;
         }
         .bar-fill::after {
-            content: ''; position: absolute; top: -1px; bottom: -1px; right: 0; width: 2px;
-            background: white; box-shadow: 0 0 6px white; border-radius: 2px;
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            bottom: 0; 
+            right: 0; 
+            width: 3px;
+            background: white; 
+            box-shadow: 
+                0 0 8px white,
+                0 0 15px currentColor;
+            border-radius: 2px;
+        }
+        
+        @keyframes shimmer-bar {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(300%); }
         }
 
-        /* Superset Badge */
+        /* Superset Badge - ULTRA VISIBLE */
         .superset-badge {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 3px 8px;
-            background: rgba(255, 45, 149, 0.1);
-            border: 1px solid rgba(255, 45, 149, 0.3);
-            border-radius: 6px;
-            font-size: 8px;
-            font-weight: 700;
+            gap: 6px;
+            padding: 6px 14px;
+            background: linear-gradient(135deg, 
+                rgba(255, 45, 149, 0.25) 0%, 
+                rgba(192, 132, 252, 0.25) 100%);
+            border: 2px solid rgba(255, 45, 149, 0.6);
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.15em;
             color: #ff2d95;
-            margin-left: 8px;
+            margin-left: 12px;
+            box-shadow: 
+                0 0 20px rgba(255, 45, 149, 0.4),
+                0 4px 12px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            animation: pulse-superset 2s ease-in-out infinite;
         }
         .superset-icon {
-            width: 10px;
-            height: 10px;
+            width: 14px;
+            height: 14px;
             color: #ff2d95;
+            filter: drop-shadow(0 0 4px rgba(255, 45, 149, 0.8));
         }
 
-        /* Superset Connector */
+        @keyframes pulse-superset {
+            0%, 100% { 
+                box-shadow: 
+                    0 0 20px rgba(255, 45, 149, 0.4),
+                    0 4px 12px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                border-color: rgba(255, 45, 149, 0.6);
+            }
+            50% { 
+                box-shadow: 
+                    0 0 35px rgba(255, 45, 149, 0.7),
+                    0 0 50px rgba(255, 45, 149, 0.3),
+                    0 4px 12px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+                border-color: rgba(255, 45, 149, 0.9);
+            }
+        }
+
+        /* Superset Connector - PREMIUM */
         .superset-pair {
             position: relative;
-            margin-bottom: 12px;
+            margin-bottom: 20px;
         }
         .superset-pair .glass-card {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         .superset-pair .glass-card:last-child {
             margin-bottom: 24px;
         }
         .superset-connector {
             position: absolute;
-            left: 10px;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: linear-gradient(180deg, transparent, rgba(255, 45, 149, 0.3), transparent);
+            left: 16px;
+            top: 20px;
+            bottom: 20px;
+            width: 4px;
+            background: linear-gradient(180deg, 
+                rgba(255, 45, 149, 0) 0%,
+                rgba(255, 45, 149, 0.6) 20%,
+                rgba(192, 132, 252, 0.6) 50%,
+                rgba(255, 45, 149, 0.6) 80%,
+                rgba(255, 45, 149, 0) 100%);
             border-radius: 2px;
+            box-shadow: 
+                0 0 15px rgba(255, 45, 149, 0.5),
+                inset 0 0 10px rgba(255, 255, 255, 0.2);
+            animation: pulse-connector 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-connector {
+            0%, 100% { 
+                opacity: 0.7;
+                box-shadow: 0 0 15px rgba(255, 45, 149, 0.5);
+            }
+            50% { 
+                opacity: 1;
+                box-shadow: 
+                    0 0 30px rgba(255, 45, 149, 0.8),
+                    0 0 50px rgba(255, 45, 149, 0.4);
+            }
         }
 
         /* Exercise Details */
@@ -550,19 +659,50 @@
     <!-- SVG Definitions (Filters & Gradients) -->
     <svg style="width:0; height:0; position:absolute;">
         <defs>
+            <!-- Standard gradient -->
             <linearGradient id="grad_std" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" style="stop-color:#94a3b8" />
                 <stop offset="100%" style="stop-color:#475569" />
             </linearGradient>
+            
+            <!-- Premium standard gradient -->
+            <linearGradient id="grad_std_premium" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#cbd5e1" />
+                <stop offset="50%" style="stop-color:#94a3b8" />
+                <stop offset="100%" style="stop-color:#64748b" />
+            </linearGradient>
+            
+            <!-- Glow gradient -->
             <linearGradient id="grad_glow" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" style="stop-color:#06b6d4" />
                 <stop offset="100%" style="stop-color:#22d3ee" />
             </linearGradient>
+            
+            <!-- Premium glow gradient -->
+            <linearGradient id="grad_glow_premium" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#06b6d4" />
+                <stop offset="50%" style="stop-color:#22d3ee" />
+                <stop offset="100%" style="stop-color:#67e8f9" />
+            </linearGradient>
+            
             <!-- High Quality Glow Filter -->
             <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                 <feMerge>
                     <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+            
+            <!-- ULTRA Glow Filter -->
+            <filter id="ultra_glow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="4" result="blur1"/>
+                <feGaussianBlur stdDeviation="8" result="blur2"/>
+                <feGaussianBlur stdDeviation="12" result="blur3"/>
+                <feMerge>
+                    <feMergeNode in="blur3"/>
+                    <feMergeNode in="blur2"/>
+                    <feMergeNode in="blur1"/>
                     <feMergeNode in="SourceGraphic"/>
                 </feMerge>
             </filter>
@@ -888,42 +1028,164 @@
         function renderGauge(value, label, max, isGlow) {
             const num = parseFloat(String(value).match(/\d+/)?.[0] || 0);
             const pct = Math.min((num / max), 1);
-            const r = 38;
+            const r = 46; // Rayon BEAUCOUP plus grand
+            const strokeWidth = 5; // Stroke ÉPAIS
             const C = 2 * Math.PI * r;
             const offset = C - (pct * C);
             
-            // Diamond Tip Calculation
+            // Diamond Tip angle
             const angle = (pct * 360); 
+
+            // Couleurs selon isGlow
+            const strokeColor = isGlow 
+                ? 'url(#grad_glow_premium)' 
+                : 'url(#grad_std_premium)';
+            
+            const glowFilter = isGlow ? 'url(#ultra_glow)' : '';
+            
+            const diamondSize = isGlow ? 5 : 3;
+            const diamondColor = isGlow ? '#22d3ee' : 'white';
+            const diamondGlow = isGlow 
+                ? 'drop-shadow(0 0 8px #22d3ee) drop-shadow(0 0 16px #22d3ee) drop-shadow(0 0 24px #22d3ee)' 
+                : 'drop-shadow(0 0 6px white)';
+
+            const valueColor = isGlow ? '#22d3ee' : '#e2e8f0';
+            const valueGlow = isGlow 
+                ? 'text-shadow: 0 0 20px rgba(34, 211, 238, 1), 0 0 40px rgba(34, 211, 238, 0.8), 0 0 60px rgba(34, 211, 238, 0.4);' 
+                : '';
 
             return `
             <div class="gauge-container">
-                <svg class="gauge-svg">
-                    <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2 4" />
-                    <circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="3" />
-                    <circle cx="50" cy="50" r="${r}" fill="none" stroke="url(#${isGlow?'grad_glow':'grad_std'})" stroke-width="3" 
-                        stroke-dasharray="${C}" stroke-dashoffset="${offset}" stroke-linecap="round" 
-                        filter="${isGlow?'url(#neon-glow)':''}" />
-                    <!-- Diamond Tip -->
-                    <g transform="rotate(${angle} 50 50)">
-                         <circle cx="${50+r}" cy="50" r="2" fill="white" style="filter: drop-shadow(0 0 4px white);" />
+                <svg width="120" height="120" viewBox="0 0 120 120" style="transform: rotate(-90deg); filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.6));">
+                    <!-- Outer glow ring -->
+                    <circle cx="60" cy="60" r="56" 
+                        fill="none" 
+                        stroke="rgba(255,255,255,0.03)" 
+                        stroke-width="1" 
+                        stroke-dasharray="4 8" />
+                    
+                    <!-- Background track -->
+                    <circle cx="60" cy="60" r="${r}" 
+                        fill="none" 
+                        stroke="rgba(255,255,255,0.06)" 
+                        stroke-width="${strokeWidth}" />
+                    
+                    <!-- Progress arc PREMIUM -->
+                    <circle cx="60" cy="60" r="${r}" 
+                        fill="none" 
+                        stroke="${strokeColor}" 
+                        stroke-width="${strokeWidth}" 
+                        stroke-dasharray="${C}" 
+                        stroke-dashoffset="${offset}" 
+                        stroke-linecap="round"
+                        filter="${glowFilter}"
+                        style="transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);" />
+                    
+                    <!-- Diamond Tip PREMIUM -->
+                    <g transform="rotate(${angle} 60 60)">
+                        <circle cx="${60 + r}" cy="60" 
+                            r="${diamondSize}" 
+                            fill="${diamondColor}" 
+                            style="filter: ${diamondGlow};" />
                     </g>
                 </svg>
-                <div class="gauge-value ${isGlow?'glow':''}">${value}</div>
-                <span class="label-tech" style="margin-top: -8px;">${label}</span>
+                
+                <div style="
+                    position: absolute; 
+                    top: 46px; 
+                    width: 100%; 
+                    text-align: center;
+                    font-family: 'Chakra Petch', sans-serif;
+                    font-size: 26px;
+                    font-weight: 800;
+                    color: ${valueColor};
+                    letter-spacing: 0.5px;
+                    ${valueGlow}
+                ">${value}</div>
+                
+                <span style="
+                    font-size: 9px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.15em;
+                    color: #64748b;
+                    font-weight: 700;
+                    margin-top: -2px;
+                ">${label}</span>
             </div>
             `;
         }
 
         function renderBar(label, value, color1, color2) {
             return `
-            <div class="bar-row">
-                <span class="bar-label">${label}</span>
-                <div class="bar-track">
-                    <div class="bar-fill" style="width: ${value}%; background: linear-gradient(90deg, ${color1}, ${color2}); color: ${color2};"></div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <span style="
+                    width: 55px; 
+                    text-align: right;
+                    font-size: 11px; 
+                    font-weight: 800;
+                    color: #64748b;
+                    text-transform: uppercase; 
+                    letter-spacing: 0.15em;
+                ">${label}</span>
+                <div style="
+                    flex: 1; 
+                    height: 8px; 
+                    background: rgba(255,255,255,0.04);
+                    position: relative;
+                    border-radius: 4px;
+                    overflow: hidden;
+                    box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+                ">
+                    <div style="
+                        width: ${value}%; 
+                        height: 100%;
+                        background: linear-gradient(90deg, ${color1}, ${color2});
+                        border-radius: 4px;
+                        box-shadow: 
+                            0 0 20px ${color2},
+                            0 0 35px ${color2},
+                            inset 0 1px 0 rgba(255, 255, 255, 0.4);
+                        position: relative;
+                        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                    ">
+                        <!-- Shimmer effect -->
+                        <div style="
+                            position: absolute;
+                            inset: 0;
+                            background: linear-gradient(90deg, 
+                                transparent 0%, 
+                                rgba(255, 255, 255, 0.4) 50%, 
+                                transparent 100%);
+                            animation: shimmer-move 2.5s infinite;
+                        "></div>
+                        <!-- Tip -->
+                        <div style="
+                            position: absolute; 
+                            top: -1px; 
+                            bottom: -1px; 
+                            right: 0; 
+                            width: 4px;
+                            background: white; 
+                            box-shadow: 
+                                0 0 10px white,
+                                0 0 20px ${color2};
+                            border-radius: 2px;
+                        "></div>
+                    </div>
                 </div>
             </div>
             `;
         }
+        
+        // Animation shimmer
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes shimmer-move {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(300%); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
 
         function renderApp() {
             const list = document.getElementById('exercises-list');
