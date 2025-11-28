@@ -244,62 +244,116 @@
         }
         .start-button:active { transform: scale(0.96); }
         
-        /* Responsive Gauge System */
+        /* Responsive Gauge System - V2 */
         .gauges-row {
             display: flex;
-            justify-content: center;
+            justify-content: space-evenly;
             align-items: flex-start;
-            gap: 12px;
-            padding: 20px 16px;
-            margin-bottom: 20px;
+            padding: 20px 12px;
+            gap: 8px;
         }
-        .gauge-container {
+        .gauge-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
-            flex: 0 0 auto;
-            width: calc((100% - 24px) / 3);
-            max-width: 100px;
-            min-width: 80px;
+            flex: 1;
+            max-width: 110px;
         }
-        .gauge-svg {
+        .gauge-svg-box {
+            position: relative;
             width: 100%;
-            height: auto;
             aspect-ratio: 1;
+        }
+        .gauge-svg-box svg {
+            width: 100%;
+            height: 100%;
             display: block;
         }
-        .gauge-value {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) translateY(-4px);
-            font-family: 'Chakra Petch', sans-serif;
-            font-size: clamp(18px, 5vw, 28px);
-            font-weight: 900;
-            letter-spacing: 0.5px;
-        }
         .gauge-label {
-            margin-top: 8px;
-            font-size: 9px;
+            margin-top: 10px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.15em;
             color: #64748b;
             font-weight: 700;
         }
-        .gauge-progress-badge {
+        .gauge-badge {
             position: absolute;
-            top: 2px;
-            right: 2px;
-            font-size: 8px;
+            top: 4px;
+            right: 4px;
+            font-size: 9px;
             font-weight: 800;
-            padding: 2px 5px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            background: var(--badge-bg);
+            color: var(--badge-color);
+            border: 1px solid var(--badge-color);
+        }
+        
+        /* Progress Bars - V2 */
+        .bar-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .bar-label {
+            width: 55px;
+            text-align: right;
+            font-size: 10px;
+            font-weight: 800;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .bar-track {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.04);
             border-radius: 4px;
-            border: 1px solid;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            position: relative;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            right: 0;
+            bottom: 1px;
+            width: 3px;
+            background: white;
+            border-radius: 2px;
+            box-shadow: 0 0 6px white;
+        }
+        
+        /* Glass Card - Unified */
+        .glass-card {
+            background: linear-gradient(135deg, rgba(13, 17, 23, 0.95) 0%, rgba(6, 10, 15, 0.98) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 24px;
+            padding: 24px;
+            margin: 0 20px 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
         }
     </style>
-  <script src="program-data-v2.js?v=1764351000"></script>
-  <script src="app-v2.js?v=1764351000"></script>
+  <script src="program-data-v2.js?v=1764352000"></script>
+  <script src="app-v2.js?v=1764352000"></script>
   <script src="workout-history-v2.js"></script>
   <script src="cloud-sync.js"></script>
 </head>
@@ -472,43 +526,44 @@
         function renderGauge(value, label, max, isGlow, progress = null) {
             const num = parseFloat(String(value).match(/\d+/)?.[0] || 0);
             const pct = Math.min((num / max), 1);
-            const r = 40, strokeWidth = 5, C = 2 * Math.PI * r;
+            const r = 44, strokeWidth = 6, C = 2 * Math.PI * r;
             const offset = C - (pct * C), angle = (pct * 360);
-            const sc = isGlow ? '#22d3ee' : '#94a3b8';
-            const dc = isGlow ? '#22d3ee' : '#e2e8f0';
-            const ds = isGlow ? 5 : 4;
-            const tc = isGlow ? '#22d3ee' : '#f1f5f9';
-            const ts = isGlow ? '0 0 15px rgba(34, 211, 238, 0.8)' : 'none';
-            const gid = 'g' + (isGlow?'On':'Off') + Math.random().toString(36).substr(2,5);
+            const strokeColor = isGlow ? '#22d3ee' : '#64748b';
+            const dotColor = isGlow ? '#22d3ee' : '#94a3b8';
+            const textColor = isGlow ? '#22d3ee' : '#f1f5f9';
+            const glowFilter = isGlow ? 'drop-shadow(0 0 8px rgba(34,211,238,0.6))' : 'none';
+            const uid = 'g' + Math.random().toString(36).substr(2,6);
             
             const hasProgress = progress !== null && progress.completed > 0;
             const progressPct = hasProgress ? Math.min(progress.completed / progress.target, 1) : 0;
             const progressComplete = hasProgress && progress.completed >= progress.target;
+            const pColor = progressComplete ? '#22c55e' : '#f59e0b';
             
-            return `<div class="gauge-container">
-<svg viewBox="0 0 100 100" class="gauge-svg">
+            return `<div class="gauge-wrapper">
+<div class="gauge-svg-box">
+<svg viewBox="0 0 120 120" preserveAspectRatio="xMidYMid meet">
 <defs>
-<filter id="${gid}"><feGaussianBlur stdDeviation="2"/></filter>
-<filter id="pg${gid}"><feGaussianBlur stdDeviation="2.5"/></filter>
+<filter id="${uid}"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>
-<circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="${strokeWidth}"/>
-<circle cx="50" cy="50" r="${r}" fill="none" stroke="${sc}" stroke-width="${strokeWidth}" stroke-dasharray="${C}" stroke-dashoffset="${offset}" stroke-linecap="round" transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 1.2s;filter:url(#${gid})"/>
-${hasProgress ? `<circle cx="50" cy="50" r="${r+8}" fill="none" stroke="${progressComplete ? '#22c55e' : '#f59e0b'}" stroke-width="2.5" stroke-dasharray="${2*Math.PI*(r+8)}" stroke-dashoffset="${2*Math.PI*(r+8) - (progressPct * 2*Math.PI*(r+8))}" stroke-linecap="round" transform="rotate(-90 50 50)" style="transition:stroke-dashoffset 1s;filter:url(#pg${gid});opacity:0.9"/>` : ''}
-<g transform="rotate(${angle-90} 50 50)"><circle cx="${50+r}" cy="50" r="${ds}" fill="${dc}" style="filter:drop-shadow(0 0 6px ${dc})"/></g>
+<circle cx="60" cy="60" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="${strokeWidth}"/>
+<circle cx="60" cy="60" r="${r}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" stroke-dasharray="${C}" stroke-dashoffset="${offset}" stroke-linecap="round" transform="rotate(-90 60 60)" style="filter:${glowFilter};transition:stroke-dashoffset 1s"/>
+${hasProgress ? `<circle cx="60" cy="60" r="${r+7}" fill="none" stroke="${pColor}" stroke-width="3" stroke-dasharray="${2*Math.PI*(r+7)}" stroke-dashoffset="${2*Math.PI*(r+7)*(1-progressPct)}" stroke-linecap="round" transform="rotate(-90 60 60)" style="filter:drop-shadow(0 0 6px ${pColor});opacity:0.85"/>` : ''}
+<circle cx="${60 + r * Math.cos((angle-90)*Math.PI/180)}" cy="${60 + r * Math.sin((angle-90)*Math.PI/180)}" r="5" fill="${dotColor}" style="filter:drop-shadow(0 0 6px ${dotColor})"/>
+<text x="60" y="60" text-anchor="middle" dominant-baseline="central" font-family="Chakra Petch, sans-serif" font-size="28" font-weight="900" fill="${textColor}" style="filter:${glowFilter}">${value}</text>
 </svg>
-${hasProgress ? `<div class="gauge-progress-badge" style="background:${progressComplete ? 'rgba(34,197,94,0.2)' : 'rgba(245,158,11,0.2)'};color:${progressComplete ? '#22c55e' : '#f59e0b'};border-color:${progressComplete ? '#22c55e' : '#f59e0b'}">${progress.completed}/${progress.target}</div>` : ''}
-<div class="gauge-value" style="color:${tc};text-shadow:${ts}">${value}</div>
+${hasProgress ? `<div class="gauge-badge" style="--badge-bg:${pColor}20;--badge-color:${pColor}">${progress.completed}/${progress.target}</div>` : ''}
+</div>
 <span class="gauge-label">${label}</span>
 </div>`;
         }
 
         function renderBar(label, value, c1, c2) {
-            return `<div style="display:flex;align-items:center;gap:14px;margin-bottom:10px">
-<span style="width:60px;text-align:right;font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.12em">${label}</span>
-<div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px">
-<div style="width:${value}%;height:100%;background:linear-gradient(90deg,${c1},${c2});border-radius:3px;position:relative;transition:width 0.8s;box-shadow:0 0 12px ${c2}80">
-<div style="position:absolute;top:-1px;bottom:-1px;right:0;width:3px;background:white;border-radius:2px;box-shadow:0 0 6px white"></div>
-</div></div></div>`;
+            return `<div class="bar-row">
+<span class="bar-label">${label}</span>
+<div class="bar-track">
+<div class="bar-fill" style="width:${value}%;background:linear-gradient(90deg,${c1},${c2});box-shadow:0 0 12px ${c2}60"></div>
+</div>
+</div>`;
         }
 
         function renderApp() {
