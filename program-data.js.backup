@@ -518,12 +518,12 @@ function generateProgram() {
 // ====================================================================
 // GÉNÉRATION DU PROGRAMME COMPLET
 // ====================================================================
-const PROGRAM = generateProgram();
+export const PROGRAM = generateProgram();
 
 // ====================================================================
 // INFORMATIONS SUPPLÉMENTAIRES
 // ====================================================================
-const PROGRAM_INFO = {
+export const PROGRAM_INFO = {
   name: "Hybrid Master 51",
   version: "2.0 Complète Corrigée",
   duration: 26,
@@ -708,7 +708,7 @@ const PROGRAM_INFO = {
 // ====================================================================
 // CLASSE PROGRAMDATA (API COMPLÈTE)
 // ====================================================================
-class ProgramData {
+export class ProgramData {
   constructor() {
     this.program = PROGRAM;
     this.info = PROGRAM_INFO;
@@ -964,4 +964,4 @@ class ProgramData {
 // Export par défaut ET global pour superset-injector
 const programData = new ProgramData();
 window.programData = programData;
-
+export default programData;
