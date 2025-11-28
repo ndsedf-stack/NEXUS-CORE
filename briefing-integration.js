@@ -1,13 +1,13 @@
 /**
  * BRIEFING INTEGRATION MODULE
  * Auto-injects briefing buttons and handlers into index.html and workouts.html
- * Usage: Add <script type="module" src="./briefing-integration.js"></script> after app.js
+ * Usage: Add <script src="./briefing-integration.js"></script> after app.js
  */
 
 // Utils is available globally from app.js
 const Utils = window.Utils || {
   getCurrentWeek: () => {
-    const weekKey = localStorage.getItem('currentWeek');
+    const weekKey = localStorage.getItem('currentWeek') || localStorage.getItem('hybrid_current_week');
     return weekKey ? parseInt(weekKey) : 1;
   }
 };
@@ -116,6 +116,57 @@ async function integrateIndexPage() {
 }
 
 // ========================================
+// WORKOUTS.HTML INTEGRATION
+// ========================================
+
+async function integrateWorkoutsPage() {
+  console.log('🔥 OVERRIDING WORKOUTS SCAN BUTTONS');
+  
+  try {
+    await waitForElement('.scan-btn');
+    
+    const scanButtons = document.querySelectorAll('.scan-btn');
+    console.log(`🔍 Found ${scanButtons.length} scan buttons`);
+    
+    scanButtons.forEach((btn, index) => {
+      const day = btn.dataset.day;
+      if (!day) return;
+      
+      console.log(`🎯 Overriding scan button ${index + 1}: ${day}`);
+      
+      // Clone to remove ALL listeners
+      const newBtn = btn.cloneNode(true);
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      // Add NEW listener - OPEN BRIEFING DIRECTLY
+      newBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        const currentWeek = Utils.getCurrentWeek();
+        
+        if (navigator.vibrate) {
+          navigator.vibrate(10);
+        }
+        
+        console.log(`📋 Opening briefing DIRECT: Week ${currentWeek}, Day ${day}`);
+        
+        // Redirect to briefing DIRECTLY - NO MODAL
+        window.location.href = `briefing.html?week=${currentWeek}&day=${day}`;
+        
+        return false;
+      }, true);
+    });
+    
+    console.log('✅ All workouts scan buttons overridden');
+    
+  } catch (error) {
+    console.error('❌ Error integrating workouts.html:', error);
+  }
+}
+
+// ========================================
 // AUTO-DETECT PAGE AND INTEGRATE
 // ========================================
 
@@ -131,49 +182,13 @@ function init() {
     }, 1500); // Wait for workout cards to be dynamically created
   } 
   else if (path.includes('workouts.html')) {
-    // Override scan buttons to open briefing DIRECTLY
-    
+    // Workouts page - override scan buttons
     setTimeout(() => {
-      console.log('🔥 OVERRIDING WORKOUTS SCAN BUTTONS');
-      
-      const scanButtons = document.querySelectorAll('.scan-btn');
-      console.log(`🔍 Found ${scanButtons.length} scan buttons`);
-      
-      scanButtons.forEach((btn, index) => {
-        const day = btn.dataset.day;
-        if (!day) return;
-        
-        console.log(`🎯 Overriding scan button ${index + 1}: ${day}`);
-        
-        // Clone to remove ALL listeners
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        
-        // Add NEW listener - OPEN BRIEFING DIRECTLY
-        newBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          
-          const currentWeek = Utils.getCurrentWeek();
-          
-          if (navigator.vibrate) {
-            navigator.vibrate(10);
-          }
-          
-          console.log(`📋 Opening briefing DIRECT: Week ${currentWeek}, Day ${day}`);
-          
-          // Redirect to briefing DIRECTLY - NO MODAL
-          window.location.href = `briefing.html?week=${currentWeek}&day=${day}`;
-          
-          return false;
-        }, true);
-      });
-      
-      console.log('✅ All workouts scan buttons overridden');
-      
+      integrateWorkoutsPage();
     }, 1500);
   }
+}
+
 // Start integration when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
@@ -181,6 +196,8 @@ if (document.readyState === 'loading') {
   init();
 }
 
-export default {
-  integrateIndexPage
+// Make functions available globally (optional)
+window.briefingIntegration = {
+  integrateIndexPage,
+  integrateWorkoutsPage
 };
