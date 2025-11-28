@@ -1,48 +1,25 @@
-// Service Worker - Force refresh des ressources
-const CACHE_VERSION = 'v1764355096';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/briefing.html',
-  '/workouts.html',
-  '/session.html',
-  '/stats.html',
-  '/app-v2.js',
-  '/program-data-v2.js',
-  '/briefing-integration.js',
-  '/workout-history.js'
-];
+// Service Worker - NEON FIT V3.0
+const CACHE_VERSION = 'v1764355499';
 
-// Installation : vider tous les anciens caches
+// Installation : vider les caches et prendre controle immédiat
 self.addEventListener('install', event => {
-  console.log('SW: Installing new version v1764355096');
+  console.log('SW: Installing', CACHE_VERSION);
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          console.log('SW: Deleting old cache:', cacheName);
-          return caches.delete(cacheName);
-        })
-      );
-    }).then(() => self.skipWaiting())
+    caches.keys().then(names => 
+      Promise.all(names.map(n => caches.delete(n)))
+    ).then(() => self.skipWaiting())
   );
 });
 
-// Activation : nettoyer et prendre le contrôle
 self.addEventListener('activate', event => {
-  console.log('SW: Activating v1764355096');
+  console.log('SW: Activating', CACHE_VERSION);
   event.waitUntil(self.clients.claim());
 });
 
-// Fetch : toujours aller chercher la version réseau
+// Network-first, pas de cache
 self.addEventListener('fetch', event => {
   event.respondWith(
-    fetch(event.request, {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache'
-      }
-    }).catch(() => caches.match(event.request))
+    fetch(event.request, { cache: 'no-store' })
+      .catch(() => caches.match(event.request))
   );
 });
