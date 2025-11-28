@@ -475,24 +475,9 @@
     <!-- Content -->
     <div class="relative z-10 h-full flex flex-col items-center justify-center px-6 safe-area-padding">
       
-      <!-- Timer Circle - Premium with visible decorative rings -->
-      <div class="relative w-72 h-72 mb-6">
-        <!-- Outer rotating ring (HTML div for better iOS support) -->
-        <div class="absolute inset-0 timer-ring-outer">
-          <svg width="100%" height="100%" viewBox="0 0 300 300">
-            <circle cx="150" cy="150" r="145" fill="none" stroke="rgba(34,211,238,0.25)" stroke-width="1" stroke-dasharray="10 15" />
-          </svg>
-        </div>
-        
-        <!-- Second rotating ring (reverse) -->
-        <div class="absolute inset-0 timer-ring-inner">
-          <svg width="100%" height="100%" viewBox="0 0 300 300">
-            <circle cx="150" cy="150" r="138" fill="none" stroke="rgba(192,132,252,0.2)" stroke-width="1" stroke-dasharray="5 10" />
-          </svg>
-        </div>
-        
-        <!-- Main timer SVG -->
-        <svg width="100%" height="100%" viewBox="0 0 300 300" class="timer-circle-svg relative z-10">
+      <!-- Timer Circle - All in one SVG -->
+      <div class="relative w-72 h-72 mb-6" style="filter: drop-shadow(0 0 30px rgba(34,211,238,0.25));">
+        <svg width="100%" height="100%" viewBox="0 0 300 300">
           <defs>
             <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#22d3ee" />
@@ -501,27 +486,36 @@
             </linearGradient>
           </defs>
           
-          <!-- Outer static ring -->
-          <circle cx="150" cy="150" r="130" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1" />
+          <!-- Outer ring 1 - cyan dashed -->
+          <circle cx="150" cy="150" r="145" fill="none" stroke="rgba(34,211,238,0.3)" stroke-width="1.5" stroke-dasharray="12 8" />
           
-          <!-- Glow halo -->
-          <circle cx="150" cy="150" r="115" fill="none" stroke="rgba(34,211,238,0.15)" stroke-width="25" />
+          <!-- Outer ring 2 - magenta dashed -->
+          <circle cx="150" cy="150" r="138" fill="none" stroke="rgba(192,132,252,0.25)" stroke-width="1.5" stroke-dasharray="6 10" />
+          
+          <!-- Outer ring 3 - white subtle -->
+          <circle cx="150" cy="150" r="130" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+          
+          <!-- Glow halo behind progress -->
+          <circle cx="150" cy="150" r="115" fill="none" stroke="rgba(34,211,238,0.12)" stroke-width="28" />
           
           <!-- Background track -->
           <circle cx="150" cy="150" r="115" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10" />
           
           <!-- Progress circle -->
-          <circle id="rest-circle-progress" cx="150" cy="150" r="115" fill="none" stroke="url(#timerGradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="722.57" stroke-dashoffset="0" transform="rotate(-90 150 150)" class="timer-progress-ring" />
+          <circle id="rest-circle-progress" cx="150" cy="150" r="115" fill="none" stroke="url(#timerGradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="722.57" stroke-dashoffset="0" transform="rotate(-90 150 150)" style="filter: drop-shadow(0 0 8px rgba(34,211,238,0.6)); transition: stroke-dashoffset 0.3s ease-out;" />
           
-          <!-- Inner ring -->
-          <circle cx="150" cy="150" r="100" fill="none" stroke="rgba(192,132,252,0.15)" stroke-width="1" />
+          <!-- Inner ring 1 - magenta -->
+          <circle cx="150" cy="150" r="100" fill="none" stroke="rgba(192,132,252,0.2)" stroke-width="1" />
           
-          <!-- Inner dotted ring -->
-          <circle cx="150" cy="150" r="90" fill="none" stroke="rgba(34,211,238,0.2)" stroke-width="1" stroke-dasharray="2 6" />
+          <!-- Inner ring 2 - cyan dotted -->
+          <circle cx="150" cy="150" r="92" fill="none" stroke="rgba(34,211,238,0.25)" stroke-width="1" stroke-dasharray="3 6" />
+          
+          <!-- Inner ring 3 - subtle -->
+          <circle cx="150" cy="150" r="85" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1" />
         </svg>
         
         <!-- Timer text -->
-        <div class="absolute inset-0 flex flex-col items-center justify-center z-20">
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
           <span class="text-xs font-bold text-[var(--cyan)] uppercase tracking-[0.3em] mb-2 opacity-80">REPOS</span>
           <span id="rest-overlay-timer" class="text-6xl font-hud font-black text-white" style="text-shadow: 0 0 30px rgba(34,211,238,0.5), 0 0 60px rgba(34,211,238,0.3);">
             01:30
