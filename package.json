@@ -1,0 +1,15 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "🔥 NEON FIT V3.0 - Documentation Complète & Mise à Jour Date de dernière mise à jour : 28 novembre 2024 Version actuelle : V3.0 - Architecture Modulaire Stabilisée Repo GitHub : ndsedf-stack/neon-fit2",
+  "main": "app-v2-premium.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}
