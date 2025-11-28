@@ -460,7 +460,7 @@
           <circle cx="140" cy="140" r="115" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" />
           
           <!-- Progress circle -->
-          <circle id="rest-circle-progress" cx="140" cy="140" r="115" fill="none" stroke="url(#timerGradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="722.57" stroke-dashoffset="0" transform="rotate(-90 140 140)" style="transition: stroke-dashoffset 0.3s ease-out;" />
+          <circle id="rest-circle-progress" cx="140" cy="140" r="115" fill="none" stroke="url(#timerGradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="722.57" stroke-dashoffset="0" transform="rotate(-90 140 140)" />
         </svg>
         
         <!-- Timer text -->
@@ -943,9 +943,9 @@
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
       };
       
-      // Initial display
+      // Initial display - cercle plein au départ (offset = 0 signifie plein)
       timerText.textContent = formatTime(rem);
-      progressCircle.style.strokeDashoffset = '0';
+      progressCircle.style.strokeDashoffset = '0'; // 0 = cercle plein visible
       
       const updateTimer = () => { 
         rem--; 
