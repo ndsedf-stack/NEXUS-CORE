@@ -1,5 +1,36 @@
-// NEON FIT Service Worker
-const V = 'v1764355673';
-self.addEventListener('install', e => { console.log('SW:',V); e.waitUntil(caches.keys().then(k=>Promise.all(k.map(c=>caches.delete(c)))).then(()=>self.skipWaiting())); });
-self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-self.addEventListener('fetch', e => e.respondWith(fetch(e.request,{cache:'no-store'}).catch(()=>caches.match(e.request))));
+// Service Worker - NEON FIT v3.0
+const CACHE_VERSION = 'v1764356000';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/briefing.html',
+  '/workouts.html',
+  '/session.html',
+  '/stats.html',
+  '/app-v2.js',
+  '/program-data-v2.js',
+  '/workout-history-v2.js',
+  '/cloud-sync-supabase.js',
+  '/config.js'
+];
+
+self.addEventListener('install', event => {
+  console.log('SW:', CACHE_VERSION, 'Installing...');
+  event.waitUntil(
+    caches.keys().then(names => 
+      Promise.all(names.map(n => caches.delete(n)))
+    ).then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', event => {
+  console.log('SW:', CACHE_VERSION, 'Activating...');
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    fetch(event.request, { cache: 'no-store' })
+      .catch(() => caches.match(event.request))
+  );
+});
