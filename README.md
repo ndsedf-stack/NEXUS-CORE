@@ -691,3 +691,276 @@ Si undefined → scripts mal chargés
 Dernière mise à jour : 28 novembre 2024 - 15h00
 Version : V3.0 - Architecture Modulaire Stabilisée
 Status : ✅ PRODUCTION READY
+
+---
+
+## 🔧 Maintenance & Git Workflow
+
+### 📦 Structure Finale du Projet (Post-Nettoyage V3.1)
+
+#### ✅ Fichiers Actifs (9 fichiers)
+```
+neon-fit2/
+├── index.html              # Dashboard principal
+├── workouts.html           # Liste des workouts
+├── session.html            # Session active
+├── stats.html              # Statistiques React
+├── briefing.html           # Mission Briefing
+│
+├── app-v2.js               # Module utilitaires (global)
+├── program-data-v2.js      # Données programme (global)
+├── workout-history.js      # Historique workouts (global)
+└── briefing-integration.js # Override boutons scan
+```
+
+**Taille totale** : ~800KB  
+**Fichiers supprimés** : 13 (backups + versions obsolètes)
+
+---
+
+### 🔄 Workflow Git Standard
+
+#### Commit & Push Classique
+```bash
+cd ~/Desktop/neon\ fit\ v4\ backup
+
+# Vérifier les changements
+git status
+
+# Ajouter tous les fichiers modifiés
+git add .
+
+# OU ajouter fichier par fichier
+git add index.html
+git add app-v2.js
+
+# Commit avec message Gitmoji
+git commit -m "✨ Add new feature"
+# OU
+git commit -m "🐛 Fix bug in stats"
+# OU
+git commit -m "📝 Update documentation"
+
+# Push vers GitHub
+git push origin main
+```
+
+#### Convention Commits (Gitmoji)
+| Emoji | Code | Usage |
+|-------|------|-------|
+| ✨ | `:sparkles:` | Nouvelle fonctionnalité |
+| 🐛 | `:bug:` | Correction de bug |
+| 📝 | `:memo:` | Documentation |
+| 🎨 | `:art:` | Amélioration UI/design |
+| ⚡ | `:zap:` | Performance |
+| 🔧 | `:wrench:` | Configuration |
+| 🧹 | `:broom:` | Nettoyage code |
+| 🔀 | `:twisted_rightwards_arrows:` | Merge |
+
+---
+
+### ⚠️ Résolution Problèmes Git Courants
+
+#### 1. Push Rejeté (Branches Divergentes)
+```bash
+# Erreur :
+# ! [rejected] main -> main (fetch first)
+
+# Solution :
+git pull origin main --no-rebase --no-edit
+git push origin main
+```
+
+#### 2. Bloqué dans Vim
+```bash
+# Si l'éditeur Vim s'ouvre lors d'un merge :
+
+# Sortir SANS sauvegarder :
+:q!
+
+# Sortir EN sauvegardant :
+:wq
+
+# Puis finaliser le merge manuellement :
+git commit -m "🔀 Merge remote changes"
+git push origin main
+```
+
+#### 3. Annuler un Merge en Cours
+```bash
+git merge --abort
+```
+
+#### 4. Voir l'Historique
+```bash
+# Derniers 10 commits
+git log --oneline -10
+
+# Historique graphique
+git log --graph --oneline --all
+```
+
+#### 5. Revenir en Arrière
+```bash
+# Annuler le dernier commit (garde les fichiers modifiés)
+git reset --soft HEAD~1
+
+# Annuler le dernier commit (SUPPRIME les modifications)
+git reset --hard HEAD~1
+
+# Revenir à un commit précis
+git reset --hard <commit-hash>
+```
+
+---
+
+### 🛠️ Configuration Git Recommandée
+
+#### Éviter Vim par Défaut
+```bash
+# Utiliser nano (plus simple)
+git config --global core.editor "nano"
+
+# OU ne jamais ouvrir d'éditeur pour les merges
+git config --global pull.rebase false
+```
+
+#### Alias Utiles
+```bash
+# Créer des raccourcis
+git config --global alias.st "status"
+git config --global alias.co "checkout"
+git config --global alias.br "branch"
+git config --global alias.cm "commit -m"
+git config --global alias.lg "log --oneline --graph --all"
+
+# Utilisation :
+git st        # = git status
+git cm "msg"  # = git commit -m "msg"
+git lg        # = git log graphique
+```
+
+---
+
+### 📊 Monitoring & Maintenance
+
+#### Vérifier la Santé du Repo
+```bash
+cd ~/Desktop/neon\ fit\ v4\ backup
+
+# Taille du repo
+du -sh .
+
+# Nombre de commits
+git rev-list --count HEAD
+
+# Dernière modification
+git log -1 --format="%cd" --date=relative
+
+# Branches locales
+git branch
+
+# Branches distantes
+git branch -r
+```
+
+#### Nettoyage Périodique
+```bash
+# Supprimer branches locales mergées
+git branch --merged | grep -v "\*" | xargs -n 1 git branch -d
+
+# Optimiser le repo
+git gc --aggressive --prune=now
+
+# Vérifier l'intégrité
+git fsck
+```
+
+---
+
+### 🔒 Backup Strategy
+
+#### Backup Local Avant Modifications Importantes
+```bash
+cd ~/Desktop
+
+# Backup complet ZIP
+zip -r "neon-fit-backup-$(date +%Y%m%d-%H%M).zip" "neon fit v4 backup"
+
+# Backup avec exclusion .git (plus léger)
+zip -r "neon-fit-backup-$(date +%Y%m%d-%H%M).zip" "neon fit v4 backup" -x "*.git*"
+```
+
+#### Backup Automatique (optionnel)
+```bash
+# Créer un script backup.sh
+cat > backup.sh << 'SCRIPT'
+#!/bin/bash
+BACKUP_DIR=~/Desktop/neon-fit-backups
+mkdir -p $BACKUP_DIR
+cd ~/Desktop
+zip -r "$BACKUP_DIR/neon-fit-backup-$(date +%Y%m%d-%H%M).zip" "neon fit v4 backup" -x "*.git*"
+echo "✅ Backup créé : $BACKUP_DIR"
+SCRIPT
+
+# Rendre exécutable
+chmod +x backup.sh
+
+# Lancer
+./backup.sh
+```
+
+---
+
+### 🚀 Déploiement GitHub Pages
+
+#### Vérifier le Déploiement
+```bash
+# URL de l'app :
+https://ndsedf-stack.github.io/neon-fit2/
+
+# Forcer un redéploiement (si nécessaire)
+git commit --allow-empty -m "🔄 Trigger GitHub Pages rebuild"
+git push origin main
+```
+
+#### Vérifier les Logs de Déploiement
+1. Aller sur GitHub : `https://github.com/ndsedf-stack/neon-fit2`
+2. Onglet **Actions**
+3. Voir le dernier workflow **pages build and deployment**
+
+---
+
+### 📅 Changelog Notable
+
+#### V3.1 - Nettoyage & Sync (28 nov 2024)
+- 🧹 Suppression 13 fichiers obsolètes (backups + versions test)
+- 🔀 Merge branches divergentes GitHub/Local
+- 📝 Ajout section Maintenance dans README
+- ✅ Repo optimisé : 800KB
+
+#### V3.0 - Architecture Modulaire (27-28 nov 2024)
+- ✨ Mission Briefing System avec stardust background
+- 🔧 Conversion ES6 modules → Scripts classiques (Safari fix)
+- 🎨 Refonte design index.html (équilibrage cyan/rose)
+- 📦 9 fichiers actifs finaux
+
+---
+
+### 🆘 Aide Rapide
+
+| Problème | Commande |
+|----------|----------|
+| Push rejeté | `git pull origin main --no-rebase --no-edit && git push` |
+| Bloqué dans Vim | `:q!` puis `git commit -m "msg"` |
+| Voir l'état | `git status` |
+| Annuler merge | `git merge --abort` |
+| Historique | `git log --oneline -10` |
+| Taille repo | `du -sh .` |
+| Backup rapide | `zip -r backup-$(date +%Y%m%d).zip .` |
+
+---
+
+**Dernière mise à jour** : 28 novembre 2024 - 16h30  
+**Version** : V3.1 - Production-Ready & Maintainable ✅
+
