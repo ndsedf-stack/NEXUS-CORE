@@ -108,3 +108,18 @@ All pages include iOS Safari optimizations:
 - Created ES6 module versions (app.js, program-data.js) for session.html
 - Added iOS Safari compatibility (viewport-fit, safe-area, webkit prefixes)
 - Fixed all pages to work with program-data integration
+
+## Stats & Backup System (November 2025)
+- Created `stats-data.js` module for aggregating workout data into:
+  - Intensity zones (Force/Hypertrophie/Endurance)
+  - Muscle volume distribution with mapping to muscle groups
+  - Weekly summaries with scores and metrics
+- Refactored `stats.html` React components to use real WorkoutHistory data
+- Added Export/Import JSON buttons in stats header for manual backups
+- Created `workout-history-v2.js` (classic script version for Safari compatibility)
+- Updated `briefing.html` with real-time progress circles showing workout completion status
+
+## Script Architecture
+- **Classic scripts (non-module)**: app-v2.js, program-data-v2.js, workout-history-v2.js, stats-data.js
+- **ES6 modules**: app.js, program-data.js, workout-history.js (used only in session.html)
+- All classic scripts expose via `window` object for cross-script access

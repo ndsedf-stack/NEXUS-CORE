@@ -66,6 +66,9 @@
     <!-- 5. BABEL (Pour compiler le JSX dans le navigateur) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <!-- 6. STATS DATA MODULE -->
+    <script src="stats-data.js"></script>
+
     <style>
         body { 
             background: #010101; 
@@ -97,37 +100,55 @@
             RotateCcw, Power, Fingerprint, Hexagon
         } from 'lucide-react';
 
-        // --- MOCK DATA / TYPES ---
-        const ZONES = [
-            { id: 'force', label: 'FORCE', range: '1-5 RM', percent: 15, sets: 6, color: 'bg-amber-500', shadow: 'shadow-amber-500/50' },
-            { id: 'hyper', label: 'HYPERTROPHIE', range: '6-12 RM', percent: 65, sets: 28, color: 'bg-violet-500', shadow: 'shadow-violet-500/50' },
-            { id: 'endu', label: 'ENDURANCE', range: '15+ RM', percent: 20, sets: 11, color: 'bg-cyan-500', shadow: 'shadow-cyan-500/50' },
+        // --- REAL DATA FROM STATSDATA ---
+        const getZones = () => window.StatsData ? window.StatsData.getZonesData() : [
+            { id: 'force', label: 'FORCE', range: '1-5 RM', percent: 0, sets: 0, color: 'bg-amber-500', shadow: 'shadow-amber-500/50' },
+            { id: 'hyper', label: 'HYPERTROPHIE', range: '6-12 RM', percent: 0, sets: 0, color: 'bg-violet-500', shadow: 'shadow-violet-500/50' },
+            { id: 'endu', label: 'ENDURANCE', range: '15+ RM', percent: 0, sets: 0, color: 'bg-cyan-500', shadow: 'shadow-cyan-500/50' },
         ];
 
-        const MUSCLES_TURBINE = [
-            { id: 'm1', name: 'PECTORAUX', volume: 2101, color: '#22d3ee' },
-            { id: 'm2', name: 'DOS', volume: 2341, color: '#3b82f6' },
-            { id: 'm3', name: 'JAMBES', volume: 2333, color: '#8b5cf6' },
-            { id: 'm4', name: 'EPAULES', volume: 3151, color: '#d946ef' },
-            { id: 'm5', name: 'BRAS', volume: 3015, color: '#f43f5e' },
-            { id: 'm6', name: 'ABDOS', volume: 1200, color: '#10b981' },
-        ];
+        const getMusclesTurbine = () => {
+            if (!window.StatsData) return [
+                { id: 'm1', name: 'DOS', volume: 0, color: '#3b82f6' },
+                { id: 'm2', name: 'PECTORAUX', volume: 0, color: '#22d3ee' },
+                { id: 'm3', name: 'JAMBES', volume: 0, color: '#8b5cf6' },
+                { id: 'm4', name: 'ÉPAULES', volume: 0, color: '#d946ef' },
+                { id: 'm5', name: 'BRAS', volume: 0, color: '#f43f5e' },
+                { id: 'm6', name: 'ABDOS', volume: 0, color: '#10b981' },
+            ];
+            const data = window.StatsData.getMusclesData();
+            if (data.length === 0) return [
+                { id: 'm1', name: 'DOS', volume: 0, color: '#3b82f6' },
+                { id: 'm2', name: 'PECTORAUX', volume: 0, color: '#22d3ee' },
+                { id: 'm3', name: 'JAMBES', volume: 0, color: '#8b5cf6' },
+                { id: 'm4', name: 'ÉPAULES', volume: 0, color: '#d946ef' },
+                { id: 'm5', name: 'BRAS', volume: 0, color: '#f43f5e' },
+                { id: 'm6', name: 'ABDOS', volume: 0, color: '#10b981' },
+            ];
+            return data;
+        };
 
-        const MUSCLES_HUD = [
-            { id: '1', name: 'PECS', sets: 12, volume: 2101, type: 'primary', normalized: 0.9, intensity: 8.5, recovery: 45 },
-            { id: '2', name: 'DOS', sets: 16, volume: 2341, type: 'primary', normalized: 1.0, intensity: 9.2, recovery: 80 },
-            { id: '3', name: 'JAMBES', sets: 14, volume: 2333, type: 'primary', normalized: 0.95, intensity: 9.5, recovery: 30 },
-            { id: '4', name: 'EPAULES', sets: 10, volume: 3151, type: 'primary', normalized: 0.85, intensity: 7.8, recovery: 90 },
-            { id: '5', name: 'BRAS', sets: 8, volume: 3015, type: 'primary', normalized: 0.8, intensity: 8.0, recovery: 95 },
-            { id: '6', name: 'ABS', sets: 6, volume: 800, type: 'secondary', normalized: 0.6, intensity: 6.0, recovery: 100 },
-        ];
+        const getMusclesHUD = () => {
+            if (!window.StatsData) return [
+                { id: '1', name: 'PECS', sets: 0, volume: 0, type: 'primary', normalized: 0, intensity: 0, recovery: 100 },
+                { id: '2', name: 'DOS', sets: 0, volume: 0, type: 'primary', normalized: 0, intensity: 0, recovery: 100 },
+                { id: '3', name: 'JAMB', sets: 0, volume: 0, type: 'primary', normalized: 0, intensity: 0, recovery: 100 },
+            ];
+            const data = window.StatsData.getMusclesHUD();
+            if (data.length === 0) return [
+                { id: '1', name: 'PECS', sets: 0, volume: 0, type: 'primary', normalized: 0, intensity: 0, recovery: 100 },
+                { id: '2', name: 'DOS', sets: 0, volume: 0, type: 'primary', normalized: 0, intensity: 0, recovery: 100 },
+                { id: '3', name: 'JAMB', sets: 0, volume: 0, type: 'primary', normalized: 0, intensity: 0, recovery: 100 },
+            ];
+            return data;
+        };
 
-        const WEEKS_DATA = [
-            { id: 'w1', label: 'S1', volume: 28000, intensity: 75, status: 'completed', x: 60, y: 38 },
-            { id: 'w2', label: 'S2', volume: 29500, intensity: 78, status: 'completed', x: 75, y: 55 },
-            { id: 'w3', label: 'S3', volume: 27800, intensity: 72, status: 'current', x: 60, y: 75 },
-            { id: 'w4', label: 'S4', volume: 31200, intensity: 80, status: 'upcoming', x: 35, y: 65 },
-        ];
+        const getWeeksData = () => {
+            if (!window.StatsData) return [
+                { id: 'w1', label: 'S1', volume: 0, intensity: 0, status: 'current', x: 60, y: 38 },
+            ];
+            return window.StatsData.getWeeksData();
+        };
 
         // --- COMPONENTS ---
 
@@ -282,11 +303,12 @@
         );
 
         // 2. WEEKLY PROGRESS (Path Visualization)
-        const WeeklyProgress = () => {
+        const WeeklyProgress = ({ weeksData = [] }) => {
             const [hoveredWeek, setHoveredWeek] = useState(null);
             const [animReady, setAnimReady] = useState(false);
             useEffect(() => { setTimeout(() => setAnimReady(true), 100); }, []);
-            const points = WEEKS_DATA.map(w => `${w.x},${w.y}`);
+            const WEEKS = weeksData.length > 0 ? weeksData : getWeeksData();
+            const points = WEEKS.map(w => `${w.x},${w.y}`);
             const pathData = `M 50,50 L ${points.join(' L ')}`;
             return (
                 <div className="relative w-full max-w-md bg-black border-[2px] border-white/10 rounded-3xl flex flex-col transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20 overflow-hidden group">
@@ -321,7 +343,7 @@
                                 <div className="text-4xl font-black text-white leading-none">35</div>
                                 <div className="text-[8px] text-cyan-500 font-mono mt-1 font-bold">/ 100</div>
                             </div>
-                            {WEEKS_DATA.map((week) => {
+                            {WEEKS.map((week) => {
                                 const isHovered = hoveredWeek === week.id;
                                 const isCurrent = week.status === 'current';
                                 let translateClass = '';
@@ -354,7 +376,7 @@
                     </div>
                     <div className="relative bg-[#080808] border-t border-white/10">
                         <div className="relative grid grid-cols-4 divide-x divide-white/10">
-                            {WEEKS_DATA.map((week, i) => {
+                            {WEEKS.map((week, i) => {
                                 const isHovered = hoveredWeek === week.id; const isCurrent = week.status === 'current';
                                 return (
                                     <div key={i} className={`p-3 py-4 flex flex-col items-center justify-center transition-all cursor-pointer ${isHovered ? 'bg-white/5 scale-105' : 'hover:bg-white/5'} ${isCurrent ? 'bg-gradient-to-t from-red-500/10 to-transparent' : ''}`} onMouseEnter={() => setHoveredWeek(week.id)} onMouseLeave={() => setHoveredWeek(null)}>
@@ -480,21 +502,22 @@
         };
 
         // 4. MUSCLE HUD (Radar Chart)
-        const MuscleHud = () => {
-            const [selectedMuscle, setSelectedMuscle] = useState(MUSCLES_HUD[1]);
+        const MuscleHud = ({ musclesData }) => {
+            const MUSCLES = musclesData && musclesData.length > 0 ? musclesData : getMusclesHUD();
+            const [selectedMuscle, setSelectedMuscle] = useState(MUSCLES[0] || { id: '1', name: 'N/A', sets: 0, volume: 0, type: 'primary', normalized: 0, intensity: 0, recovery: 100 });
             const [hoveredMuscleId, setHoveredMuscleId] = useState(null);
             const [buildFactor, setBuildFactor] = useState(0);
             useEffect(() => { let start = 0; const animate = () => { start += 0.02; if (start >= 1) setBuildFactor(1); else { setBuildFactor(Math.pow(start, 0.5)); requestAnimationFrame(animate); } }; animate(); }, []);
-            const size = 300; const center = size / 2; const radius = (size / 2) - 50; const angleStep = (Math.PI * 2) / MUSCLES_HUD.length;
+            const size = 300; const center = size / 2; const radius = (size / 2) - 50; const angleStep = MUSCLES.length > 0 ? (Math.PI * 2) / MUSCLES.length : Math.PI * 2;
             const getCoordinates = (index, value) => { const angle = index * angleStep - Math.PI / 2; const r = radius * value * buildFactor; return { x: center + Math.cos(angle) * r, y: center + Math.sin(angle) * r, angle }; };
-            const polygonPoints = useMemo(() => MUSCLES_HUD.map((m, i) => { const { x, y } = getCoordinates(i, m.normalized); return `${x},${y}`; }).join(' '), [buildFactor]);
-            const getWebPoints = (factor) => MUSCLES_HUD.map((_, i) => { const angle = i * angleStep - Math.PI / 2; const r = radius * factor; return `${center + Math.cos(angle) * r},${center + Math.sin(angle) * r}`; }).join(' ');
+            const polygonPoints = useMemo(() => MUSCLES.map((m, i) => { const { x, y } = getCoordinates(i, m.normalized || 0); return `${x},${y}`; }).join(' '), [buildFactor, MUSCLES]);
+            const getWebPoints = (factor) => MUSCLES.map((_, i) => { const angle = i * angleStep - Math.PI / 2; const r = radius * factor; return `${center + Math.cos(angle) * r},${center + Math.sin(angle) * r}`; }).join(' ');
 
             return (
                 <div className="relative w-full max-w-md bg-black border-[2px] border-white/10 rounded-3xl flex flex-col h-full min-h-[550px] transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20 overflow-hidden group">
                     <div className="bg-[#050505] px-6 py-4 border-b border-white/10 flex justify-between items-center z-10 shrink-0">
                         <div><h2 className="text-xl font-display font-black text-white tracking-widest uppercase flex items-center gap-2"><Cpu className="text-cyan-400" size={20} /> BIO-METRICS</h2><p className="text-[10px] text-gray-400 font-mono font-bold mt-1">VOLUME DISTRIBUTION ANALYSIS</p></div>
-                        <div className="flex gap-2"><div className="px-2 py-1 bg-white/5 rounded border border-white/10 text-[10px] text-gray-400 font-mono">{MUSCLES_HUD.length} ZONES</div></div>
+                        <div className="flex gap-2"><div className="px-2 py-1 bg-white/5 rounded border border-white/10 text-[10px] text-gray-400 font-mono">{MUSCLES.length} ZONES</div></div>
                     </div>
                     <div className="relative flex-1 bg-[#020202] flex items-center justify-center p-6 group/chart">
                         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -508,9 +531,9 @@
                                 <filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                             </defs>
                             {[0.25, 0.5, 0.75, 1].map((factor, i) => (<polygon key={`grid-${i}`} points={getWebPoints(factor)} fill="none" stroke={i === 3 ? "rgba(255,255,255,0.2)" : "rgba(255, 255, 255, 0.05)"} strokeWidth={i === 3 ? "1.5" : "1"} strokeDasharray={i !== 3 ? "4 4" : ""} />))}
-                            {MUSCLES_HUD.map((_, i) => { const { x, y } = getCoordinates(i, 1); return (<line key={`axis-${i}`} x1={center} y1={center} x2={x} y2={y} stroke="rgba(255, 255, 255, 0.1)" strokeWidth="1" />); })}
+                            {MUSCLES.map((_, i) => { const { x, y } = getCoordinates(i, 1); return (<line key={`axis-${i}`} x1={center} y1={center} x2={x} y2={y} stroke="rgba(255, 255, 255, 0.1)" strokeWidth="1" />); })}
                             <polygon points={polygonPoints} fill="url(#radarGradient)" stroke="#22d3ee" strokeWidth="3" filter="url(#glow)" className="drop-shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all duration-300" strokeDasharray="1000" strokeDashoffset={1000 * (1 - buildFactor)} />
-                            {MUSCLES_HUD.map((muscle, i) => {
+                            {MUSCLES.map((muscle, i) => {
                                 const { x, y } = getCoordinates(i, muscle.normalized); const isHovered = hoveredMuscleId === muscle.id; const isSelected = selectedMuscle.id === muscle.id;
                                 return (
                                     <g key={`point-${i}`} onMouseEnter={() => setHoveredMuscleId(muscle.id)} onMouseLeave={() => setHoveredMuscleId(null)} onClick={() => setSelectedMuscle(muscle)} className="cursor-pointer">
@@ -521,7 +544,7 @@
                                 );
                             })}
                         </svg>
-                        {MUSCLES_HUD.map((muscle, i) => {
+                        {MUSCLES.map((muscle, i) => {
                             const angle = i * angleStep - Math.PI / 2; const labelRadius = radius + 35; const lx = center + Math.cos(angle) * labelRadius; const ly = center + Math.sin(angle) * labelRadius;
                             const leftPct = (lx / size) * 100; const topPct = (ly / size) * 100; const isPrimary = muscle.type === 'primary'; const isHovered = hoveredMuscleId === muscle.id; const isSelected = selectedMuscle.id === muscle.id;
                             return (
@@ -546,7 +569,8 @@
         };
 
         // 5. INTENSITY ZONES
-        const IntensityZones = () => {
+        const IntensityZones = ({ zonesData }) => {
+            const ZONES = zonesData && zonesData.length > 0 ? zonesData : getZones();
             const [active, setActive] = useState(false);
             const [selectedZone, setSelectedZone] = useState(null);
             useEffect(() => { const timer = setTimeout(() => setActive(true), 200); return () => clearTimeout(timer); }, []);
@@ -580,7 +604,7 @@
                     </div>
                     <div className="bg-[#080808] border-t border-white/10 shrink-0 h-16 relative">
                         <div className="absolute inset-0 flex items-center justify-between px-6">
-                            {selectedZone ? (<><div className="flex flex-col animate-slideIn"><span className="text-[9px] text-gray-500 uppercase font-bold">Volume Sets</span><span className="text-xl font-display font-bold text-white">{ZONES.find(z => z.id === selectedZone)?.sets} <span className="text-sm text-gray-600">SÉRIES</span></span></div><div className="flex items-center gap-1 text-cyan-400 animate-pulse"><Activity size={14} /><span className="text-[9px] font-bold">ANALYZING</span></div></>) : (<div className="w-full flex justify-center items-center text-[10px] text-gray-600 font-mono tracking-widest animate-pulse">// SYSTEM READY //</div>)}
+                            {selectedZone ? (<><div className="flex flex-col animate-slideIn"><span className="text-[9px] text-gray-500 uppercase font-bold">Volume Sets</span><span className="text-xl font-display font-bold text-white">{ZONES.find(z => z.id === selectedZone)?.sets || 0} <span className="text-sm text-gray-600">SÉRIES</span></span></div><div className="flex items-center gap-1 text-cyan-400 animate-pulse"><Activity size={14} /><span className="text-[9px] font-bold">ANALYZING</span></div></>) : (<div className="w-full flex justify-center items-center text-[10px] text-gray-600 font-mono tracking-widest animate-pulse">// SYSTEM READY //</div>)}
                         </div>
                     </div>
                 </div>
@@ -588,19 +612,20 @@
         };
 
         // 6. MUSCLE WORKLOAD (Turbine)
-        const MuscleWorkload = () => {
+        const MuscleWorkload = ({ musclesTurbineData }) => {
+            const MUSCLES_T = musclesTurbineData && musclesTurbineData.length > 0 ? musclesTurbineData : getMusclesTurbine();
             const [hoveredId, setHoveredId] = useState(null);
             const [buildFactor, setBuildFactor] = useState(0);
             useEffect(() => { let frame = 0; const animate = () => { frame += 0.015; if (frame >= 1) setBuildFactor(1); else { setBuildFactor(1 - Math.pow(1 - frame, 3)); requestAnimationFrame(animate); } }; animate(); }, []);
-            const size = 300; const cx = size / 2; const cy = size / 2; const innerRadius = 40; const maxRadius = (size / 2) - 20; const availableDepth = maxRadius - innerRadius; const maxVol = Math.max(...MUSCLES_TURBINE.map(m => m.volume));
-            const totalAngle = 360; const sectorAngle = (totalAngle / MUSCLES_TURBINE.length); const bladeWidth = sectorAngle - 4;
+            const size = 300; const cx = size / 2; const cy = size / 2; const innerRadius = 40; const maxRadius = (size / 2) - 20; const availableDepth = maxRadius - innerRadius; const maxVol = Math.max(...MUSCLES_T.map(m => m.volume), 1);
+            const totalAngle = 360; const sectorAngle = MUSCLES_T.length > 0 ? (totalAngle / MUSCLES_T.length) : 60; const bladeWidth = sectorAngle - 4;
             const polarToCartesian = (centerX, centerY, radius, angleInDegrees) => { const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0; return { x: centerX + (radius * Math.cos(angleInRadians)), y: centerY + (radius * Math.sin(angleInRadians)) }; };
             const describeBlade = (startAngle, endAngle, innerR, outerR) => {
                 const start = polarToCartesian(cx, cy, outerR, endAngle); const end = polarToCartesian(cx, cy, outerR, startAngle);
                 const startInner = polarToCartesian(cx, cy, innerR, endAngle); const endInner = polarToCartesian(cx, cy, innerR, startAngle);
                 return ["M", startInner.x, startInner.y, "L", endInner.x, endInner.y, "L", end.x, end.y, "A", outerR, outerR, 0, 0, 0, start.x, start.y, "Z"].join(" ");
             };
-            const activeMuscle = useMemo(() => MUSCLES_TURBINE.find(m => m.id === hoveredId) || MUSCLES_TURBINE.reduce((prev, current) => (prev.volume > current.volume) ? prev : current), [hoveredId]);
+            const activeMuscle = useMemo(() => MUSCLES_T.find(m => m.id === hoveredId) || (MUSCLES_T.length > 0 ? MUSCLES_T.reduce((prev, current) => (prev.volume > current.volume) ? prev : current) : { id: 'none', name: 'N/A', volume: 0, color: '#666' }), [hoveredId, MUSCLES_T]);
             
             return (
                 <div className="relative w-full max-w-md bg-black border-[2px] border-white/10 rounded-3xl flex flex-col h-full min-h-[550px] transition-all duration-500 hover:border-white/20 hover:shadow-[0_0_50px_rgba(0,0,0,0.5)] z-20 overflow-hidden group">
@@ -614,11 +639,11 @@
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] border border-white/5 rounded-full opacity-20 border-dashed animate-spin-reverse-slow"></div>
                         <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full max-h-[380px] overflow-visible relative z-10">
                             <defs>
-                                {MUSCLES_TURBINE.map(m => (<linearGradient key={m.id} id={`grad-${m.id}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor={m.color} stopOpacity="0.4" /><stop offset="100%" stopColor={m.color} stopOpacity="1" /></linearGradient>))}
+                                {MUSCLES_T.map(m => (<linearGradient key={m.id} id={`grad-${m.id}`} x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor={m.color} stopOpacity="0.4" /><stop offset="100%" stopColor={m.color} stopOpacity="1" /></linearGradient>))}
                                 <filter id="glow-blade"><feGaussianBlur stdDeviation="4" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                             </defs>
                             <g className={`origin-center transition-all duration-700 ${hoveredId ? '' : 'animate-spin-slow'}`} style={{ transformBox: 'fill-box' }}>
-                                {MUSCLES_TURBINE.map((muscle, i) => {
+                                {MUSCLES_T.map((muscle, i) => {
                                     const startAngle = i * sectorAngle; const endAngle = startAngle + bladeWidth; const normalizedVol = muscle.volume / maxVol; const targetRadius = innerRadius + (availableDepth * normalizedVol); const currentRadius = innerRadius + ((targetRadius - innerRadius) * buildFactor); const isHovered = hoveredId === muscle.id;
                                     return (
                                         <g key={muscle.id} onMouseEnter={() => setHoveredId(muscle.id)} onMouseLeave={() => setHoveredId(null)} className="cursor-pointer transition-opacity duration-300" style={{ opacity: hoveredId && !isHovered ? 0.3 : 1 }}>
@@ -643,7 +668,7 @@
                     </div>
                     <div className="bg-[#080808] border-t border-white/10 shrink-0 p-1">
                         <div className="flex justify-center gap-4 py-3 flex-wrap">
-                            {MUSCLES_TURBINE.slice(0, 4).map(m => (<div key={m.id} className="flex items-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity cursor-default"><div className="w-2 h-2 rounded-full shadow-[0_0_5px_currentColor]" style={{ backgroundColor: m.color }}></div><span className="text-[9px] font-bold text-gray-300 uppercase tracking-wide">{m.name}</span></div>))}
+                            {MUSCLES_T.slice(0, 4).map(m => (<div key={m.id} className="flex items-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity cursor-default"><div className="w-2 h-2 rounded-full shadow-[0_0_5px_currentColor]" style={{ backgroundColor: m.color }}></div><span className="text-[9px] font-bold text-gray-300 uppercase tracking-wide">{m.name}</span></div>))}
                             <div className="flex items-center gap-1.5 opacity-50"><span className="text-[9px] font-bold text-gray-500">+2 OTHERS</span></div>
                         </div>
                     </div>
@@ -655,35 +680,53 @@
         const App = () => {
             const [loading, setLoading] = useState(true);
             const [bootStep, setBootStep] = useState(0);
+            const [importMessage, setImportMessage] = useState(null);
             
-            // --- DATA INTEGRATION ---
-            // Load initial data or fallback to defaults
-            const [score, setScore] = useState(84);
-            const [sessions, setSessions] = useState(4);
-            const [maxSessions, setMaxSessions] = useState(5);
-            const [sets, setSets] = useState(45);
-            const [maxSets, setMaxSets] = useState(60);
-            const [volume, setVolume] = useState(18500);
+            // --- DATA INTEGRATION FROM STATSDATA ---
+            const [summary, setSummary] = useState({ score: 0, sessions: 0, maxSessions: 5, sets: 0, maxSets: 60, volume: 0, xp: 0 });
+            const [zones, setZones] = useState(getZones());
+            const [musclesTurbine, setMusclesTurbine] = useState(getMusclesTurbine());
+            const [musclesHUD, setMusclesHUD] = useState(getMusclesHUD());
+            const [weeksData, setWeeksData] = useState(getWeeksData());
 
-            // Listen for data from Vanilla JS app via LocalStorage
+            const refreshData = () => {
+                if (window.StatsData) {
+                    const s = window.StatsData.getSummary();
+                    setSummary(s);
+                    setZones(getZones());
+                    setMusclesTurbine(getMusclesTurbine());
+                    setMusclesHUD(getMusclesHUD());
+                    setWeeksData(getWeeksData());
+                }
+            };
+
             useEffect(() => {
-                const checkData = () => {
-                    const rawData = localStorage.getItem('NEONFIT_DATA');
-                    if (rawData) {
-                        try {
-                            const data = JSON.parse(rawData);
-                            setScore(data.score || 84);
-                            setSessions(data.sessions || 4);
-                            setSets(data.sets || 45);
-                            setVolume(data.volume || 18500);
-                        } catch (e) { console.error('Data parse error', e); }
-                    }
+                refreshData();
+                window.addEventListener('storage', refreshData);
+                const interval = setInterval(refreshData, 5000);
+                return () => {
+                    window.removeEventListener('storage', refreshData);
+                    clearInterval(interval);
                 };
-                
-                checkData();
-                window.addEventListener('storage', checkData); // Listen for updates
-                return () => window.removeEventListener('storage', checkData);
             }, []);
+
+            const handleExport = () => {
+                if (window.StatsData) {
+                    window.StatsData.downloadBackup();
+                    setImportMessage({ type: 'success', text: 'Backup téléchargé!' });
+                    setTimeout(() => setImportMessage(null), 3000);
+                }
+            };
+
+            const handleImport = () => {
+                if (window.StatsData) {
+                    window.StatsData.triggerImport((result) => {
+                        setImportMessage({ type: result.success ? 'success' : 'error', text: result.message });
+                        if (result.success) refreshData();
+                        setTimeout(() => setImportMessage(null), 3000);
+                    });
+                }
+            };
 
             // Boot Sequence
             useEffect(() => {
@@ -729,18 +772,27 @@
                     <header className="sticky top-0 left-0 w-full z-40 bg-[#010101]/80 backdrop-blur-lg border-b border-white/5 transition-all duration-300">
                         <div className="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
                             <div><h1 className="font-display font-black text-xl tracking-tighter text-white flex items-center gap-1"><Fingerprint size={18} className="text-cyan-400" />NEON<span className="text-cyan-400">.FIT</span></h1></div>
-                            <button onClick={() => window.location.reload()} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-95"><RotateCcw size={14} /></button>
+                            <div className="flex gap-2">
+                                <button onClick={handleExport} className="w-8 h-8 flex items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all active:scale-95" title="Exporter backup"><Download size={14} /></button>
+                                <button onClick={handleImport} className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-all active:scale-95" title="Importer backup"><Plus size={14} /></button>
+                                <button onClick={refreshData} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all active:scale-95"><RotateCcw size={14} /></button>
+                            </div>
                         </div>
+                        {importMessage && (
+                            <div className={`mx-4 mb-2 px-4 py-2 rounded-lg text-sm font-medium ${importMessage.type === 'success' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}>
+                                {importMessage.text}
+                            </div>
+                        )}
                     </header>
 
                     <main className="relative z-10 w-full max-w-md mx-auto px-4 py-6 flex flex-col gap-6">
-                        <div className="animate-slideIn" style={{ animationDelay: '0.1s' }}><NeonTracker score={score} sessions={{ current: sessions, max: maxSessions }} sets={{ current: sets, max: maxSets }} status={score > 80 ? 'consistent' : 'warning'} /></div>
-                        <div className="animate-slideIn" style={{ animationDelay: '0.2s' }}><WeeklyProgress /></div>
-                        <div className="animate-slideIn" style={{ animationDelay: '0.3s' }}><VolumeGauge volume={volume} maxVolume={25000} stats={{ sets: sets, tut: 2450, sessions: sessions }} /></div>
+                        <div className="animate-slideIn" style={{ animationDelay: '0.1s' }}><NeonTracker score={summary.score} sessions={{ current: summary.sessions, max: summary.maxSessions }} sets={{ current: summary.sets, max: summary.maxSets }} status={summary.score > 80 ? 'consistent' : 'warning'} /></div>
+                        <div className="animate-slideIn" style={{ animationDelay: '0.2s' }}><WeeklyProgress weeksData={weeksData} /></div>
+                        <div className="animate-slideIn" style={{ animationDelay: '0.3s' }}><VolumeGauge volume={summary.volume} maxVolume={25000} stats={{ sets: summary.sets, tut: 2450, sessions: summary.sessions }} /></div>
                         <div className="grid gap-6">
-                            <div className="animate-slideIn" style={{ animationDelay: '0.4s' }}><MuscleWorkload /></div>
-                            <div className="animate-slideIn" style={{ animationDelay: '0.5s' }}><IntensityZones /></div>
-                            <div className="animate-slideIn" style={{ animationDelay: '0.6s' }}><MuscleHud /></div>
+                            <div className="animate-slideIn" style={{ animationDelay: '0.4s' }}><MuscleWorkload musclesTurbineData={musclesTurbine} /></div>
+                            <div className="animate-slideIn" style={{ animationDelay: '0.5s' }}><IntensityZones zonesData={zones} /></div>
+                            <div className="animate-slideIn" style={{ animationDelay: '0.6s' }}><MuscleHud musclesData={musclesHUD} /></div>
                         </div>
                     </main>
 

@@ -245,6 +245,7 @@
     </style>
   <script src="program-data-v2.js?v=1764336042"></script>
   <script src="app-v2.js?v=1764336042"></script>
+  <script src="workout-history-v2.js"></script>
 </head>
 <body>
     <div class="grain-overlay"></div>
@@ -294,6 +295,31 @@
             alert('Erreur: Impossible de charger les données');
         }
 
+        function getExerciseProgress(exerciseId, exerciseName, targetSets) {
+            if (!window.WorkoutHistory) return { completedSets: 0, lastWeight: 0, lastDate: null };
+            
+            const currentDaySets = window.WorkoutHistory.getByDay(week, day) || [];
+            const setsForExercise = currentDaySets.filter(entry => 
+                entry.exerciseId === exerciseId || 
+                entry.exercise === exerciseName ||
+                entry.exercise === exerciseId
+            );
+            
+            const allHistory = window.WorkoutHistory.getByExercise(exerciseName) || [];
+            
+            const completedSets = setsForExercise.length;
+            const lastWeight = allHistory.length > 0 ? 
+                Math.max(...allHistory.map(s => s.weight || 0)) : 0;
+            const lastDate = allHistory.length > 0 ? allHistory[0].date : null;
+            
+            return { completedSets, lastWeight, lastDate };
+        }
+
+        function isSessionCompleted(targetWeek, targetDay) {
+            const history = window.WorkoutHistory ? window.WorkoutHistory.getByDay(targetWeek, targetDay) : [];
+            return history.length > 0;
+        }
+
         function calculateExerciseStats(exercise) {
             const isCompound = exercise.category === 'compound';
             const isHeavy = exercise.weight > 50;
@@ -313,24 +339,29 @@
             return { f: force, h: hypertrophy, e: endurance };
         }
 
-        const WORKOUT_DATA = workout.exercises.map((ex, idx) => ({
-            id: idx + 1,
-            name: ex.name,
-            tags: [
-                { l: (ex.muscle && ex.muscle[0] ? ex.muscle[0].toUpperCase() : 'MUSCLE'), t: "cyan" },
-                { l: (ex.category === 'compound' ? 'COMPOUND' : 'ISOLATION'), t: "pink" }
-            ],
-            sets: ex.sets,
-            reps: ex.reps,
-            load: ex.weight + 'kg',
-            stats: calculateExerciseStats(ex),
-            tempo: ex.tempo || '2-1-2',
-            rest: ex.rest || 60,
-            rpe: ex.rpe || workout.rpeTarget || '7',
-            notes: ex.notes || '',
-            isSuperset: ex.isSuperset || false,
-            supersetWith: ex.supersetWith || null
-        }));
+        const WORKOUT_DATA = workout.exercises.map((ex, idx) => {
+            const progress = getExerciseProgress(ex.id, ex.name, ex.sets);
+            return {
+                id: idx + 1,
+                exerciseId: ex.id,
+                name: ex.name,
+                tags: [
+                    { l: (ex.muscle && ex.muscle[0] ? ex.muscle[0].toUpperCase() : 'MUSCLE'), t: "cyan" },
+                    { l: (ex.category === 'compound' ? 'COMPOUND' : 'ISOLATION'), t: "pink" }
+                ],
+                sets: ex.sets,
+                reps: ex.reps,
+                load: ex.weight + 'kg',
+                stats: calculateExerciseStats(ex),
+                tempo: ex.tempo || '2-1-2',
+                rest: ex.rest || 60,
+                rpe: ex.rpe || workout.rpeTarget || '7',
+                notes: ex.notes || '',
+                isSuperset: ex.isSuperset || false,
+                supersetWith: ex.supersetWith || null,
+                progress: progress
+            };
+        });
 
         document.getElementById('title-main').textContent = day.toUpperCase();
         document.getElementById('subtitle-text').textContent = '// ' + workout.name;
@@ -382,7 +413,7 @@
             requestAnimationFrame(animateStars);
         }
 
-        function renderGauge(value, label, max, isGlow) {
+        function renderGauge(value, label, max, isGlow, progress = null) {
             const num = parseFloat(String(value).match(/\d+/)?.[0] || 0);
             const pct = Math.min((num / max), 1);
             const r = 52, strokeWidth = 6, C = 2 * Math.PI * r;
@@ -394,13 +425,26 @@
             const ts = isGlow ? '0 0 20px rgba(34, 211, 238, 0.8)' : 'none';
             const gid = 'g' + (isGlow?'On':'Off');
             
+            const hasProgress = progress !== null && progress.completed > 0;
+            const progressPct = hasProgress ? Math.min(progress.completed / progress.target, 1) : 0;
+            const progressOffset = C - (progressPct * C);
+            const progressAngle = progressPct * 360;
+            const progressComplete = hasProgress && progress.completed >= progress.target;
+            
             return `<div style="display:flex;flex-direction:column;align-items:center;position:relative;width:130px">
 <svg width="130" height="130" viewBox="0 0 130 130" style="display:block;shape-rendering:geometricPrecision">
-<defs><filter id="${gid}"><feGaussianBlur stdDeviation="2.5"/></filter></defs>
+<defs>
+<filter id="${gid}"><feGaussianBlur stdDeviation="2.5"/></filter>
+<filter id="progressGlow"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
 <circle cx="65" cy="65" r="${r}" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="${strokeWidth}" transform="rotate(-90 65 65)"/>
 <circle cx="65" cy="65" r="${r}" fill="none" stroke="${sc}" stroke-width="${strokeWidth}" stroke-dasharray="${C}" stroke-dashoffset="${offset}" stroke-linecap="round" transform="rotate(-90 65 65)" style="transition:stroke-dashoffset 1.2s;filter:url(#${gid})"/>
+${hasProgress ? `
+<circle cx="65" cy="65" r="${r+10}" fill="none" stroke="${progressComplete ? '#22c55e' : '#f59e0b'}" stroke-width="3" stroke-dasharray="${2*Math.PI*(r+10)}" stroke-dashoffset="${2*Math.PI*(r+10) - (progressPct * 2*Math.PI*(r+10))}" stroke-linecap="round" transform="rotate(-90 65 65)" style="transition:stroke-dashoffset 1s;filter:url(#progressGlow);opacity:0.9"/>
+` : ''}
 <g transform="rotate(${angle-90} 65 65)"><circle cx="${65+r}" cy="65" r="${ds}" fill="${dc}" style="filter:drop-shadow(0 0 8px ${dc})"/></g>
 </svg>
+${hasProgress ? `<div style="position:absolute;top:4px;right:4px;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:${progressComplete ? 'rgba(34,197,94,0.2)' : 'rgba(245,158,11,0.2)'};color:${progressComplete ? '#22c55e' : '#f59e0b'};border:1px solid ${progressComplete ? '#22c55e' : '#f59e0b'}">${progress.completed}/${progress.target}</div>` : ''}
 <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) translateY(-8px);font-family:'Chakra Petch',sans-serif;font-size:34px;font-weight:900;color:${tc};letter-spacing:0.5px;text-shadow:${ts}">${value}</div>
 <span style="margin-top:8px;font-size:10px;text-transform:uppercase;letter-spacing:0.2em;color:#64748b;font-weight:700">${label}</span>
 </div>`;
@@ -430,9 +474,9 @@
 <div class="tags">${ex.tags.map(t => `<span class="tag ${t.t}">${t.l}</span>`).join('')}</div>
 </div></div></div>
 <div style="display:flex;justify-content:center;gap:8px;padding:24px 0;margin-bottom:24px">
-${renderGauge(ex.sets, 'SÉRIES', 8, false)}
+${renderGauge(ex.sets, 'SÉRIES', 8, false, ex.progress.completedSets > 0 ? { completed: ex.progress.completedSets, target: ex.sets } : null)}
 ${renderGauge(ex.reps, 'REPS', 15, false)}
-${renderGauge(ex.load, 'CHARGE', 140, true)}
+${renderGauge(ex.load, 'CHARGE', 140, true, ex.progress.lastWeight > 0 ? { completed: ex.progress.lastWeight, target: parseFloat(ex.load) } : null)}
 </div>
 <div style="display:flex;justify-content:center;gap:40px;padding:20px 0;margin-bottom:16px;border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05)">
 <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
