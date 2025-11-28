@@ -172,6 +172,30 @@
         .text-cyan { color: var(--cyan); text-shadow: 0 0 15px rgba(34, 211, 238, 0.4); }
         .text-purple { color: var(--purple); }
 
+        /* Section Header */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 24px 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--cyan);
+            filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.6));
+        }
+        .section-title {
+            font-family: var(--font-tech);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--cyan);
+        }
+
         /* Exercise Header */
         .ex-header { display: flex; justify-content: space-between; margin-bottom: 24px; }
         .ex-id-box {
@@ -199,6 +223,7 @@
             padding: 4px 8px;
             border: 1px solid;
             letter-spacing: 0.1em;
+            border-radius: 4px;
         }
         .tag.cyan { border-color: rgba(34, 211, 238, 0.3); color: var(--cyan); }
         .tag.pink { border-color: rgba(192, 132, 252, 0.3); color: var(--purple); }
@@ -278,6 +303,43 @@
             background: white; box-shadow: 0 0 6px white; border-radius: 2px;
         }
 
+        /* Start Button */
+        .start-button {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            right: 24px;
+            max-width: 402px;
+            margin: 0 auto;
+            z-index: 100;
+            
+            background: linear-gradient(135deg, var(--cyan), var(--cyan-dim));
+            color: #000;
+            font-family: var(--font-tech);
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            
+            padding: 18px 32px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            
+            box-shadow: 
+                0 0 30px rgba(34, 211, 238, 0.5),
+                0 10px 30px rgba(0, 0, 0, 0.3);
+            
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .start-button:active {
+            transform: scale(0.96);
+            box-shadow: 
+                0 0 40px rgba(34, 211, 238, 0.7),
+                0 5px 20px rgba(0, 0, 0, 0.4);
+        }
+
     </style>
 </head>
 <body>
@@ -293,10 +355,10 @@
         
         <!-- Header -->
         <header class="header">
-            <h1 class="title-main">DIMANCHE</h1>
+            <h1 class="title-main" id="title-main">LOADING...</h1>
             <div class="subtitle-tech">
                 <div class="accent-line"></div>
-                <span class="subtitle-text">// DOS + JAMBES</span>
+                <span class="subtitle-text" id="subtitle-text">// LOADING...</span>
             </div>
         </header>
 
@@ -304,16 +366,25 @@
         <div class="stats-grid">
             <div class="stat-mini">
                 <span class="label-tech">DURÉE</span>
-                <span class="data-value text-cyan">68m</span>
+                <span class="data-value text-cyan" id="stat-duration">--m</span>
             </div>
             <div class="stat-mini">
                 <span class="label-tech">SÉRIES</span>
-                <span class="data-value">31</span>
+                <span class="data-value" id="stat-sets">--</span>
             </div>
             <div class="stat-mini">
                 <span class="label-tech">XP</span>
-                <span class="data-value text-purple">500</span>
+                <span class="data-value text-purple" id="stat-xp">--</span>
             </div>
+        </div>
+
+        <!-- Section Header -->
+        <div class="section-header">
+            <!-- Lightning Icon SVG -->
+            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+            <span class="section-title">Protocole d'entraînement</span>
         </div>
 
         <!-- Exercises Container -->
@@ -322,6 +393,11 @@
         </div>
 
     </div>
+
+    <!-- Start Button -->
+    <button class="start-button" id="start-button">
+        Commencer la session
+    </button>
 
     <!-- SVG Definitions (Filters & Gradients) -->
     <svg style="width:0; height:0; position:absolute;">
@@ -345,30 +421,115 @@
         </defs>
     </svg>
 
-    <script>
-        // --- 1. DATA MOCK ---
-        const WORKOUT_DATA = [
-            {
-                id: 1, name: "Trap Bar Deadlift",
-                tags: [{l:"DOS", t:"cyan"}, {l:"COMPOUND", t:"pink"}],
-                sets: 5, reps: "6-8", load: "75kg",
-                stats: { f: 90, h: 60, e: 30 }
-            },
-            {
-                id: 2, name: "Goblet Squat",
-                tags: [{l:"JAMBES", t:"cyan"}, {l:"COMPOUND", t:"pink"}],
-                sets: 4, reps: "10", load: "25kg",
-                stats: { f: 60, h: 85, e: 40 }
-            },
-            {
-                id: 3, name: "Leg Press",
-                tags: [{l:"JAMBES", t:"cyan"}, {l:"ISOLATION", t:"pink"}],
-                sets: 4, reps: "10", load: "110kg",
-                stats: { f: 45, h: 90, e: 50 }
-            }
-        ];
+    <script type="module">
+        // --- IMPORT PROGRAM DATA ---
+        import programData from './program-data.js';
 
-        // --- 2. STARFIELD ENGINE ---
+        // --- GET URL PARAMS ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const week = parseInt(urlParams.get('week')) || 1;
+        const day = urlParams.get('day') || 'dimanche';
+
+        console.log(`📋 Briefing loaded: Week ${week}, Day ${day}`);
+
+        // --- GET WORKOUT DATA ---
+        let workout;
+        try {
+            workout = programData.getWorkout(week, day);
+        } catch (error) {
+            console.error('Error loading workout:', error);
+            alert('Erreur: Impossible de charger les données de la séance');
+        }
+
+        // --- CALCULATE STATS AUTOMATICALLY ---
+        function calculateExerciseStats(exercise) {
+            const isCompound = exercise.category === 'compound';
+            const isHeavy = exercise.weight > 50;
+            const isHighReps = typeof exercise.reps === 'string' 
+                ? parseInt(exercise.reps.split('-')[1] || exercise.reps) > 10
+                : exercise.reps > 10;
+            const isShortRest = exercise.rest < 75;
+            
+            let force = 50;
+            let hypertrophy = 50;
+            let endurance = 30;
+            
+            // FORCE calculation
+            if (isCompound && isHeavy) {
+                force = 85;
+            } else if (isCompound) {
+                force = 70;
+            } else if (isHeavy) {
+                force = 60;
+            }
+            
+            // HYPERTROPHY calculation
+            if (isCompound && isHighReps) {
+                hypertrophy = 80;
+            } else if (isCompound) {
+                hypertrophy = 70;
+            } else if (isHighReps) {
+                hypertrophy = 85;
+            } else {
+                hypertrophy = 65;
+            }
+            
+            // ENDURANCE calculation
+            if (isShortRest && isHighReps) {
+                endurance = 75;
+            } else if (isShortRest) {
+                endurance = 60;
+            } else if (isHighReps) {
+                endurance = 50;
+            }
+            
+            return { f: force, h: hypertrophy, e: endurance };
+        }
+
+        // --- CONVERT DATA FOR RENDERING ---
+        const WORKOUT_DATA = workout.exercises.map((ex, idx) => {
+            // Get first muscle or default
+            const muscleTag = ex.muscle && ex.muscle[0] 
+                ? ex.muscle[0].toUpperCase() 
+                : 'MUSCLE';
+            
+            const typeTag = ex.category === 'compound' ? 'COMPOUND' : 'ISOLATION';
+            
+            // Auto-calculate stats
+            const stats = calculateExerciseStats(ex);
+            
+            return {
+                id: idx + 1,
+                name: ex.name,
+                tags: [
+                    { l: muscleTag, t: "cyan" },
+                    { l: typeTag, t: "pink" }
+                ],
+                sets: ex.sets,
+                reps: ex.reps,
+                load: `${ex.weight}kg`,
+                stats: stats
+            };
+        });
+
+        // --- UPDATE HEADER ---
+        document.getElementById('title-main').textContent = day.toUpperCase();
+        document.getElementById('subtitle-text').textContent = `// ${workout.name}`;
+
+        // --- UPDATE TOP STATS ---
+        document.getElementById('stat-duration').textContent = `${workout.duration}m`;
+        document.getElementById('stat-sets').textContent = workout.totalSets;
+        
+        // Calculate XP based on total sets
+        const totalXP = workout.totalSets * 50;
+        document.getElementById('stat-xp').textContent = totalXP;
+
+        // --- START BUTTON HANDLER ---
+        document.getElementById('start-button').addEventListener('click', () => {
+            window.location.href = `session.html?week=${week}&day=${day}`;
+        });
+
+        // --- STARFIELD ENGINE ---
         const canvas = document.getElementById('starfield');
         const ctx = canvas.getContext('2d');
         let stars = [];
@@ -412,7 +573,7 @@
             requestAnimationFrame(animateStars);
         }
 
-        // --- 3. UI RENDERER (Vanilla JS) ---
+        // --- UI RENDERER (Vanilla JS) ---
         function renderGauge(value, label, max, isGlow) {
             const num = parseFloat(String(value).match(/\d+/)?.[0] || 0);
             const pct = Math.min((num / max), 1);
@@ -421,7 +582,6 @@
             const offset = C - (pct * C);
             
             // Diamond Tip Calculation
-            // Start is -90deg. End is -90 + (360 * pct)
             const angle = (pct * 360); 
 
             return `
@@ -497,7 +657,7 @@
             list.innerHTML = html;
         }
 
-        // --- 4. INIT ---
+        // --- INIT ---
         window.addEventListener('load', () => {
             initStars();
             animateStars();
