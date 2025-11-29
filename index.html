@@ -258,7 +258,7 @@
         
         <div class="flex justify-between items-start mb-3">
           <div>
-            <h2 class="text-xl font-hud font-black text-white uppercase tracking-wide" id="protocol-title">LOADING</h2>
+            <h2 class="text-xl font-hud font-black text-white uppercase tracking-wide" id="protocol-title">FONDATIONS TECHNIQUES</h2>
             <div class="text-sm font-hud font-medium text-slate-400" id="protocol-subtitle">Bloc 1</div>
           </div>
           <div class="text-center px-3 py-1 rounded-lg" style="background: rgba(34, 211, 238, 0.1);">
@@ -407,10 +407,17 @@
     }
 
     function populateProtocolWidget(currentWeek) {
-      if (!window.programData) return;
+      if (!window.programData) {
+        console.warn('programData not available for protocol widget');
+        return;
+      }
       
       var weekData = window.programData.getWeek(currentWeek);
-      var blockName = window.programData.info.blockTechniques['block' + weekData.block]?.name || 'Unknown';
+      var blockNum = weekData.block || 1;
+      var blockKey = 'block' + blockNum;
+      var blockTechniques = window.programData.info.blockTechniques || {};
+      var blockInfo = blockTechniques[blockKey];
+      var blockName = (blockInfo && blockInfo.name) ? blockInfo.name : 'Fondations Techniques';
       
       document.getElementById('protocol-title').textContent = blockName.toUpperCase();
       document.getElementById('protocol-subtitle').textContent = 'Bloc ' + weekData.block;
@@ -527,10 +534,8 @@
     }
 
     function initDashboard() {
-      console.log('Init dashboard...');
-      
       if (!window.programData) {
-        console.error('programData not loaded!');
+        setTimeout(initDashboard, 100);
         return;
       }
       
@@ -545,11 +550,9 @@
       populateMissions(currentWeek);
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initDashboard);
-    } else {
+    window.addEventListener('load', function() {
       initDashboard();
-    }
+    });
   </script>
 </body>
 </html>

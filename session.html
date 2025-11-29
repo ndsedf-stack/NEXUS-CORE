@@ -829,8 +829,21 @@
       if (idx >= workout.exercises.length) { 
         // Add workout completion XP
         Gamification.addXP(CONSTANTS.XP_PER_WORKOUT);
-        alert("MISSION ACCOMPLIE !"); 
-        window.location.href = 'index.html'; 
+        
+        // Save session data for debrief
+        var sessionDuration = Math.floor((Date.now() - s.startTime) / 60000);
+        var sessionData = {
+          name: workout.name || (s.day.toUpperCase()),
+          duration: sessionDuration,
+          week: s.week,
+          day: s.day,
+          exercises: workout.exercises.length,
+          completedAt: new Date().toISOString()
+        };
+        localStorage.setItem('last_session_data', JSON.stringify(sessionData));
+        
+        // Redirect to debrief page
+        window.location.href = 'debrief.html'; 
         return; 
       } 
       
