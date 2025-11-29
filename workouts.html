@@ -2,7 +2,6 @@
 <html lang="fr" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <!-- Ajout de viewport-fit=cover et des meta tags Apple -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -28,7 +27,7 @@
       box-sizing: border-box; 
       margin: 0; 
       padding: 0; 
-      -webkit-tap-highlight-color: transparent; /* Suppression du flash gris au tap */
+      -webkit-tap-highlight-color: transparent;
     }
     
     body { 
@@ -37,40 +36,12 @@
       color: #f8fafc;
       overflow-x: hidden;
       min-height: 100vh;
-      min-height: 100dvh; /* Fix pour iOS Safari */
+      min-height: 100dvh;
       touch-action: manipulation;
-      /* Padding bottom pour éviter que le contenu colle à la barre de swipe */
       padding-bottom: calc(20px + env(safe-area-inset-bottom));
     }
     
     .font-hud { font-family: 'Chakra Petch', sans-serif; }
-    
-    /* Optimisation GPU pour iOS */
-    .accel-gpu {
-      transform: translateZ(0);
-      will-change: transform;
-    }
-
-    /* ========== NEBULAS & GRAIN ========== */
-    .nebula {
-      position: fixed;
-      width: 800px;
-      height: 800px;
-      border-radius: 50%;
-      filter: blur(150px);
-      opacity: 0;
-      z-index: 0;
-      pointer-events: none;
-      animation: nebulaFade 2s ease-out 0.5s forwards;
-      transform: translateZ(0); /* Hack iOS */
-    }
-    
-    @keyframes nebulaFade {
-      to { opacity: 0.15; }
-    }
-    
-    .nebula.cyan { top: -20%; left: -20%; background: #164e63; }
-    .nebula.purple { bottom: -20%; right: -20%; background: #581c87; animation-delay: 0.7s; }
     
     .grain-overlay {
       position: fixed;
@@ -83,621 +54,665 @@
     }
     
     /* ========== HEADER ========== */
-    header {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 40;
-      background: rgba(2, 4, 8, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px); /* Support iOS */
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      /* Gestion correcte de l'encoche */
-      padding-top: max(10px, env(safe-area-inset-top));
-      padding-bottom: 10px;
-      box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+    .header-bar {
+      padding: max(12px, env(safe-area-inset-top)) 20px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     
-    /* ========== TIMELINE ULTRA PREMIUM ========== */
-    .timeline-container { 
+    /* ========== TIMELINE PREMIUM ========== */
+    .timeline-scroll {
       display: flex;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
-      padding: 8px 16px;
+      padding: 0 20px 16px;
       gap: 8px;
       scrollbar-width: none;
-      margin-bottom: 12px;
       -webkit-overflow-scrolling: touch;
-      touch-action: pan-x;
-      scroll-padding: 0 16px;
     }
     
-    .timeline-container::-webkit-scrollbar { display: none; }
+    .timeline-scroll::-webkit-scrollbar { display: none; }
     
-    .timeline-wrapper {
-      position: relative;
-      padding: 4px 0;
-    }
-    .timeline-wrapper::before,
-    .timeline-wrapper::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 30px;
-      z-index: 2;
-      pointer-events: none;
-    }
-    .timeline-wrapper::before {
-      left: 0;
-      background: linear-gradient(to right, var(--void), transparent);
-    }
-    .timeline-wrapper::after {
-      right: 0;
-      background: linear-gradient(to left, var(--void), transparent);
-    }
-    
-    /* WEEK CHIPS - Ultra Premium Design */
-    .week-chip { 
+    .week-chip {
       scroll-snap-align: center;
       flex: 0 0 auto;
-      width: 46px;
-      height: 56px;
-      background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+      width: 52px;
+      height: 52px;
+      background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transform: translateZ(0);
       cursor: pointer;
-      opacity: 0;
-      animation: chipSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
-      overflow: hidden;
     }
     
-    .week-chip::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-      transition: left 0.6s ease;
-    }
+    .week-chip:active { transform: scale(0.92); }
     
-    @keyframes chipSlideIn {
-      from { opacity: 0; transform: translateY(10px) scale(0.9); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-    
-    .week-chip:nth-child(1) { animation-delay: 0.02s; }
-    .week-chip:nth-child(2) { animation-delay: 0.04s; }
-    .week-chip:nth-child(3) { animation-delay: 0.06s; }
-    .week-chip:nth-child(4) { animation-delay: 0.08s; }
-    .week-chip:nth-child(5) { animation-delay: 0.10s; }
-    .week-chip:nth-child(6) { animation-delay: 0.12s; }
-    .week-chip:nth-child(7) { animation-delay: 0.14s; }
-    .week-chip:nth-child(n+8) { animation-delay: 0.16s; }
-    
-    .week-chip:active { 
-      transform: scale(0.9);
-      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    
-    .week-chip:active::before {
-      left: 100%;
-    }
-    
-    /* Active Week - Glowing Effect */
-    .week-chip.active { 
-      background: linear-gradient(145deg, rgba(34, 211, 238, 0.2) 0%, rgba(34, 211, 238, 0.08) 100%);
+    .week-chip.active {
+      background: rgba(34, 211, 238, 0.15);
       border-color: var(--cyan);
-      box-shadow: 
-        0 0 20px rgba(34, 211, 238, 0.4),
-        0 0 40px rgba(34, 211, 238, 0.2),
-        inset 0 1px 0 rgba(255,255,255,0.15);
-      animation: chipSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards, activePulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes activePulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.4), 0 0 40px rgba(34, 211, 238, 0.2), inset 0 1px 0 rgba(255,255,255,0.15); }
-      50% { box-shadow: 0 0 25px rgba(34, 211, 238, 0.5), 0 0 50px rgba(34, 211, 238, 0.3), inset 0 1px 0 rgba(255,255,255,0.2); }
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
     }
     
     .week-chip.active .week-num {
+      color: var(--cyan);
       text-shadow: 0 0 10px var(--cyan);
     }
     
-    @media (hover: hover) {
-      .week-chip:hover {
-        transform: translateY(-3px) scale(1.05);
-        border-color: rgba(255,255,255,0.2);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      }
-      .week-chip:hover::before {
-        left: 100%;
-      }
-      .week-chip.active:hover {
-        transform: translateY(-3px) scale(1.05);
-      }
-    }
-    
-    /* Deload Weeks - Green Glow */
-    .week-chip.deload { 
+    .week-chip.deload {
       border-color: rgba(34, 197, 94, 0.4);
-      background: linear-gradient(145deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.02) 100%);
     }
-    .week-chip.deload .week-label { color: #22c55e; }
+    .week-chip.deload.active {
+      background: rgba(34, 197, 94, 0.15);
+      border-color: #22c55e;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    }
+    .week-chip.deload .week-label,
     .week-chip.deload .week-num { color: #22c55e; }
     
-    .week-chip.deload.active { 
-      background: linear-gradient(145deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.08) 100%);
-      border-color: #22c55e;
-      box-shadow: 
-        0 0 20px rgba(34, 197, 94, 0.4),
-        0 0 40px rgba(34, 197, 94, 0.2),
-        inset 0 1px 0 rgba(255,255,255,0.15);
-      animation: chipSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards, deloadPulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes deloadPulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.4), 0 0 40px rgba(34, 197, 94, 0.2), inset 0 1px 0 rgba(255,255,255,0.15); }
-      50% { box-shadow: 0 0 25px rgba(34, 197, 94, 0.5), 0 0 50px rgba(34, 197, 94, 0.3), inset 0 1px 0 rgba(255,255,255,0.2); }
-    }
-    
-    /* Peak Week - Purple Glow */
-    .week-chip.peak { 
+    .week-chip.peak {
       border-color: rgba(168, 85, 247, 0.4);
-      background: linear-gradient(145deg, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0.02) 100%);
     }
-    .week-chip.peak .week-label { color: #a855f7; }
+    .week-chip.peak.active {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: #a855f7;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+    }
+    .week-chip.peak .week-label,
     .week-chip.peak .week-num { color: #a855f7; }
     
-    .week-chip.peak.active { 
-      background: linear-gradient(145deg, rgba(168, 85, 247, 0.2) 0%, rgba(168, 85, 247, 0.08) 100%);
-      border-color: #a855f7;
-      box-shadow: 
-        0 0 20px rgba(168, 85, 247, 0.4),
-        0 0 40px rgba(168, 85, 247, 0.2),
-        inset 0 1px 0 rgba(255,255,255,0.15);
-      animation: chipSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards, peakPulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes peakPulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(168, 85, 247, 0.2), inset 0 1px 0 rgba(255,255,255,0.15); }
-      50% { box-shadow: 0 0 25px rgba(168, 85, 247, 0.5), 0 0 50px rgba(168, 85, 247, 0.3), inset 0 1px 0 rgba(255,255,255,0.2); }
-    }
-    
-    /* Completed weeks indicator */
     .week-chip.completed::after {
       content: '';
       position: absolute;
-      bottom: 4px;
-      width: 16px;
-      height: 3px;
-      background: linear-gradient(90deg, var(--cyan), #22c55e);
-      border-radius: 2px;
-      box-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
+      bottom: 6px;
+      width: 6px;
+      height: 6px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 6px var(--cyan);
     }
     
     .week-label {
-      font-size: 7px;
-      font-weight: 800;
-      opacity: 0.7;
+      font-size: 8px;
+      font-weight: 700;
+      color: #64748b;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
     
     .week-num {
       font-family: 'Chakra Petch', sans-serif;
-      font-size: 20px;
-      font-weight: 900;
+      font-size: 18px;
+      font-weight: 800;
+      color: #e2e8f0;
       line-height: 1;
-      transition: text-shadow 0.3s ease;
     }
     
-    /* ========== BLOCK INFO BANNER ========== */
-    .block-info-banner {
-      background: rgba(15, 30, 45, 0.4);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(148, 163, 184, 0.12);
-      border-radius: 14px;
-      padding: 10px 12px;
-      margin: 0 12px 8px;
-      transition: all 0.2s ease;
-      cursor: pointer;
-      opacity: 0;
-      animation: fadeIn 0.4s ease 0.2s forwards;
+    /* ========== BLOCK TITLE ========== */
+    .block-title-section {
+      padding: 0 20px 20px;
     }
     
-    .block-info-banner:active { transform: scale(0.98); }
+    .block-main-title {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
     
-    /* ========== MISSION CARDS - Premium Design ========== */
-    .mission-card {
-      position: relative;
-      border-radius: 20px;
+    .block-subtitle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    
+    .block-subtitle::before {
+      content: '//';
+      color: var(--cyan);
+      font-weight: 700;
+    }
+    
+    .block-subtitle-text {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+    
+    /* ========== HERO MISSION CARD ========== */
+    .hero-mission {
+      margin: 0 16px 20px;
+      border-radius: 24px;
       overflow: hidden;
-      cursor: pointer;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: slideInUp 0.5s ease forwards;
-      -webkit-transform: translate3d(0,0,0);
-      min-height: 160px;
+      position: relative;
+      min-height: 280px;
+      background: linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.7) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
     }
     
-    .mission-card:nth-child(1) { animation-delay: 0.1s; }
-    .mission-card:nth-child(2) { animation-delay: 0.15s; }
-    .mission-card:nth-child(3) { animation-delay: 0.2s; }
-    .mission-card:nth-child(4) { animation-delay: 0.25s; }
-    
-    .mission-card:active {
-      transform: scale(0.98);
-      transition: transform 0.1s;
+    .hero-mission-bg {
+      position: absolute;
+      inset: 0;
+      background: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80') center/cover;
+      opacity: 0.3;
+      filter: grayscale(30%);
     }
     
-    .mission-card-inner {
+    .hero-mission-content {
       position: relative;
       z-index: 2;
       padding: 20px;
       height: 100%;
       display: flex;
       flex-direction: column;
-      background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
     }
     
-    .mission-card-bg {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
+    .priority-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      border-radius: 20px;
+      width: fit-content;
+      margin-bottom: 16px;
     }
     
-    @media (hover: hover) {
-      .mission-card:hover {
-        transform: translateY(-4px);
-      }
-    }
-    
-    /* ========== GLASS CARDS - Legacy Support ========== */
-    .glass-card {
-      background: rgba(255,255,255,0.03);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 18px;
-      padding: 16px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 20px -8px rgba(0,0,0,0.3);
-      transition: all 0.3s ease;
-      cursor: pointer;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: slideInUp 0.5s ease forwards;
-    }
-    
-    .glass-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 20%;
-      right: 20%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.3), transparent);
-      opacity: 0.6;
-    }
-    
-    /* ========== BUTTONS ========== */
-    .touch-pop {
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    .touch-pop:active { 
-      transform: scale(0.95);
-      transition: transform 0.1s;
-    }
-    
-    .scan-btn {
-      position: relative;
-      overflow: hidden;
-      transform: translateZ(0);
-    }
-    
-    .scan-btn::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
+    .priority-dot {
+      width: 6px;
+      height: 6px;
+      background: #22c55e;
       border-radius: 50%;
-      background: rgba(34, 211, 238, 0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.4s, height 0.4s;
+      box-shadow: 0 0 8px #22c55e;
+      animation: blink 2s infinite;
     }
     
-    /* Interaction mobile-first */
-    .scan-btn:active {
-        background: rgba(34, 211, 238, 0.2);
-        border-color: var(--cyan);
-        transform: scale(0.95);
-    }
-    .scan-btn:active::before {
-        width: 100%;
-        height: 100%;
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
     
-    /* Close button */
-    .close-btn:active {
-      background: rgba(255, 255, 255, 0.1);
-      transform: rotate(90deg) scale(0.9);
+    .priority-text {
+      font-size: 10px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
     
-    /* ========== MODAL ========== */
-    .modal-overlay { 
-      position: fixed;
-      inset: 0;
-      z-index: 9999; /* Boost Z-index */
-      background: rgba(2, 4, 8, 0.95);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+    .hero-day-title {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 42px;
+      font-weight: 900;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      line-height: 1;
+    }
+    
+    .hero-workout-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .hero-workout-name::before {
+      content: '';
+      width: 3px;
+      height: 20px;
+      background: var(--cyan);
+      border-radius: 2px;
+      box-shadow: 0 0 10px var(--cyan);
+    }
+    
+    .hero-workout-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    
+    .hero-nav-btn {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s ease;
-      padding-bottom: env(safe-area-inset-bottom); /* Évite que le bas de la modale soit coupé */
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
     
-    .modal-overlay.open { 
-      opacity: 1;
-      pointer-events: auto;
+    .hero-nav-btn:active {
+      background: rgba(34, 211, 238, 0.2);
+      border-color: var(--cyan);
     }
     
-    .modal-content { 
-      width: 90%;
-      max-width: 500px;
-      max-height: 80dvh; /* Dynamic Height */
-      overflow-y: auto;
-      background: rgba(15, 15, 32, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+    .hero-metrics {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    
+    .hero-metric {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 32px;
-      padding: 24px;
-      transform: scale(0.8) translateY(50px);
-      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.7);
-      -webkit-overflow-scrolling: touch;
+      border-radius: 16px;
+      padding: 16px 12px;
+      text-align: center;
+      transition: all 0.3s ease;
     }
     
-    .modal-overlay.open .modal-content { 
-      transform: scale(1) translateY(0);
+    .hero-metric:active {
+      transform: scale(0.95);
     }
     
-    /* ========== ANIMATIONS ========== */
-    @keyframes slideInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
+    .hero-metric.start-btn {
+      background: linear-gradient(135deg, rgba(34,211,238,0.2) 0%, rgba(34,211,238,0.1) 100%);
+      border-color: rgba(34, 211, 238, 0.3);
+      cursor: pointer;
     }
     
-    @keyframes fadeInDown {
-      from { opacity: 0; transform: translateY(-20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .hero-metric.start-btn:active {
+      background: linear-gradient(135deg, rgba(34,211,238,0.3) 0%, rgba(34,211,238,0.2) 100%);
     }
     
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(1.05); }
+    .metric-icon {
+      color: var(--cyan);
+      margin-bottom: 6px;
     }
     
-    /* ========== ACHIEVEMENTS ========== */
-    .achievement-card {
-      opacity: 0;
-      animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      transform: translateZ(0);
+    .metric-value {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
     }
     
-    .achievement-card:nth-child(1) { animation-delay: 0.5s; }
-    .achievement-card:nth-child(2) { animation-delay: 0.6s; }
-    .achievement-card:nth-child(3) { animation-delay: 0.7s; }
-    
-    .achievement-card:active {
-      transform: translateY(-4px) scale(0.95);
+    .metric-label {
+      font-size: 9px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 2px;
     }
     
-    /* Medal pulse effect */
-    .achievement-card.unlocked i {
-      animation: pulse 2s infinite;
+    /* ========== ANALYTIQUE SECTION ========== */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px;
+      margin-bottom: 12px;
+    }
+    
+    .section-title-bar {
+      width: 3px;
+      height: 14px;
+      background: var(--cyan);
+      border-radius: 2px;
+    }
+    
+    .section-title-text {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+    }
+    
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 0 16px 20px;
+    }
+    
+    .analytics-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .analytics-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(34,211,238,0.2), transparent);
+    }
+    
+    .analytics-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    
+    .analytics-value {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+    }
+    
+    .analytics-unit {
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+      margin-left: 2px;
+    }
+    
+    .analytics-change {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #22c55e;
+    }
+    
+    .analytics-icon {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #475569;
+    }
+    
+    .analytics-bar {
+      margin-top: 12px;
+      height: 4px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    
+    .analytics-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), #22c55e);
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+    
+    /* ========== OTHER MISSIONS ========== */
+    .other-missions {
+      padding: 0 16px 100px;
+    }
+    
+    .mission-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 16px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .mission-row:active {
+      transform: scale(0.98);
+      background: rgba(255,255,255,0.04);
+    }
+    
+    .mission-day-badge {
+      width: 44px;
+      height: 44px;
+      background: rgba(34,211,238,0.1);
+      border: 1px solid rgba(34,211,238,0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--cyan);
+      text-transform: uppercase;
+    }
+    
+    .mission-day-badge.pink {
+      background: rgba(236,72,153,0.1);
+      border-color: rgba(236,72,153,0.2);
+      color: #ec4899;
+    }
+    
+    .mission-day-badge.purple {
+      background: rgba(168,85,247,0.1);
+      border-color: rgba(168,85,247,0.2);
+      color: #a855f7;
+    }
+    
+    .mission-day-badge.amber {
+      background: rgba(245,158,11,0.1);
+      border-color: rgba(245,158,11,0.2);
+      color: #f59e0b;
+    }
+    
+    .mission-info {
+      flex: 1;
+    }
+    
+    .mission-name {
+      font-family: 'Chakra Petch', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    
+    .mission-meta {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    
+    .mission-arrow {
+      color: #475569;
     }
   </style>
 </head>
 
 <body class="antialiased">
-  <script>document.addEventListener("touchstart", function(){}, {passive: true});</script>
-  
-  <!-- NEBULAS & GRAIN -->
   <div class="grain-overlay"></div>
-  <div class="nebula cyan"></div>
-  <div class="nebula purple"></div>
-  <canvas id="starfield" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none;"></canvas>
   
   <!-- HEADER -->
-  <header>
-    <div class="px-4 flex items-center justify-between" style="height: 56px;">
-      <div>
-        <h1 class="text-2xl font-hud font-black text-white tracking-wider" style="background: linear-gradient(to bottom, #ffffff 0%, #94a3b8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">OPÉRATIONS</h1>
-        <div class="flex items-center gap-2 mt-1">
-          <div style="width: 24px; height: 2px; background: var(--cyan); box-shadow: 0 0 10px var(--cyan);"></div>
-          <span style="color: var(--cyan); font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; text-shadow: 0 0 15px rgba(34, 211, 238, 0.4);">// TACTIQUES</span>
-        </div>
+  <div class="header-bar">
+    <div>
+      <h1 class="font-hud text-xl font-black text-white tracking-wider">OPÉRATIONS</h1>
+      <div class="flex items-center gap-2 mt-1">
+        <div class="w-2 h-2 rounded-full bg-green-500" style="box-shadow: 0 0 8px #22c55e;"></div>
+        <span class="text-[10px] font-bold text-green-400 uppercase tracking-wider">Online</span>
+      </div>
+    </div>
+    <button onclick="window.location.href='index.html'" class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+      <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i>
+    </button>
+  </div>
+  
+  <!-- TIMELINE -->
+  <div class="timeline-scroll" id="timeline">
+    <div class="week-chip active"><span class="week-label">SEM</span><span class="week-num">1</span></div>
+    <div class="week-chip"><span class="week-label">SEM</span><span class="week-num">2</span></div>
+    <div class="week-chip"><span class="week-label">SEM</span><span class="week-num">3</span></div>
+    <div class="week-chip"><span class="week-label">SEM</span><span class="week-num">4</span></div>
+    <div class="week-chip"><span class="week-label">SEM</span><span class="week-num">5</span></div>
+    <div class="week-chip deload"><span class="week-label">DELOAD</span><span class="week-num">6</span></div>
+    <div class="week-chip"><span class="week-label">SEM</span><span class="week-num">7</span></div>
+  </div>
+  
+  <!-- BLOCK TITLE -->
+  <div class="block-title-section">
+    <h2 class="block-main-title" id="block-name">FONDATIONS</h2>
+    <div class="block-subtitle">
+      <span class="block-subtitle-text" id="block-info">BLOC 1 • VOLUME & TECHNIQUE</span>
+    </div>
+  </div>
+  
+  <!-- HERO MISSION CARD -->
+  <div class="hero-mission" id="hero-mission">
+    <div class="hero-mission-bg"></div>
+    <div class="hero-mission-content">
+      <div class="priority-badge">
+        <div class="priority-dot"></div>
+        <span class="priority-text">Priorité Alpha</span>
       </div>
       
-      <button onclick="window.location.href='index.html'" class="close-btn w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 touch-pop border border-white/10">
-        <i data-lucide="x" class="w-5 h-5"></i>
+      <h3 class="hero-day-title" id="hero-day">DIMANCHE</h3>
+      <div class="hero-workout-name">
+        <span class="hero-workout-text" id="hero-workout">DOS + JAMBES</span>
+      </div>
+      
+      <button class="hero-nav-btn" id="hero-next-btn">
+        <i data-lucide="chevron-right" class="w-5 h-5 text-white"></i>
       </button>
-    </div>
-    
-    <!-- TIMELINE -->
-    <div class="timeline-wrapper">
-      <div class="timeline-container" id="timeline"></div>
-    </div>
-    
-    <!-- BLOCK INFO -->
-    <div class="block-info-banner">
-      <div class="flex items-center justify-between">
-        <div>
-          <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest" id="block-label">BLOC ACTIF</div>
-          <div class="text-sm font-hud font-bold text-white leading-none mt-1" id="block-name">LOADING...</div>
-        </div>
-        <div class="text-right">
-          <div class="text-[9px] font-bold text-cyan-400 uppercase bg-cyan-400/10 px-2 py-1 rounded border border-cyan-400/20" id="block-tech">TECHNIQUE</div>
-        </div>
-      </div>
-    </div>
-  </header>
-  
-  <!-- MAIN CONTENT -->
-  <!-- Padding top calculé pour passer sous le header compact -->
-  <main class="pt-[200px] px-3 space-y-3 relative z-10 pb-8">
-    <!-- QUICK STATS BAR -->
-    <section class="mb-4">
-      <div class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1" style="-webkit-overflow-scrolling: touch;">
-        <div class="flex-shrink-0 px-4 py-3 rounded-2xl flex items-center gap-3" style="background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.25);">
-          <i data-lucide="zap" class="w-5 h-5" style="color: var(--cyan);"></i>
-          <div>
-            <div class="text-[9px] font-bold text-slate-400 uppercase">XP Total</div>
-            <div class="text-lg font-hud font-bold text-white" id="quick-xp">0</div>
-          </div>
-        </div>
-        
-        <div class="flex-shrink-0 px-4 py-3 rounded-2xl flex items-center gap-3" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);">
-          <i data-lucide="flame" class="w-5 h-5 text-amber-400"></i>
-          <div>
-            <div class="text-[9px] font-bold text-slate-400 uppercase">Streak</div>
-            <div class="text-lg font-hud font-bold text-white" id="quick-streak">0j</div>
-          </div>
-        </div>
-        
-        <div class="flex-shrink-0 px-4 py-3 rounded-2xl flex items-center gap-3" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);">
-          <i data-lucide="trophy" class="w-5 h-5 text-green-400"></i>
-          <div>
-            <div class="text-[9px] font-bold text-slate-400 uppercase">Sessions</div>
-            <div class="text-lg font-hud font-bold text-white" id="quick-sessions">0</div>
-          </div>
-        </div>
-      </div>
-    </section>
-    
-    <!-- WORKOUTS -->
-    <section id="workouts-container" class="space-y-3"></section>
-  </main>
-  
-  <!-- MODAL -->
-  <div id="details-modal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="flex justify-between items-start mb-4">
-        <div>
-          <h3 class="text-2xl font-hud font-black text-white uppercase" id="modal-title">TITRE</h3>
-          <div class="text-xs font-bold text-cyan-400" id="modal-subtitle">SUBTITLE</div>
-        </div>
-        <button onclick="closeModal()" class="close-btn p-2 bg-white/10 rounded-full touch-pop">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
       
-      <div id="modal-body" class="space-y-3"></div>
-      
-      <div class="mt-6">
-        <button id="modal-start-btn" class="w-full py-4 bg-gradient-to-r from-cyan-400 to-cyan-600 text-black font-black font-hud text-lg uppercase rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.5)] touch-pop">
-          LANCER LA MISSION
-        </button>
+      <div class="hero-metrics">
+        <div class="hero-metric">
+          <i data-lucide="clock" class="w-5 h-5 metric-icon"></i>
+          <div class="metric-value" id="hero-duration">68m</div>
+          <div class="metric-label">Durée</div>
+        </div>
+        <div class="hero-metric">
+          <i data-lucide="zap" class="w-5 h-5 metric-icon"></i>
+          <div class="metric-value" id="hero-density">89%</div>
+          <div class="metric-label">Densité</div>
+        </div>
+        <div class="hero-metric start-btn" id="hero-start-btn">
+          <i data-lucide="play" class="w-5 h-5 metric-icon"></i>
+          <div class="metric-value">START</div>
+          <div class="metric-label">Lancer</div>
+        </div>
       </div>
     </div>
   </div>
   
+  <!-- ANALYTIQUE -->
+  <div class="section-title">
+    <div class="section-title-bar"></div>
+    <span class="section-title-text">Analytique</span>
+  </div>
+  
+  <div class="analytics-grid">
+    <div class="analytics-card">
+      <div class="analytics-label">Meilleur Perf</div>
+      <div>
+        <span class="analytics-value" id="best-perf">140</span>
+        <span class="analytics-unit">KG</span>
+      </div>
+      <div class="analytics-change">
+        <i data-lucide="trending-up" class="w-3 h-3"></i>
+        <span id="perf-change">+2.5% vs Sem 3</span>
+      </div>
+      <div class="analytics-icon">
+        <i data-lucide="trophy" class="w-5 h-5"></i>
+      </div>
+    </div>
+    
+    <div class="analytics-card">
+      <div class="analytics-label">Volume Hebdo</div>
+      <div>
+        <span class="analytics-value" id="weekly-volume">42</span>
+        <span class="analytics-unit">T</span>
+      </div>
+      <div class="analytics-bar">
+        <div class="analytics-bar-fill" id="volume-bar" style="width: 75%;"></div>
+      </div>
+      <div class="analytics-icon">
+        <span class="text-2xl font-hud font-black text-slate-600">#</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- OTHER MISSIONS -->
+  <div class="section-title">
+    <div class="section-title-bar"></div>
+    <span class="section-title-text">Autres Missions</span>
+  </div>
+  
+  <div class="other-missions" id="other-missions"></div>
+
   <script>
+    let currentWeek = 1;
+    let currentDayIndex = 0;
+    const days = ['dimanche', 'mardi', 'vendredi', 'maison'];
+    const dayLabels = { 'dimanche': 'DIM', 'mardi': 'MAR', 'vendredi': 'VEN', 'maison': 'MAI' };
+    const dayColors = { 'dimanche': '', 'mardi': 'pink', 'vendredi': 'purple', 'maison': 'amber' };
     
-    let currentWeek = Utils.getCurrentWeek();
-    
-    // STARFIELD
-    const canvas = document.getElementById('starfield');
-    const ctx = canvas.getContext('2d');
-    let stars = [];
-    
-    function initStars() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      stars = [];
-      for(let i=0; i<200; i++) {
-        stars.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          size: Math.random() > 0.98 ? Math.random()*2 + 0.5 : Math.random(),
-          speed: Math.random() * 0.2 + 0.02,
-          opacity: Math.random(),
-          fade: (Math.random() * 0.01) * (Math.random()>0.5 ? 1 : -1)
-        });
-      }
+    function initIcons() {
+      if (typeof lucide !== 'undefined') lucide.createIcons();
     }
     
-    function animateStars() {
-      ctx.clearRect(0,0,canvas.width, canvas.height);
-      stars.forEach(s => {
-        s.y -= s.speed;
-        if(s.y < 0) s.y = canvas.height;
-        s.opacity += s.fade;
-        if(s.opacity > 1 || s.opacity < 0.2) s.fade *= -1;
-        ctx.beginPath();
-        ctx.fillStyle = 'rgba(255,255,255,' + s.opacity + ')';
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
-        ctx.fill();
-        if(s.size > 1.2) {
-          ctx.shadowBlur = 10;
-          ctx.shadowColor = "white";
-          ctx.fill();
-          ctx.shadowBlur = 0;
-        }
-      });
-      requestAnimationFrame(animateStars);
-    }
-    
-    function initOps() { 
+    function init() {
+      currentWeek = parseInt(localStorage.getItem('hybrid_current_week') || '1');
       initIcons();
-      initStars();
-      animateStars();
       renderTimeline();
-      renderWorkouts(currentWeek);
-      populateQuickStats();
-      window.addEventListener('resize', initStars);
-    }
-    
-    function populateQuickStats() {
-      var xp = parseInt(localStorage.getItem('hybrid_xp') || '0');
-      var streak = parseInt(localStorage.getItem('hybrid_streak') || '0');
-      var history = [];
-      try {
-        history = JSON.parse(localStorage.getItem('neon_fit_workout_history') || '[]');
-      } catch(e) {}
+      renderContent(currentWeek);
       
-      document.getElementById('quick-xp').textContent = xp.toLocaleString();
-      document.getElementById('quick-streak').textContent = streak + 'j';
-      document.getElementById('quick-sessions').textContent = history.length;
+      document.getElementById('hero-start-btn').onclick = () => {
+        const day = days[currentDayIndex];
+        window.location.href = `briefing.html?week=${currentWeek}&day=${day}`;
+      };
+      
+      document.getElementById('hero-next-btn').onclick = () => {
+        currentDayIndex = (currentDayIndex + 1) % days.length;
+        updateHeroCard(currentWeek);
+      };
+      
+      document.getElementById('hero-mission').onclick = (e) => {
+        if (e.target.closest('.hero-metric') || e.target.closest('.hero-nav-btn')) return;
+        const day = days[currentDayIndex];
+        window.location.href = `briefing.html?week=${currentWeek}&day=${day}`;
+      };
     }
     
-    function renderTimeline() { 
+    function renderTimeline() {
       const container = document.getElementById('timeline');
       container.innerHTML = '';
       
-      for (let i = 1; i <= 26; i++) { 
+      for (let i = 1; i <= 26; i++) {
         const weekData = programData.getWeek(i);
         const isDeload = weekData.isDeload;
         const isPeak = i === 25;
@@ -709,13 +724,13 @@
         const chip = document.createElement('div');
         chip.className = `week-chip ${i === currentWeek ? 'active' : ''} ${extraClass}`;
         
-        chip.onclick = () => { 
+        chip.onclick = () => {
           document.querySelectorAll('.week-chip').forEach(c => c.classList.remove('active'));
           chip.classList.add('active');
           currentWeek = i;
-          Utils.setCurrentWeek(i);
-          if (navigator.vibrate) navigator.vibrate(10);
-          renderWorkouts(i);
+          localStorage.setItem('hybrid_current_week', i);
+          currentDayIndex = 0;
+          renderContent(i);
         };
         
         const label = isDeload ? 'DELOAD' : (isPeak ? 'PEAK' : 'SEM');
@@ -727,142 +742,122 @@
         container.appendChild(chip);
       }
       
-      setTimeout(() => { 
+      setTimeout(() => {
         const active = container.querySelector('.active');
-        if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-      }, 500);
+        if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }, 300);
     }
     
-    function renderWorkouts(week) { 
-      const container = document.getElementById('workouts-container');
-      container.innerHTML = '';
-      
+    function renderContent(week) {
       const weekData = programData.getWeek(week);
       
-      document.getElementById('block-label').textContent = `BLOC ${weekData.block} • SEMAINE ${week}`;
-      const blockName = programData.info.blockTechniques[`block${weekData.block}`]?.name || "Unknown";
-      document.getElementById("block-name").textContent = blockName.toUpperCase();
-      document.getElementById("block-tech").textContent = weekData.technique.split('+')[0];
+      const blockName = programData.info.blockTechniques[`block${weekData.block}`]?.name || "FONDATIONS";
+      document.getElementById('block-name').textContent = blockName.toUpperCase();
+      document.getElementById('block-info').textContent = `BLOC ${weekData.block} • ${weekData.technique}`;
       
-      const days = ['dimanche', 'mardi', 'vendredi', 'maison'];
+      updateHeroCard(week);
+      renderOtherMissions(week);
+      updateAnalytics(week);
+      initIcons();
+    }
+    
+    function updateHeroCard(week) {
+      const weekData = programData.getWeek(week);
+      const day = days[currentDayIndex];
+      const workout = weekData[day];
       
-      const dayMeta = { 
-        'dimanche': { 
-          color: 'var(--cyan)', 
-          gradient: 'linear-gradient(135deg, rgba(6,182,212,0.25) 0%, rgba(34,211,238,0.08) 100%)',
-          border: 'rgba(34,211,238,0.4)',
-          icon: 'zap',
-          label: 'DIMANCHE'
-        }, 
-        'mardi': { 
-          color: '#ec4899', 
-          gradient: 'linear-gradient(135deg, rgba(236,72,153,0.25) 0%, rgba(244,114,182,0.08) 100%)',
-          border: 'rgba(236,72,153,0.4)',
-          icon: 'dumbbell',
-          label: 'MARDI'
-        }, 
-        'vendredi': { 
-          color: '#a855f7', 
-          gradient: 'linear-gradient(135deg, rgba(168,85,247,0.25) 0%, rgba(192,132,252,0.08) 100%)',
-          border: 'rgba(168,85,247,0.4)',
-          icon: 'activity',
-          label: 'VENDREDI'
-        }, 
-        'maison': { 
-          color: '#f59e0b', 
-          gradient: 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(251,191,36,0.05) 100%)',
-          border: 'rgba(245,158,11,0.3)',
-          icon: 'home',
-          label: 'MAISON'
-        } 
-      };
+      if (!workout) {
+        currentDayIndex = 0;
+        updateHeroCard(week);
+        return;
+      }
       
-      days.forEach((day, index) => { 
+      const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+      document.getElementById('hero-day').textContent = dayName.toUpperCase();
+      document.getElementById('hero-workout').textContent = workout.name;
+      document.getElementById('hero-duration').textContent = workout.duration + 'm';
+      
+      const density = Math.min(100, Math.round((workout.totalSets / workout.duration) * 100 / 1.2));
+      document.getElementById('hero-density').textContent = density + '%';
+      
+      initIcons();
+    }
+    
+    function renderOtherMissions(week) {
+      const container = document.getElementById('other-missions');
+      container.innerHTML = '';
+      const weekData = programData.getWeek(week);
+      
+      days.forEach((day, index) => {
+        if (index === currentDayIndex) return;
+        
         const workout = weekData[day];
         if (!workout) return;
         
-        const meta = dayMeta[day];
-        const setsCount = workout.totalSets || workout.exercises.reduce((sum, ex) => sum + (ex.sets || 3), 0);
-        const xpReward = setsCount * 20;
+        const row = document.createElement('div');
+        row.className = 'mission-row';
+        row.onclick = () => window.location.href = `briefing.html?week=${week}&day=${day}`;
         
-        const card = document.createElement('div');
-        card.className = 'mission-card';
-        card.style.cssText = `background: ${meta.gradient}; border: 1px solid ${meta.border};`;
-        
-        card.onclick = () => window.location.href = `briefing.html?week=${week}&day=${day}`;
-        
-        card.innerHTML = `
-          <div class="mission-card-inner">
-            <div class="flex justify-between items-start mb-4">
-              <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background: rgba(0,0,0,0.4); border: 1px solid ${meta.border}; box-shadow: 0 0 20px ${meta.color}33;">
-                <i data-lucide="${meta.icon}" class="w-7 h-7" style="color: ${meta.color}; filter: drop-shadow(0 0 8px ${meta.color});"></i>
-              </div>
-              
-              <div class="flex-1 ml-4">
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase" style="background: rgba(0,0,0,0.5); border: 1px solid ${meta.border}; color: ${meta.color};">${weekData.technique.split('+')[0]}</span>
-                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${meta.label}</span>
-                </div>
-                <h3 class="text-xl font-hud font-black text-white uppercase leading-tight" style="text-shadow: 0 2px 10px rgba(0,0,0,0.5);">${workout.name.split('+')[0]}</h3>
-              </div>
-              
-              <button class="scan-btn w-12 h-12 rounded-full flex items-center justify-center transition-colors relative z-10" style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2);" data-day="${day}">
-                <i data-lucide="eye" class="w-6 h-6 pointer-events-none relative z-10" style="color: ${meta.color};"></i>
-              </button>
-            </div>
-            
-            <div class="flex items-center gap-4 pt-3 mt-auto border-t" style="border-color: rgba(255,255,255,0.1);">
-              <div>
-                <div class="text-[9px] font-bold text-slate-400 uppercase mb-1">DURÉE</div>
-                <div class="text-base font-hud font-bold text-white flex items-center gap-1.5">
-                  <i data-lucide="clock" class="w-4 h-4" style="color: ${meta.color};"></i> ${workout.duration}m
-                </div>
-              </div>
-              <div>
-                <div class="text-[9px] font-bold text-slate-400 uppercase mb-1">SÉRIES</div>
-                <div class="text-base font-hud font-bold text-white flex items-center gap-1.5">
-                  <i data-lucide="layers" class="w-4 h-4" style="color: ${meta.color};"></i> ${setsCount}
-                </div>
-              </div>
-              <div>
-                <div class="text-[9px] font-bold text-slate-400 uppercase mb-1">RPE</div>
-                <div class="text-base font-hud font-bold" style="color: ${meta.color};">${weekData.rpeTarget}</div>
-              </div>
-              <div class="ml-auto">
-                <span class="text-base font-bold px-3 py-1.5 rounded-lg" style="color: var(--cyan); background: rgba(34,211,238,0.15); border: 1px solid rgba(34,211,238,0.3); text-shadow: 0 0 10px rgba(34,211,238,0.5);">+${xpReward} XP</span>
-              </div>
-            </div>
+        row.innerHTML = `
+          <div class="mission-day-badge ${dayColors[day]}">${dayLabels[day]}</div>
+          <div class="mission-info">
+            <div class="mission-name">${workout.name}</div>
+            <div class="mission-meta">${workout.duration}m • ${workout.totalSets} séries</div>
           </div>
+          <i data-lucide="chevron-right" class="w-5 h-5 mission-arrow"></i>
         `;
         
-        container.appendChild(card);
+        container.appendChild(row);
       });
-  
-  document.querySelectorAll('.scan-btn').forEach(btn => { 
-    btn.addEventListener('click', (e) => { 
-      e.stopPropagation();
-      openDetails(btn.dataset.day);
-    });
-  });
-  
-  initIcons();
-}
-
-window.openDetails = (day) => {
-  const workout = programData.getWorkout(currentWeek, day);
-  Modal.open(
-    day.toUpperCase(),
-    workout.name,
-    workout.exercises,
-    () => window.location.href = `briefing.html?week=${currentWeek}&day=${day}`
-  );
-};
-
-window.closeModal = () => {
-  document.getElementById('details-modal').classList.remove('open');
-};
-
-initOps();
+      
+      initIcons();
+    }
+    
+    function updateAnalytics(week) {
+      try {
+        const history = JSON.parse(localStorage.getItem('neon_fit_workout_history') || '[]');
+        const weekHistory = history.filter(h => h.week === week);
+        
+        let maxWeight = 0;
+        let totalVolume = 0;
+        
+        history.forEach(session => {
+          if (session.exercises) {
+            session.exercises.forEach(ex => {
+              if (ex.sets) {
+                ex.sets.forEach(set => {
+                  if (set.weight > maxWeight) maxWeight = set.weight;
+                  totalVolume += (set.weight || 0) * (set.reps || 0);
+                });
+              }
+            });
+          }
+        });
+        
+        if (maxWeight > 0) {
+          document.getElementById('best-perf').textContent = maxWeight;
+        }
+        
+        const volumeT = (totalVolume / 1000).toFixed(0);
+        if (totalVolume > 0) {
+          document.getElementById('weekly-volume').textContent = volumeT;
+        }
+      } catch(e) {}
+    }
+    
+    function waitForData() {
+      if (typeof programData !== 'undefined' && programData.getWeek) {
+        init();
+      } else {
+        setTimeout(waitForData, 50);
+      }
+    }
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', waitForData);
+    } else {
+      waitForData();
+    }
   </script>
 </body>
 </html>
