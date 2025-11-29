@@ -103,7 +103,7 @@
             Menu, X, Play, Pause, ChevronRight, Target, Bot, Plus, 
             MessageSquare, Trash2, Download, AlertCircle, TrendingUp,
             Layers, Clock, Battery, Fan, Disc, Dumbbell, Maximize2, RefreshCw, Cpu,
-            RotateCcw, Power, Fingerprint, Hexagon
+            RotateCcw, Power, Fingerprint, Hexagon, Crosshair
         } from 'lucide-react';
 
         // --- REAL DATA FROM STATSDATA ---
@@ -158,25 +158,62 @@
 
         // --- COMPONENTS ---
 
-        // 1. NEON TRACKER (Radial Gauge)
+        // 1. NEON TRACKER V7 (Fighter HUD with Particles)
         const NeonTracker = ({ score, sessions, sets, status }) => {
             const canvasRef = useRef(null);
             const containerRef = useRef(null);
-            const progressRefs = useRef({ sessions: 0, sets: 0, score: 0 });
-            const isOptimal = score > 80;
+            const [showInfo, setShowInfo] = useState(false);
+            
+            const animState = useRef({
+                sessions: 0,
+                sets: 0,
+                score: 0,
+                rotation: 0,
+                pulse: 0,
+            });
 
+            const particles = useRef([]);
+
+            // Stats Grid Data
+            const statsGrid = [
+                { label: 'HRV', value: '72ms', icon: Zap, color: 'cyan' },
+                { label: 'KCAL', value: '3420', icon: Flame, color: 'orange' },
+                { label: 'FOCUS', value: '94%', icon: Target, color: 'purple' },
+                { label: 'LOAD', value: '68%', icon: TrendingUp, color: 'green' },
+                { label: 'RANK', value: '#12', icon: Trophy, color: 'yellow' },
+                { label: 'RECO', value: '88%', icon: Heart, color: 'blue' },
+            ];
+
+            // Initialize particles
+            useEffect(() => {
+                if (particles.current.length === 0) {
+                    for(let i = 0; i < 40; i++) {
+                        particles.current.push({
+                            x: 0, y: 0,
+                            r: Math.random() * 1.5,
+                            speed: 0.005 + Math.random() * 0.01,
+                            angle: Math.random() * Math.PI * 2,
+                            dist: 0.4 + Math.random() * 0.5,
+                        });
+                    }
+                }
+            }, []);
+
+            // Canvas render loop
             useEffect(() => {
                 const canvas = canvasRef.current;
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d', { alpha: true });
                 if (!ctx) return;
+
                 let animationId;
 
                 const handleResize = () => {
                     if (!containerRef.current || !canvas) return;
                     const dpr = window.devicePixelRatio || 1;
                     const rect = containerRef.current.getBoundingClientRect();
-                    const size = Math.min(rect.width - 32, rect.height - 32, 350);
+                    const size = rect.width;
+
                     canvas.width = size * dpr;
                     canvas.height = size * dpr;
                     canvas.style.width = `${size}px`;
@@ -184,123 +221,283 @@
                     ctx.setTransform(1, 0, 0, 1, 0, 0);
                     ctx.scale(dpr, dpr);
                 };
+
                 window.addEventListener('resize', handleResize);
-                setTimeout(handleResize, 100);
+                setTimeout(handleResize, 0);
 
                 const toRad = (deg) => (deg * Math.PI) / 180;
-                const createCarbonPattern = () => {
-                    const pCanvas = document.createElement('canvas');
-                    pCanvas.width = 8; pCanvas.height = 8;
-                    const pCtx = pCanvas.getContext('2d');
-                    if (pCtx) {
-                        pCtx.fillStyle = '#050505'; pCtx.fillRect(0, 0, 8, 8);
-                        pCtx.fillStyle = '#111'; pCtx.beginPath();
-                        pCtx.moveTo(0, 8); pCtx.lineTo(8, 0); pCtx.lineTo(8, 8); pCtx.fill();
-                    }
-                    return ctx.createPattern(pCanvas, 'repeat');
-                };
 
                 const draw = () => {
                     if (!canvas) return;
+                    
+                    // Animation Physics
                     const lerp = (start, end, factor) => start + (end - start) * factor;
-                    progressRefs.current.sessions = lerp(progressRefs.current.sessions, sessions.current / sessions.max, 0.05);
-                    progressRefs.current.sets = lerp(progressRefs.current.sets, sets.current / sets.max, 0.05);
-                    progressRefs.current.score = lerp(progressRefs.current.score, score / 100, 0.05);
+                    animState.current.sessions = lerp(animState.current.sessions, sessions.current / sessions.max, 0.05);
+                    animState.current.sets = lerp(animState.current.sets, sets.current / sets.max, 0.05);
+                    animState.current.score = lerp(animState.current.score, score / 100, 0.04);
+                    
+                    animState.current.rotation += 0.002;
+                    animState.current.pulse = (Math.sin(Date.now() / 500) + 1) * 0.5;
 
                     const size = canvas.width / (window.devicePixelRatio || 1);
-                    const cx = size / 2; const cy = size / 2; const r = size * 0.42;
+                    const cx = size / 2;
+                    const cy = size / 2;
+                    const r = size * 0.40;
 
                     ctx.clearRect(0, 0, size, size);
-                    
-                    // Chassis
+                    ctx.globalCompositeOperation = 'screen';
+
+                    // 1. BACKGROUND GRID (Fighter Jet Style - Rotating ellipses)
                     ctx.save();
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 20;
-                    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
-                    const bezelGrad = ctx.createLinearGradient(0, 0, size, size);
-                    bezelGrad.addColorStop(0, '#1e293b'); bezelGrad.addColorStop(0.5, '#0f172a'); bezelGrad.addColorStop(1, '#020617');
-                    ctx.fillStyle = bezelGrad; ctx.fill(); ctx.restore();
+                    ctx.strokeStyle = 'rgba(217, 70, 239, 0.1)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    for(let i = 0; i < 5; i++) {
+                        const rot = (i * Math.PI/2.5) + animState.current.rotation;
+                        ctx.ellipse(cx, cy, r*1.1, r*0.6, rot, 0, Math.PI * 2);
+                    }
+                    ctx.stroke();
+                    ctx.restore();
 
-                    // Carbon Face
-                    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r * 0.95, 0, Math.PI * 2);
-                    const pattern = createCarbonPattern(); if (pattern) ctx.fillStyle = pattern; ctx.fill();
-                    const vignette = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 0.95);
-                    vignette.addColorStop(0, 'rgba(0,0,0,0)'); vignette.addColorStop(1, 'rgba(0,0,0,0.9)');
-                    ctx.fillStyle = vignette; ctx.fill(); ctx.restore();
-
-                    // Rings
-                    const startAngle = toRad(135); const totalAngle = toRad(270);
-                    const drawRing = (radius, width, progress, color, glowColor) => {
+                    // 2. RINGS (Fighter HUD Style with Gradients)
+                    const drawFighterRing = (radius, width, progress, hueStart, hueEnd) => {
+                        const startAngle = toRad(145);
+                        const totalAngle = toRad(250);
                         const endAngle = startAngle + (totalAngle * progress);
+
+                        ctx.save();
                         ctx.lineCap = 'round';
-                        ctx.beginPath(); ctx.arc(cx, cy, radius, startAngle, startAngle + totalAngle);
-                        ctx.lineWidth = width; ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.stroke();
-                        ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, radius, startAngle, endAngle);
-                        ctx.lineWidth = width; ctx.strokeStyle = color; ctx.shadowColor = glowColor; ctx.shadowBlur = 20; ctx.stroke(); ctx.restore();
-                        if (progress > 0) {
-                            const tipX = cx + Math.cos(endAngle) * radius; const tipY = cy + Math.sin(endAngle) * radius;
-                            ctx.beginPath(); ctx.arc(tipX, tipY, width/2, 0, Math.PI*2);
-                            ctx.fillStyle = '#fff'; ctx.shadowColor = '#fff'; ctx.shadowBlur = 10; ctx.fill();
-                        }
+                        
+                        // Gradient
+                        const gradient = ctx.createLinearGradient(cx - radius, cy, cx + radius, cy);
+                        gradient.addColorStop(0, `hsl(${hueStart}, 100%, 50%)`);
+                        gradient.addColorStop(1, `hsl(${hueEnd}, 100%, 60%)`);
+
+                        // Track background
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, radius, startAngle, startAngle + totalAngle);
+                        ctx.lineWidth = width;
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                        ctx.stroke();
+                        
+                        // Glowing Stroke
+                        ctx.shadowBlur = 20;
+                        ctx.shadowColor = `hsl(${hueEnd}, 100%, 50%)`;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, radius, startAngle, endAngle);
+                        ctx.lineWidth = width;
+                        ctx.strokeStyle = gradient;
+                        ctx.stroke();
+                        
+                        // Inner White Core (Tube effect)
+                        ctx.shadowBlur = 5;
+                        ctx.lineWidth = width * 0.3;
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                        ctx.stroke();
+
+                        ctx.restore();
                     };
-                    drawRing(r * 0.85, size * 0.04, progressRefs.current.sessions, '#3b82f6', '#3b82f6');
-                    drawRing(r * 0.68, size * 0.03, progressRefs.current.sets, '#d946ef', '#d946ef');
-                    const scoreColor = isOptimal ? '#f59e0b' : '#22d3ee';
-                    drawRing(r * 0.55, size * 0.02, progressRefs.current.score, scoreColor, scoreColor);
-                    
-                    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r * 0.45, 0, Math.PI * 2); ctx.fillStyle = '#000'; ctx.fill(); ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+
+                    // Outer Ring (Deep Indigo/Violet) - FREQ
+                    drawFighterRing(r * 1.0, size * 0.035, animState.current.sessions, 240, 260);
+                    // Middle Ring (Hot Pink/Fuchsia) - VOL
+                    drawFighterRing(r * 0.85, size * 0.035, animState.current.sets, 310, 340);
+                    // Inner Ring (Gold/Amber) - Score
+                    drawFighterRing(r * 0.70, size * 0.035, animState.current.score, 30, 50);
+
+                    // 3. PARTICLES (Floating orbital dust)
+                    ctx.save();
+                    particles.current.forEach(p => {
+                        p.angle += p.speed;
+                        const xRadius = r * 0.8 * p.dist;
+                        const yRadius = r * 0.8 * p.dist;
+                        
+                        const px = cx + Math.cos(p.angle) * xRadius;
+                        const py = cy + Math.sin(p.angle) * yRadius;
+                        
+                        const scale = 0.5 + (Math.sin(p.angle * 2) + 1) * 0.5;
+                        ctx.beginPath();
+                        ctx.arc(px, py, p.r * scale, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 255, ${scale * 0.8})`;
+                        ctx.fill();
+                    });
+                    ctx.restore();
+
                     animationId = requestAnimationFrame(draw);
                 };
+
                 draw();
-                return () => { window.removeEventListener('resize', handleResize); cancelAnimationFrame(animationId); };
-            }, [sessions, sets, score, isOptimal]);
+                return () => {
+                    window.removeEventListener('resize', handleResize);
+                    cancelAnimationFrame(animationId);
+                };
+            }, [sessions, sets, score]);
 
             return (
-                <div className="relative w-full max-w-md bg-black border-[2px] border-white/10 rounded-3xl flex flex-col h-full min-h-[550px] transition-all duration-500 hover:border-white/20 z-20 overflow-hidden group">
-                    <div className="bg-[#050505] px-6 py-4 border-b border-white/10 flex justify-between items-center z-10 shrink-0">
-                        <div>
-                            <h2 className="font-display font-bold text-white tracking-widest flex items-center gap-2 uppercase">
-                                <Cpu className="text-cyan-400" size={20} /> System Core
-                            </h2>
-                            <p className="text-[10px] text-gray-400 font-mono font-bold mt-1">PERFORMANCE TRACKER</p>
-                        </div>
-                        <div className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${isOptimal ? 'border-amber-500/50 text-amber-500 bg-amber-500/10' : 'border-cyan-500/50 text-cyan-500 bg-cyan-500/10'}`}>
-                            {status === 'consistent' ? 'OPTIMIZED' : 'WARNING'}
-                        </div>
-                    </div>
-                    <div className="flex-1 bg-[#020202] p-4 flex justify-center items-center relative" ref={containerRef}>
-                        <div className="absolute inset-0 bg-cyan-500/5 blur-3xl rounded-full transform scale-75 pointer-events-none"></div>
-                        <canvas ref={canvasRef} className="relative z-10 w-full aspect-square max-w-[350px]" />
-                        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-                            <div className="flex flex-col items-center justify-center">
-                                <span className="text-[9px] text-gray-500 tracking-[0.2em] font-display uppercase mb-1 font-bold">Sys.Opt</span>
-                                <span className={`text-6xl font-display font-black tracking-tighter ${isOptimal ? 'text-amber-400 drop-shadow-[0_0_25px_rgba(251,191,36,0.6)]' : 'text-cyan-400 drop-shadow-[0_0_25px_rgba(34,211,238,0.6)]'}`}>
-                                    {Math.round(score)}<span className="text-2xl align-top opacity-50">%</span>
-                                </span>
+                <div className="relative w-full max-w-md bg-[#020202] border border-white/10 rounded-3xl flex flex-col overflow-hidden shadow-2xl transition-all hover:border-white/20 group">
+                    
+                    {/* PART 1: VISUALIZER (FIGHTER HUD) */}
+                    <div className="relative h-[440px] w-full bg-gradient-to-b from-[#050505] to-[#020202] border-b border-white/10">
+                        
+                        {/* Header Overlay */}
+                        <div className="absolute top-0 left-0 w-full p-5 flex justify-between items-center z-20">
+                            <div className="flex items-center gap-2">
+                                <Crosshair className="text-cyan-400 animate-spin-slow" size={20} />
+                                <h2 className="font-display font-bold text-white tracking-[0.2em] uppercase text-lg">FIGHTER.HUD</h2>
+                            </div>
+                            
+                            {/* INFO BUTTON */}
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={() => setShowInfo(!showInfo)}
+                                    className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-cyan-400 hover:bg-white/10 transition-colors"
+                                >
+                                    {showInfo ? <X size={14} /> : <AlertCircle size={14} />}
+                                </button>
+                                <div className="px-3 py-1 border border-green-500/50 bg-green-500/10 text-green-400 text-[10px] font-black tracking-widest rounded uppercase animate-pulse flex items-center">
+                                    READY
+                                </div>
                             </div>
                         </div>
-                        <div className="absolute top-[45%] left-4 -translate-y-1/2 z-30 pointer-events-auto">
-                            <div className="bg-black/80 backdrop-blur-md border border-blue-500/30 rounded-xl p-3 shadow-lg flex flex-col items-center w-20">
-                                <div className="text-[9px] uppercase tracking-wider text-blue-400 font-bold mb-1">Séances</div>
-                                <div className="text-xl font-display font-bold text-white leading-none">{sessions.current}<span className="text-[10px] text-gray-500">/{sessions.max}</span></div>
+                        <div className="absolute top-12 left-5 z-20 flex items-center gap-2">
+                            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                            <span className="text-[10px] text-cyan-400 font-mono font-bold tracking-widest">LIVE TELEMETRY</span>
+                        </div>
+
+                        {/* Canvas Container */}
+                        <div className="absolute inset-0 flex items-center justify-center pt-12" ref={containerRef}>
+                            <canvas ref={canvasRef} className="w-full h-full relative z-10" style={{ mixBlendMode: 'screen' }} />
+                        </div>
+
+                        {/* Center Data (TARGET LOCKED) */}
+                        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none pt-12">
+                            <div className="flex flex-col items-center justify-center mt-4">
+                                <div className="text-[10px] text-white font-black tracking-[0.4em] mb-1 uppercase drop-shadow-[0_0_5px_rgba(255,255,255,0.8)] animate-pulse">
+                                    TARGET LOCKED
+                                </div>
+                                {/* BIG NUMBER (Gold/Yellow Gradient) */}
+                                <div className="text-8xl font-display font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-100 to-yellow-500 drop-shadow-[0_0_25px_rgba(234,179,8,0.5)] tracking-tighter leading-none">
+                                    {Math.round(score)}
+                                </div>
+                                <div className="h-1 w-16 bg-cyan-500 rounded-full mt-4 shadow-[0_0_10px_#06b6d4]"></div>
                             </div>
                         </div>
-                        <div className="absolute top-[45%] right-4 -translate-y-1/2 z-30 pointer-events-auto">
-                            <div className="bg-black/80 backdrop-blur-md border border-fuchsia-500/30 rounded-xl p-3 shadow-lg flex flex-col items-center w-20">
-                                <div className="text-[9px] uppercase tracking-wider text-fuchsia-400 font-bold mb-1">Séries</div>
-                                <div className="text-xl font-display font-bold text-white leading-none">{sets.current}<span className="text-[10px] text-gray-500">/{sets.max}</span></div>
+
+                        {/* Floating Badges */}
+                        {/* Left Badge - FREQ (Deep Indigo/Violet) */}
+                        <div className="absolute top-[55%] left-4 -translate-y-1/2 z-30">
+                            <div className="bg-[#0f0a1a] border border-indigo-500/40 p-3 rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.2)] flex flex-col items-center w-20 backdrop-blur-sm">
+                                <div className="text-[9px] font-bold text-indigo-400 mb-1 flex items-center gap-1"><RefreshCw size={10}/> FREQ</div>
+                                <div className="text-2xl font-display font-bold text-white leading-none">
+                                    {sessions.current}<span className="text-[10px] text-gray-500 font-mono">/{sessions.max}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Right Badge - VOL (Hot Pink/Fuchsia) */}
+                        <div className="absolute top-[55%] right-4 -translate-y-1/2 z-30">
+                            <div className="bg-[#1a0b1a] border border-fuchsia-500/40 p-3 rounded-xl shadow-[0_0_20px_rgba(217,70,239,0.2)] flex flex-col items-center w-20 backdrop-blur-sm">
+                                <div className="text-[9px] font-bold text-fuchsia-400 mb-1 flex items-center gap-1"><Layers size={10}/> VOL</div>
+                                <div className="text-2xl font-display font-bold text-white leading-none">
+                                    {sets.current}<span className="text-[10px] text-gray-500 font-mono">/{sets.max}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* INFO OVERLAY (Shows on button click) */}
+                        {showInfo && (
+                            <div className="absolute inset-0 z-40 bg-black/80 backdrop-blur-md flex flex-col justify-center items-center p-8 text-center">
+                                {/* Close button */}
+                                <button 
+                                    onClick={() => setShowInfo(false)}
+                                    className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                                >
+                                    <X size={20} />
+                                </button>
+                                <h3 className="text-xl font-display font-bold text-white mb-6 tracking-widest border-b border-white/20 pb-2">LEGEND</h3>
+                                
+                                <div className="space-y-6 w-full">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-full border-4 border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)] flex items-center justify-center">
+                                            <RefreshCw size={20} className="text-indigo-400"/>
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-indigo-400 font-bold text-sm tracking-wider">FREQUENCY</div>
+                                            <div className="text-[10px] text-gray-400">Séances / Objectif</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-full border-4 border-fuchsia-500 shadow-[0_0_15px_rgba(217,70,239,0.5)] flex items-center justify-center">
+                                            <Layers size={20} className="text-fuchsia-400"/>
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-fuchsia-400 font-bold text-sm tracking-wider">VOLUME</div>
+                                            <div className="text-[10px] text-gray-400">Séries / Capacité</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-full border-4 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.5)] flex items-center justify-center">
+                                            <Target size={20} className="text-yellow-400"/>
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-yellow-400 font-bold text-sm tracking-wider">INTENSITY</div>
+                                            <div className="text-[10px] text-gray-400">Score Global</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* PART 2: DATA GRID */}
+                    <div className="bg-[#080808] p-5 border-t border-white/5 relative z-10">
+                        {/* Grid 3x2 */}
+                        <div className="grid grid-cols-3 gap-3 mb-6">
+                            {statsGrid.map((stat, i) => (
+                                <GridCard key={i} stat={stat} />
+                            ))}
+                        </div>
+
+                        {/* XP BAR */}
+                        <div className="relative pt-1">
+                            <div className="flex justify-between items-end mb-2">
+                                <span className="text-xs font-bold text-cyan-400 tracking-widest uppercase">XP LEVEL 24</span>
+                                <span className="text-[10px] font-mono text-gray-500">1850 / 2500</span>
+                            </div>
+                            <div className="h-2 w-full bg-[#1a1a1a] rounded-full overflow-hidden border border-white/5">
+                                <div className="h-full bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 w-[75%] shadow-[0_0_15px_rgba(6,182,212,0.6)]"></div>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-[#080808] border-t border-white/10 shrink-0">
-                        <div className="grid grid-cols-3 divide-x divide-white/10">
-                            <MiniStat icon={<Activity size={14}/>} label="HRV" value="42ms" color="text-emerald-400" />
-                            <MiniStat icon={<Zap size={14}/>} label="KCAL" value="850" color="text-orange-400" />
-                            <MiniStat icon={<Hexagon size={14}/>} label="FOCUS" value="98%" color="text-violet-400" />
-                        </div>
-                    </div>
+
                 </div>
             );
         };
+
+        // Grid Card Component
+        const GridCard = ({ stat }) => {
+            const styles = {
+                cyan:   { border: 'border-cyan-500/40', text: 'text-cyan-400', shadow: 'shadow-[0_0_15px_rgba(6,182,212,0.1)]' },
+                orange: { border: 'border-orange-500/40', text: 'text-orange-400', shadow: 'shadow-[0_0_15px_rgba(249,115,22,0.1)]' },
+                purple: { border: 'border-purple-500/40', text: 'text-purple-400', shadow: 'shadow-[0_0_15px_rgba(168,85,247,0.1)]' },
+                green:  { border: 'border-green-500/40', text: 'text-green-400', shadow: 'shadow-[0_0_15px_rgba(34,197,94,0.1)]' },
+                yellow: { border: 'border-yellow-500/40', text: 'text-yellow-400', shadow: 'shadow-[0_0_15px_rgba(234,179,8,0.1)]' },
+                blue:   { border: 'border-blue-500/40', text: 'text-blue-400', shadow: 'shadow-[0_0_15px_rgba(59,130,246,0.1)]' },
+            };
+            
+            const s = styles[stat.color];
+            const IconComp = stat.icon;
+
+            return (
+                <div className={`flex flex-col items-center justify-center p-3 rounded-xl border bg-[#0a0a0a] transition-all hover:-translate-y-1 ${s.border} ${s.shadow}`}>
+                    <div className={`mb-2 ${s.text} opacity-90`}><IconComp size={16} /></div>
+                    <div className="text-xl font-display font-bold text-white leading-none mb-1">{stat.value}</div>
+                    <div className={`text-[9px] font-black uppercase tracking-widest opacity-60 ${s.text}`}>{stat.label}</div>
+                </div>
+            );
+        };
+
         const MiniStat = ({ icon, label, value, color }) => (
             <div className="p-4 flex flex-col items-center justify-center hover:bg-white/5 transition-colors cursor-default h-24">
                 <div className="text-gray-500 mb-1 opacity-80">{icon}</div>
