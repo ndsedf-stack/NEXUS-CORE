@@ -107,38 +107,58 @@ const StatsData = {
       const weight = parseFloat(entry.weight) || 0;
       const reps = parseInt(entry.reps) || 0;
       const volume = weight * reps;
-
       const exerciseName = (entry.exercise || '').toLowerCase();
       
-      let foundMuscle = false;
+      // Collect all matching muscles for this exercise
+      const matchedMuscleIds = new Set();
+      
+      // Check entry.muscle array if available (from program-data)
+      if (entry.muscle && Array.isArray(entry.muscle)) {
+        entry.muscle.forEach(m => {
+          const muscleKey = m.toLowerCase();
+          if (MUSCLE_MAPPING[muscleKey]) {
+            matchedMuscleIds.add(MUSCLE_MAPPING[muscleKey].id);
+          }
+        });
+      }
+      
+      // Also check exercise name for muscle keywords
       for (const [key, muscle] of Object.entries(MUSCLE_MAPPING)) {
-        if (exerciseName.includes(key) || 
-            (entry.muscle && entry.muscle.includes && entry.muscle.includes(key))) {
-          muscleVolumes[muscle.id].volume += volume;
-          muscleVolumes[muscle.id].sets++;
-          foundMuscle = true;
-          break;
+        if (exerciseName.includes(key)) {
+          matchedMuscleIds.add(muscle.id);
         }
       }
 
-      if (!foundMuscle) {
-        if (exerciseName.includes('squat') || exerciseName.includes('leg') || exerciseName.includes('deadlift')) {
-          muscleVolumes['m3'].volume += volume;
-          muscleVolumes['m3'].sets++;
-        } else if (exerciseName.includes('bench') || exerciseName.includes('push') || exerciseName.includes('fly')) {
-          muscleVolumes['m2'].volume += volume;
-          muscleVolumes['m2'].sets++;
-        } else if (exerciseName.includes('row') || exerciseName.includes('pull') || exerciseName.includes('lat')) {
-          muscleVolumes['m1'].volume += volume;
-          muscleVolumes['m1'].sets++;
-        } else if (exerciseName.includes('curl')) {
-          muscleVolumes['m5'].volume += volume;
-          muscleVolumes['m5'].sets++;
-        } else if (exerciseName.includes('press') || exerciseName.includes('raise')) {
-          muscleVolumes['m4'].volume += volume;
-          muscleVolumes['m4'].sets++;
+      // Fallback keyword matching
+      if (matchedMuscleIds.size === 0) {
+        if (exerciseName.includes('squat') || exerciseName.includes('leg') || exerciseName.includes('deadlift') || exerciseName.includes('presse')) {
+          matchedMuscleIds.add('m3'); // JAMBES
+        }
+        if (exerciseName.includes('bench') || exerciseName.includes('push') || exerciseName.includes('fly') || exerciseName.includes('développé')) {
+          matchedMuscleIds.add('m2'); // PECTORAUX
+        }
+        if (exerciseName.includes('row') || exerciseName.includes('pull') || exerciseName.includes('lat') || exerciseName.includes('tirage') || exerciseName.includes('rowing')) {
+          matchedMuscleIds.add('m1'); // DOS
+        }
+        if (exerciseName.includes('curl') || exerciseName.includes('extension') || exerciseName.includes('triceps')) {
+          matchedMuscleIds.add('m5'); // BRAS
+        }
+        if (exerciseName.includes('press') || exerciseName.includes('raise') || exerciseName.includes('élévation') || exerciseName.includes('oiseau')) {
+          matchedMuscleIds.add('m4'); // ÉPAULES
+        }
+        if (exerciseName.includes('crunch') || exerciseName.includes('plank') || exerciseName.includes('gainage')) {
+          matchedMuscleIds.add('m6'); // ABDOS
         }
       }
+      
+      // Distribute volume proportionally among all matched muscles
+      const muscleCount = matchedMuscleIds.size || 1;
+      const volumePerMuscle = volume / muscleCount;
+      
+      matchedMuscleIds.forEach(muscleId => {
+        muscleVolumes[muscleId].volume += volumePerMuscle;
+        muscleVolumes[muscleId].sets++;
+      });
     });
 
     return Object.values(muscleVolumes);
