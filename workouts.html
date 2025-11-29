@@ -227,12 +227,57 @@
     
     .block-info-banner:active { transform: scale(0.98); }
     
-    /* ========== GLASS CARDS - Lighter & More Transparent ========== */
+    /* ========== MISSION CARDS - Premium Design ========== */
+    .mission-card {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideInUp 0.5s ease forwards;
+      -webkit-transform: translate3d(0,0,0);
+      min-height: 160px;
+    }
+    
+    .mission-card:nth-child(1) { animation-delay: 0.1s; }
+    .mission-card:nth-child(2) { animation-delay: 0.15s; }
+    .mission-card:nth-child(3) { animation-delay: 0.2s; }
+    .mission-card:nth-child(4) { animation-delay: 0.25s; }
+    
+    .mission-card:active {
+      transform: scale(0.98);
+      transition: transform 0.1s;
+    }
+    
+    .mission-card-inner {
+      position: relative;
+      z-index: 2;
+      padding: 20px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 100%);
+    }
+    
+    .mission-card-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+    
+    @media (hover: hover) {
+      .mission-card:hover {
+        transform: translateY(-4px);
+      }
+    }
+    
+    /* ========== GLASS CARDS - Legacy Support ========== */
     .glass-card {
-      background: rgba(15, 30, 45, 0.45);
+      background: rgba(255,255,255,0.03);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      border: 1px solid rgba(148, 163, 184, 0.15);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 18px;
       padding: 16px;
       position: relative;
@@ -243,21 +288,8 @@
       opacity: 0;
       transform: translateY(20px);
       animation: slideInUp 0.5s ease forwards;
-      -webkit-transform: translate3d(0,0,0);
     }
     
-    .glass-card:nth-child(1) { animation-delay: 0.15s; }
-    .glass-card:nth-child(2) { animation-delay: 0.2s; }
-    .glass-card:nth-child(3) { animation-delay: 0.25s; }
-    .glass-card:nth-child(4) { animation-delay: 0.3s; }
-    .glass-card:nth-child(5) { animation-delay: 0.35s; }
-    
-    .glass-card:active {
-      transform: scale(0.98);
-      transition: transform 0.1s;
-    }
-    
-    /* Subtle top highlight */
     .glass-card::before {
       content: '';
       position: absolute;
@@ -267,14 +299,6 @@
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.3), transparent);
       opacity: 0.6;
-    }
-    
-    @media (hover: hover) {
-        .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 30px -10px rgba(34, 211, 238, 0.2);
-            border-color: rgba(34, 211, 238, 0.25);
-        }
     }
     
     /* ========== BUTTONS ========== */
@@ -453,24 +477,31 @@
   <!-- MAIN CONTENT -->
   <!-- Padding top calculé pour passer sous le header compact -->
   <main class="pt-[200px] px-3 space-y-3 relative z-10 pb-8">
-    <!-- ACHIEVEMENTS -->
-    <section>
-      <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 pl-1">Succès Récents</h2>
-      
-      <div class="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide" style="-webkit-overflow-scrolling: touch;">
-        <div class="achievement-card unlocked flex-shrink-0 w-28 glass-card flex flex-col items-center justify-center gap-2 touch-pop">
-          <i data-lucide="medal" class="w-6 h-6 text-yellow-500 drop-shadow-[0_0_10px_rgba(234,179,8,0.5)]"></i>
-          <div class="text-[9px] text-center font-bold">Premier Sang</div>
+    <!-- QUICK STATS BAR -->
+    <section class="mb-4">
+      <div class="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1" style="-webkit-overflow-scrolling: touch;">
+        <div class="flex-shrink-0 px-4 py-3 rounded-2xl flex items-center gap-3" style="background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.25);">
+          <i data-lucide="zap" class="w-5 h-5" style="color: var(--cyan);"></i>
+          <div>
+            <div class="text-[9px] font-bold text-slate-400 uppercase">XP Total</div>
+            <div class="text-lg font-hud font-bold text-white" id="quick-xp">0</div>
+          </div>
         </div>
         
-        <div class="achievement-card flex-shrink-0 w-28 glass-card flex flex-col items-center justify-center gap-2 touch-pop opacity-40 grayscale">
-          <i data-lucide="dumbbell" class="w-6 h-6 text-slate-600"></i>
-          <div class="text-[9px] text-center font-bold text-slate-500">Poids Lourd</div>
+        <div class="flex-shrink-0 px-4 py-3 rounded-2xl flex items-center gap-3" style="background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);">
+          <i data-lucide="flame" class="w-5 h-5 text-amber-400"></i>
+          <div>
+            <div class="text-[9px] font-bold text-slate-400 uppercase">Streak</div>
+            <div class="text-lg font-hud font-bold text-white" id="quick-streak">0j</div>
+          </div>
         </div>
         
-        <div class="achievement-card flex-shrink-0 w-28 glass-card flex flex-col items-center justify-center gap-2 touch-pop opacity-40 grayscale">
-          <i data-lucide="flame" class="w-6 h-6 text-slate-600"></i>
-          <div class="text-[9px] text-center font-bold text-slate-500">Inferno</div>
+        <div class="flex-shrink-0 px-4 py-3 rounded-2xl flex items-center gap-3" style="background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);">
+          <i data-lucide="trophy" class="w-5 h-5 text-green-400"></i>
+          <div>
+            <div class="text-[9px] font-bold text-slate-400 uppercase">Sessions</div>
+            <div class="text-lg font-hud font-bold text-white" id="quick-sessions">0</div>
+          </div>
         </div>
       </div>
     </section>
@@ -554,7 +585,21 @@
       animateStars();
       renderTimeline();
       renderWorkouts(currentWeek);
+      populateQuickStats();
       window.addEventListener('resize', initStars);
+    }
+    
+    function populateQuickStats() {
+      var xp = parseInt(localStorage.getItem('hybrid_xp') || '0');
+      var streak = parseInt(localStorage.getItem('hybrid_streak') || '0');
+      var history = [];
+      try {
+        history = JSON.parse(localStorage.getItem('neon_fit_workout_history') || '[]');
+      } catch(e) {}
+      
+      document.getElementById('quick-xp').textContent = xp.toLocaleString();
+      document.getElementById('quick-streak').textContent = streak + 'j';
+      document.getElementById('quick-sessions').textContent = history.length;
     }
     
     function renderTimeline() { 
@@ -606,14 +651,39 @@
       document.getElementById('block-label').textContent = `BLOC ${weekData.block} • SEMAINE ${week}`;
       const blockName = programData.info.blockTechniques[`block${weekData.block}`]?.name || "Unknown";
       document.getElementById("block-name").textContent = blockName.toUpperCase();
+      document.getElementById("block-tech").textContent = weekData.technique.split('+')[0];
       
       const days = ['dimanche', 'mardi', 'vendredi', 'maison'];
       
       const dayMeta = { 
-        'dimanche': { color: 'text-cyan-400', bg: 'bg-cyan-400/10', border: 'border-cyan-400/30', icon: 'zap' }, 
-        'mardi': { color: 'text-pink-400', bg: 'bg-pink-400/10', border: 'border-pink-400/30', icon: 'dumbbell' }, 
-        'vendredi': { color: 'text-cyan-400', bg: 'bg-cyan-400/10', border: 'border-cyan-400/30', icon: 'activity' }, 
-        'maison': { color: 'text-slate-400', bg: 'bg-slate-800', border: 'border-slate-700', icon: 'home' } 
+        'dimanche': { 
+          color: 'var(--cyan)', 
+          gradient: 'linear-gradient(135deg, rgba(6,182,212,0.25) 0%, rgba(34,211,238,0.08) 100%)',
+          border: 'rgba(34,211,238,0.4)',
+          icon: 'zap',
+          label: 'DIMANCHE'
+        }, 
+        'mardi': { 
+          color: '#ec4899', 
+          gradient: 'linear-gradient(135deg, rgba(236,72,153,0.25) 0%, rgba(244,114,182,0.08) 100%)',
+          border: 'rgba(236,72,153,0.4)',
+          icon: 'dumbbell',
+          label: 'MARDI'
+        }, 
+        'vendredi': { 
+          color: '#a855f7', 
+          gradient: 'linear-gradient(135deg, rgba(168,85,247,0.25) 0%, rgba(192,132,252,0.08) 100%)',
+          border: 'rgba(168,85,247,0.4)',
+          icon: 'activity',
+          label: 'VENDREDI'
+        }, 
+        'maison': { 
+          color: '#f59e0b', 
+          gradient: 'linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(251,191,36,0.05) 100%)',
+          border: 'rgba(245,158,11,0.3)',
+          icon: 'home',
+          label: 'MAISON'
+        } 
       };
       
       days.forEach((day, index) => { 
@@ -621,57 +691,61 @@
         if (!workout) return;
         
         const meta = dayMeta[day];
-        
-        let techniqueBadge = `<span class="px-2 py-0.5 rounded bg-black/40 border border-white/10 text-[9px] font-bold ${meta.color} uppercase">${weekData.technique.split('+')[0]}</span>`;
-        
-        if (day === 'maison') {
-          techniqueBadge = `<span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[9px] font-bold text-slate-400 uppercase">ACCESSOIRE</span>`;
-        }
+        const setsCount = workout.totalSets || workout.exercises.reduce((sum, ex) => sum + (ex.sets || 3), 0);
+        const xpReward = setsCount * 20;
         
         const card = document.createElement('div');
-        card.className = `glass-card`;
+        card.className = 'mission-card';
+        card.style.cssText = `background: ${meta.gradient}; border: 1px solid ${meta.border};`;
         
         card.onclick = () => window.location.href = `briefing.html?week=${week}&day=${day}`;
         
         card.innerHTML = `
-          <div class="flex justify-between items-start mb-4">
-            <div class="w-12 h-12 rounded-xl ${meta.bg} border ${meta.border} flex items-center justify-center shadow-lg">
-              <i data-lucide="${meta.icon}" class="w-6 h-6 ${meta.color}"></i>
-            </div>
-            
-            <div class="flex-1 ml-4">
-              <div class="flex items-center gap-2 mb-1">
-                ${techniqueBadge}
-                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">${day.toUpperCase()}</span>
+          <div class="mission-card-inner">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background: rgba(0,0,0,0.4); border: 1px solid ${meta.border}; box-shadow: 0 0 20px ${meta.color}33;">
+                <i data-lucide="${meta.icon}" class="w-7 h-7" style="color: ${meta.color}; filter: drop-shadow(0 0 8px ${meta.color});"></i>
               </div>
-              <h3 class="text-lg font-hud font-black text-white uppercase leading-none">${workout.name.split('+')[0]}</h3>
+              
+              <div class="flex-1 ml-4">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase" style="background: rgba(0,0,0,0.5); border: 1px solid ${meta.border}; color: ${meta.color};">${weekData.technique.split('+')[0]}</span>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${meta.label}</span>
+                </div>
+                <h3 class="text-xl font-hud font-black text-white uppercase leading-tight" style="text-shadow: 0 2px 10px rgba(0,0,0,0.5);">${workout.name.split('+')[0]}</h3>
+              </div>
+              
+              <button class="scan-btn w-12 h-12 rounded-full flex items-center justify-center transition-colors relative z-10" style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2);" data-day="${day}">
+                <i data-lucide="eye" class="w-6 h-6 pointer-events-none relative z-10" style="color: ${meta.color};"></i>
+              </button>
             </div>
             
-            <button class="scan-btn w-10 h-10 rounded-full bg-white/5 flex items-center justify-center transition-colors border border-white/10 relative z-10" data-day="${day}">
-              <i data-lucide="eye" class="w-5 h-5 pointer-events-none relative z-10"></i>
-            </button>
+            <div class="flex items-center gap-4 pt-3 mt-auto border-t" style="border-color: rgba(255,255,255,0.1);">
+              <div>
+                <div class="text-[9px] font-bold text-slate-400 uppercase mb-1">DURÉE</div>
+                <div class="text-base font-hud font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="clock" class="w-4 h-4" style="color: ${meta.color};"></i> ${workout.duration}m
+                </div>
+              </div>
+              <div>
+                <div class="text-[9px] font-bold text-slate-400 uppercase mb-1">SÉRIES</div>
+                <div class="text-base font-hud font-bold text-white flex items-center gap-1.5">
+                  <i data-lucide="layers" class="w-4 h-4" style="color: ${meta.color};"></i> ${setsCount}
+                </div>
+              </div>
+              <div>
+                <div class="text-[9px] font-bold text-slate-400 uppercase mb-1">RPE</div>
+                <div class="text-base font-hud font-bold" style="color: ${meta.color};">${weekData.rpeTarget}</div>
+              </div>
+              <div class="ml-auto">
+                <span class="text-base font-bold px-3 py-1.5 rounded-lg" style="color: var(--cyan); background: rgba(34,211,238,0.15); border: 1px solid rgba(34,211,238,0.3); text-shadow: 0 0 10px rgba(34,211,238,0.5);">+${xpReward} XP</span>
+              </div>
+            </div>
           </div>
-          
-          <div class="flex items-center justify-between border-t border-white/5 pt-3">
-            <div class="flex gap-4">
-              <div>
-                <div class="text-[8px] font-bold text-slate-500 uppercase">Durée</div>
-                <div class="text-sm font-mono font-bold text-white">${workout.duration}m</div>
-              </div>
-              <div>
-                <div class="text-[8px] font-bold text-slate-500 uppercase">Séries</div>
-                <div class="text-sm font-mono font-bold text-white">${workout.totalSets}</div>
-              </div>
-            </div>
-            <div class="text-right">
-              <div class="text-[8px] font-bold text-slate-500 uppercase">RPE</div>
-               <div class="text-sm
-font-bold text-pink-400">${weekData.rpeTarget}</div>
-</div>
-</div>
-`;
-    container.appendChild(card);
-  });
+        `;
+        
+        container.appendChild(card);
+      });
   
   document.querySelectorAll('.scan-btn').forEach(btn => { 
     btn.addEventListener('click', (e) => { 
