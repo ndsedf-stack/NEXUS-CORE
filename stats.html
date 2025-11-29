@@ -185,7 +185,8 @@
             MessageSquare, Trash2, Download, AlertCircle, TrendingUp, TrendingDown,
             Layers, Clock, Battery, Fan, Disc, Dumbbell, Maximize2, RefreshCw, Cpu,
             RotateCcw, Power, Fingerprint, Hexagon, Crosshair, Scale, ScanLine,
-            Brain, Shield, AlertTriangle, Scan, ShieldCheck, ScanFace, Camera, History
+            Brain, Shield, AlertTriangle, Scan, ShieldCheck, ScanFace, Camera, History,
+            Loader2, Sparkles, Award, QrCode, Star, Droplets
         } from 'lucide-react';
 
         // --- REAL DATA FROM STATSDATA ---
@@ -924,6 +925,215 @@
                         </button>
                     </div>
 
+                </div>
+            );
+        };
+
+        // NEON BUTTON (Reusable Component)
+        const NeonButton = ({ children, variant = 'primary', isLoading = false, className = '', ...props }) => {
+            const baseStyles = "relative inline-flex items-center justify-center px-6 py-3 overflow-hidden font-mono font-bold text-white transition-all duration-300 rounded-lg group focus:outline-none focus:ring";
+            const variants = {
+                primary: "bg-cyan-600 hover:bg-cyan-500 focus:ring-cyan-400 shadow-[0_0_20px_rgba(8,145,178,0.5)] hover:shadow-[0_0_30px_rgba(8,145,178,0.7)]",
+                secondary: "bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600"
+            };
+            return (
+                <button className={`${baseStyles} ${variants[variant]} ${isLoading ? 'opacity-80 cursor-not-allowed' : ''} ${className}`} disabled={isLoading} {...props}>
+                    <span className="flex items-center gap-2 relative z-10">
+                        {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : <Sparkles className="h-5 w-5" />}
+                        {children}
+                    </span>
+                    {variant === 'primary' && !isLoading && (
+                        <span className="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></span>
+                    )}
+                </button>
+            );
+        };
+
+        // NUTRITION FUEL (Metabolic Supply Chain)
+        const NutritionFuel = () => {
+            // Get nutrition data based on workout volume
+            const getNutritionData = () => {
+                const history = JSON.parse(localStorage.getItem('neon_fit_workout_history') || '[]');
+                const totalVolume = history.reduce((sum, w) => {
+                    const sets = w.sets || [];
+                    return sum + sets.reduce((v, s) => v + (s.weight || 0) * (s.reps || 0), 0);
+                }, 0);
+                
+                // Estimated daily needs based on training volume
+                const baseProtein = 140;
+                const baseCarbs = 200;
+                const baseFat = 60;
+                const baseKcal = 2400;
+                
+                // Add bonus based on volume
+                const bonus = Math.min(40, Math.floor(totalVolume / 10000));
+                
+                return {
+                    p: { current: baseProtein + bonus, target: 180, color: 'bg-cyan-500', label: 'PROTEIN' },
+                    c: { current: baseCarbs + bonus, target: 280, color: 'bg-fuchsia-500', label: 'CARBS' },
+                    f: { current: baseFat + Math.floor(bonus/2), target: 80, color: 'bg-yellow-500', label: 'LIPIDS' },
+                    totalKcal: baseKcal + (bonus * 10),
+                    targetKcal: 2800
+                };
+            };
+            
+            const data = getNutritionData();
+
+            const Tank = ({ value, max, color, label }) => {
+                const pct = Math.min(100, (value/max)*100);
+                return (
+                    <div className="flex-1 flex flex-col items-center group relative">
+                        <div className="flex-1 w-full bg-[#080808] border-2 border-white/10 rounded-xl relative overflow-hidden flex flex-col justify-end p-1 shadow-inner backdrop-blur-sm">
+                            <div className={`w-full rounded-sm transition-all duration-1000 ${color} opacity-80 relative z-10`} style={{height: `${pct}%`}}>
+                                <div className="absolute top-0 left-0 w-full h-2 bg-white/30 animate-pulse"></div>
+                            </div>
+                            <div className="absolute top-0 left-0 w-[30%] h-full bg-gradient-to-r from-white/5 to-transparent pointer-events-none z-20"></div>
+                        </div>
+                        <div className="mt-3 text-center w-full bg-[#111] py-1 rounded border border-white/5">
+                            <div className="text-lg font-black text-white leading-none">{value}g</div>
+                            <div className="text-[8px] font-mono text-gray-500 font-bold uppercase mt-0.5 tracking-wider">{label}</div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="relative w-full max-w-md bg-[#020202] border border-white/10 rounded-3xl flex flex-col overflow-hidden group min-h-[450px] shadow-2xl">
+                    <div className="bg-[#050505] px-6 py-4 border-b border-white/10 flex justify-between items-center z-10 relative">
+                        <div className="absolute inset-0 bg-yellow-900/5"></div>
+                        <div>
+                            <h2 className="font-display font-black text-white tracking-widest uppercase flex items-center gap-2 text-lg">
+                                <Flame className="text-orange-500" size={18} />
+                                FUEL.INJECTION
+                            </h2>
+                            <p className="text-[10px] text-orange-500/60 font-mono font-bold mt-1">METABOLIC SUPPLY CHAIN</p>
+                        </div>
+                        <div className="px-2 py-1 rounded border border-orange-500/30 bg-orange-900/20 text-[10px] font-mono text-orange-400 animate-pulse">
+                            PUMPING
+                        </div>
+                    </div>
+
+                    <div className="flex-1 bg-[#010101] p-8 flex flex-col justify-center">
+                        <div className="flex justify-center gap-6 h-[200px] mb-8">
+                            <Tank value={data.p.current} max={data.p.target} color={data.p.color} label={data.p.label} />
+                            <Tank value={data.c.current} max={data.c.target} color={data.c.color} label={data.c.label} />
+                            <Tank value={data.f.current} max={data.f.target} color={data.f.color} label={data.f.label} />
+                        </div>
+
+                        <div className="bg-[#0a0a0a] border border-white/5 rounded-xl p-4 relative overflow-hidden shadow-inner">
+                            <div className="flex justify-between items-end mb-2 relative z-10">
+                                <div className="flex items-center gap-2">
+                                    <Zap size={14} className="text-orange-400"/>
+                                    <span className="text-xs font-bold text-white">TOTAL INTAKE</span>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-xl font-black text-white">{data.totalKcal}</span>
+                                    <span className="text-[10px] text-gray-500 ml-1">/ {data.targetKcal} kcal</span>
+                                </div>
+                            </div>
+                            <div className="h-3 w-full bg-gray-800 rounded-full overflow-hidden relative z-10 border border-white/5">
+                                <div className="h-full bg-gradient-to-r from-orange-600 to-yellow-400 shadow-[0_0_15px_#f97316] relative overflow-hidden transition-all duration-1000" style={{width: `${Math.min(100, (data.totalKcal/data.targetKcal)*100)}%`}}>
+                                    <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // PILOT PROFILE (Operator License Card)
+        const PilotProfile = () => {
+            // Get user data from localStorage
+            const getUserData = () => {
+                const xp = parseInt(localStorage.getItem('hybrid_xp') || '0');
+                const streak = parseInt(localStorage.getItem('hybrid_streak') || '0');
+                const history = JSON.parse(localStorage.getItem('neon_fit_workout_history') || '[]');
+                
+                // Calculate level based on XP
+                const level = Math.floor(xp / 1000) + 1;
+                const xpInLevel = xp % 1000;
+                const xpToNextLevel = 1000;
+                
+                // Calculate total volume lifted
+                const totalVolume = history.reduce((sum, w) => {
+                    const sets = w.sets || [];
+                    return sum + sets.reduce((v, s) => v + (s.weight || 0) * (s.reps || 0), 0);
+                }, 0);
+                
+                // Score average from summary
+                const score = window.StatsData ? window.StatsData.getSummary().score : 0;
+                
+                // Rank based on XP
+                const ranks = ['RECRUIT', 'OPERATOR', 'SPECIALIST', 'COMMANDO', 'ELITE', 'LEGEND', 'TITAN'];
+                const rankThresholds = [0, 1000, 5000, 15000, 35000, 75000, 150000];
+                let rank = 'RECRUIT';
+                for (let i = rankThresholds.length - 1; i >= 0; i--) {
+                    if (xp >= rankThresholds[i]) { rank = ranks[i]; break; }
+                }
+                
+                return { level, xpInLevel, xpToNextLevel, streak, score: Math.round(score), totalVolume, rank, xp };
+            };
+            
+            const data = getUserData();
+
+            return (
+                <div className="relative w-full max-w-md bg-gradient-to-br from-[#0a0a0a] to-[#020202] border border-white/10 rounded-3xl flex flex-col overflow-hidden min-h-[300px] shadow-2xl group">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none group-hover:translate-x-full transition-transform duration-1000"></div>
+
+                    <div className="px-6 py-5 border-b border-white/10 flex justify-between items-start relative z-10">
+                        <div>
+                            <div className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-1">OPERATOR LICENSE</div>
+                            <h2 className="font-display font-black text-2xl text-white tracking-wide">PILOT</h2>
+                            <div className="flex items-center gap-2 mt-2">
+                                <div className="bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 px-2 py-0.5 rounded text-[10px] font-bold uppercase flex items-center gap-1">
+                                    <Star size={10} className="fill-current"/> {data.rank}
+                                </div>
+                                <div className="text-[10px] text-gray-500 font-mono">XP: {data.xp}</div>
+                            </div>
+                        </div>
+                        <div className="w-12 h-12 bg-white/5 rounded border border-white/10 flex items-center justify-center">
+                            <QrCode size={24} className="text-white opacity-50"/>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 p-6 relative z-10">
+                        <div className="flex items-center gap-6 mb-6">
+                            <div className="flex-1">
+                                <div className="flex justify-between items-end mb-1">
+                                    <span className="text-xs font-bold text-white">LEVEL {data.level}</span>
+                                    <span className="text-[10px] font-mono text-cyan-400">{data.xpInLevel} / {data.xpToNextLevel} XP</span>
+                                </div>
+                                <div className="h-2 w-full bg-black rounded-full overflow-hidden border border-white/10">
+                                    <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 transition-all duration-1000" style={{width: `${(data.xpInLevel/data.xpToNextLevel)*100}%`}}></div>
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <div className="w-12 h-12 rounded-full border-2 border-yellow-500 flex items-center justify-center bg-yellow-900/10 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
+                                    <Trophy size={20} className="text-yellow-400 fill-current"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-3">
+                            <div className="bg-[#111] p-3 rounded-xl border border-white/5 text-center">
+                                <div className="text-2xl font-black text-white">{data.streak}</div>
+                                <div className="text-[8px] text-gray-500 font-bold uppercase mt-1">Day Streak</div>
+                            </div>
+                            <div className="bg-[#111] p-3 rounded-xl border border-white/5 text-center">
+                                <div className="text-2xl font-black text-white">{data.score}</div>
+                                <div className="text-[8px] text-gray-500 font-bold uppercase mt-1">Score Avg</div>
+                            </div>
+                            <div className="bg-[#111] p-3 rounded-xl border border-white/5 text-center">
+                                <div className="text-2xl font-black text-white">{(data.totalVolume/1000).toFixed(0)}k</div>
+                                <div className="text-[8px] text-gray-500 font-bold uppercase mt-1">Kg Lifted</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#050505] p-3 text-center border-t border-white/10">
+                        <div className="text-[9px] font-mono text-gray-600 uppercase tracking-[0.3em]">NEON FITNESS SYNDICATE</div>
+                    </div>
                 </div>
             );
         };
@@ -2331,6 +2541,8 @@
                             <div className="animate-slideIn" style={{ animationDelay: '1.2s' }}><HybridCore /></div>
                             <div className="animate-slideIn" style={{ animationDelay: '1.3s' }}><InjuryMap /></div>
                             <div className="animate-slideIn" style={{ animationDelay: '1.4s' }}><MorphoTimeline /></div>
+                            <div className="animate-slideIn" style={{ animationDelay: '1.5s' }}><NutritionFuel /></div>
+                            <div className="animate-slideIn" style={{ animationDelay: '1.6s' }}><PilotProfile /></div>
                         </div>
                     </main>
 
