@@ -331,8 +331,8 @@
         }
         .gauge-badge {
             position: absolute;
-            top: 4px;
-            right: 4px;
+            top: -8px;
+            right: -8px;
             font-size: 9px;
             font-weight: 800;
             padding: 3px 6px;
@@ -340,6 +340,7 @@
             background: var(--badge-bg);
             color: var(--badge-color);
             border: 1px solid var(--badge-color);
+            z-index: 10;
         }
         
         /* ═══════════════════════════════════════════════════════════
@@ -722,7 +723,7 @@
         }
 
         function getExerciseProgress(exerciseId, exerciseName, targetSets) {
-            if (!window.WorkoutHistory) return { completedSets: 0, lastWeight: 0, lastDate: null };
+            if (!window.WorkoutHistory) return { completedSets: 0, lastWeight: 0, lastReps: 0, lastDate: null };
             
             const currentDaySets = window.WorkoutHistory.getByDay(week, day) || [];
             const setsForExercise = currentDaySets.filter(entry => 
@@ -736,9 +737,11 @@
             const completedSets = setsForExercise.length;
             const lastWeight = allHistory.length > 0 ? 
                 Math.max(...allHistory.map(s => s.weight || 0)) : 0;
+            const lastReps = allHistory.length > 0 ? 
+                Math.max(...allHistory.map(s => s.reps || 0)) : 0;
             const lastDate = allHistory.length > 0 ? allHistory[0].date : null;
             
-            return { completedSets, lastWeight, lastDate };
+            return { completedSets, lastWeight, lastReps, lastDate };
         }
 
         function isSessionCompleted(targetWeek, targetDay) {
@@ -906,7 +909,7 @@ ${hasProgress ? `<div class="gauge-badge" style="--badge-bg:${pColor}20;--badge-
 </div></div></div>
 <div class="gauges-row">
 ${renderGauge(ex.sets, 'SÉRIES', 8, false, ex.progress.completedSets > 0 ? { completed: ex.progress.completedSets, target: ex.sets } : null)}
-${renderGauge(ex.reps, 'REPS', 15, false)}
+${renderGauge(ex.reps, 'REPS', 15, false, ex.progress.lastReps > 0 ? { completed: ex.progress.lastReps, target: parseFloat(String(ex.reps).split('-').pop()) } : null)}
 ${renderGauge(ex.load, 'CHARGE', 140, true, ex.progress.lastWeight > 0 ? { completed: ex.progress.lastWeight, target: parseFloat(ex.load) } : null)}
 </div>
 <div class="metrics-row">
