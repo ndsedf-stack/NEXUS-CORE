@@ -2064,41 +2064,44 @@
             </div>
         );
 
-        // 2. KINETIC RADAR - 4 week circles with volume-based radius
+        // 2. KINETIC RADAR V14 - Concentric rings per week with canvas particles
         const WeeklyProgress = ({ weeksData = [], summary = null }) => {
-            const WEEKS = weeksData.length > 0 ? weeksData : getWeeksData();
-            const peakWeekIdx = WEEKS.reduce((maxIdx, w, i, arr) => w.volume > arr[maxIdx].volume ? i : maxIdx, 0);
-            const currentWeekIdx = WEEKS.findIndex(w => w.status === 'current');
+            const HYPER_WEEKS = [
+                { id: 's1', label: 'SEM 1', phase: 'ACTIVATION', volume: 28500, intensity: 75, rpeAvg: 7.5, effectiveReps: 140, fatigue: 40, status: 'success', angle: 225, color: '#22d3ee' },
+                { id: 's2', label: 'SEM 2', phase: 'ACCUMULATION', volume: 31200, intensity: 78, rpeAvg: 8.0, effectiveReps: 165, fatigue: 55, status: 'success', angle: 315, color: '#8b5cf6' },
+                { id: 's3', label: 'SEM 3', phase: 'PEAK LOAD', volume: 33400, intensity: 85, rpeAvg: 8.5, effectiveReps: 190, fatigue: 75, status: 'active', angle: 45, color: '#d946ef' },
+                { id: 's4', label: 'SEM 4', phase: 'OVERREACH', volume: 35000, intensity: 90, rpeAvg: 9.5, effectiveReps: 210, fatigue: 92, status: 'locked', angle: 135, color: '#ef4444' }
+            ];
             
-            const [selectedWeek, setSelectedWeek] = useState(peakWeekIdx >= 0 ? peakWeekIdx : 0);
-            const [animReady, setAnimReady] = useState(false);
+            const [activeWeek, setActiveWeek] = useState(HYPER_WEEKS[2]);
+            const [showInfo, setShowInfo] = useState(false);
             
-            const scanLineRef = useRef(null);
+            const canvasRef = useRef(null);
+            const scanAngleRef = useRef(0);
             const rpeTextRef = useRef(null);
-            const ringRef = useRef(null);
             const requestRef = useRef(0);
-            const dataRef = useRef({ rotation: 0, currentRpe: 0, targetRpe: 8.5 });
+            const dataRef = useRef({ currentRpe: 0, targetRpe: 8.5, particles: [] });
             
-            const weekColors = ['#22d3ee', '#d946ef', '#f97316', '#ef4444'];
-            
-            const getWeekStats = (idx) => {
-                const w = WEEKS[idx] || { volume: 0 };
-                const rpe = Math.min(9.5, 6.5 + (idx * 0.5) + ((idx * 17) % 10) / 10);
-                const effReps = Math.round(w.volume / 150);
-                const fatigue = Math.min(95, 50 + (idx * 10) + ((idx * 13) % 15));
-                return { rpe, effReps, fatigue, volume: w.volume };
-            };
-            
-            const selectedStats = useMemo(() => getWeekStats(selectedWeek), [selectedWeek, WEEKS]);
-            
-            useEffect(() => { dataRef.current.targetRpe = selectedStats.rpe; }, [selectedStats.rpe]);
+            useEffect(() => { dataRef.current.targetRpe = activeWeek.rpeAvg; }, [activeWeek.rpeAvg]);
             
             useEffect(() => {
+                for (let i = 0; i < 25; i++) {
+                    dataRef.current.particles.push({
+                        angle: Math.random() * Math.PI * 2,
+                        dist: 0.3 + Math.random() * 0.6,
+                        speed: 0.002 + Math.random() * 0.004,
+                        r: Math.random() * 1.5
+                    });
+                }
+                
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+                
                 const animate = () => {
-                    dataRef.current.rotation = (dataRef.current.rotation + 0.25) % 360;
-                    if (scanLineRef.current) {
-                        scanLineRef.current.setAttribute('transform', `rotate(${dataRef.current.rotation}, 160, 160)`);
-                    }
+                    scanAngleRef.current = (scanAngleRef.current + 1.2) % 360;
+                    
                     const diff = dataRef.current.targetRpe - dataRef.current.currentRpe;
                     if (Math.abs(diff) > 0.01) {
                         dataRef.current.currentRpe += diff * 0.08;
@@ -2108,147 +2111,164 @@
                     if (rpeTextRef.current) {
                         rpeTextRef.current.textContent = dataRef.current.currentRpe.toFixed(1);
                     }
-                    if (ringRef.current) {
-                        const scale = 1 + Math.sin(Date.now() / 1000) * 0.012;
-                        const opacity = 0.4 + Math.sin(Date.now() / 800) * 0.15;
-                        ringRef.current.setAttribute('transform', `translate(160,160) scale(${scale}) translate(-160,-160)`);
-                        ringRef.current.setAttribute('opacity', String(opacity));
-                    }
+                    
+                    const size = 340;
+                    ctx.clearRect(0, 0, size, size);
+                    const cx = size / 2;
+                    const cy = size / 2;
+                    const rBase = size * 0.42;
+                    
+                    dataRef.current.particles.forEach(p => {
+                        p.angle += p.speed;
+                        const x = cx + Math.cos(p.angle) * (rBase * p.dist);
+                        const y = cy + Math.sin(p.angle) * (rBase * p.dist);
+                        ctx.fillStyle = `rgba(255, 255, 255, ${0.1 + Math.random() * 0.25})`;
+                        ctx.beginPath();
+                        ctx.arc(x, y, p.r, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                    
                     requestRef.current = requestAnimationFrame(animate);
                 };
                 requestRef.current = requestAnimationFrame(animate);
                 return () => cancelAnimationFrame(requestRef.current);
             }, []);
             
-            useEffect(() => { setTimeout(() => setAnimReady(true), 100); }, []);
+            const getRadius = (i) => 15 + (i * 11);
+            const getCoord = (angle, radius) => {
+                const rad = (angle - 90) * Math.PI / 180;
+                return { x: 50 + radius * Math.cos(rad), y: 50 + radius * Math.sin(rad) };
+            };
             
-            const center = 160;
-            const radarRadius = 110;
-            const maxVol = Math.max(...WEEKS.map(w => w.volume), 1);
+            const points = HYPER_WEEKS.map((w, i) => getCoord(w.angle, getRadius(i)));
+            const pathData = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
             
-            const weekAngles = [180, 315, 225, 45];
-            const weekPositions = WEEKS.map((w, i) => {
-                const angle = weekAngles[i] * (Math.PI / 180);
-                const normVol = w.volume / maxVol;
-                const dist = radarRadius * (0.5 + normVol * 0.45);
-                return { 
-                    x: center + Math.cos(angle) * dist, 
-                    y: center + Math.sin(angle) * dist,
-                    circleSize: 6 + normVol * 8
-                };
-            });
-            
-            const pathPoints = weekPositions.map(p => `${p.x},${p.y}`);
-            const pathData = pathPoints.length >= 4 
-                ? `M ${pathPoints[0]} L ${pathPoints[1]} L ${pathPoints[3]} L ${pathPoints[2]} Z`
-                : '';
+            const handleNodeClick = (week) => { setActiveWeek(week); };
             
             return (
-                <div className="relative w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-3xl flex flex-col overflow-hidden">
-                    <div className="px-5 py-4 border-b border-white/5 flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                            <Target className="text-fuchsia-400" size={16} />
-                            <h2 className="font-display font-bold text-white tracking-wider uppercase">KINETIC.RADAR</h2>
+                <div className="relative w-full max-w-md bg-[#050505] border border-white/10 rounded-3xl flex flex-col overflow-hidden min-h-[700px] hover:border-cyan-500/20 transition-all">
+                    <div className="bg-[#050505] px-6 py-4 border-b border-white/10 flex justify-between items-center relative overflow-hidden">
+                        <div className="absolute inset-0 bg-cyan-900/5"></div>
+                        <div className="relative z-10">
+                            <h2 className="font-display font-black text-white tracking-widest uppercase flex items-center gap-2 text-lg">
+                                <Crosshair className="text-cyan-400 animate-spin" style={{ animationDuration: '10s' }} size={18} />
+                                KINETIC.RADAR
+                            </h2>
+                            <p className="text-[10px] text-cyan-500/80 font-mono font-bold mt-1 animate-pulse">HYPERTROPHY TRACKING ACTIVE</p>
                         </div>
-                        <div className="w-6 h-6 rounded-full border border-white/20 flex items-center justify-center">
-                            <Info size={12} className="text-gray-500" />
-                        </div>
+                        <button onClick={() => setShowInfo(!showInfo)} className="relative z-10 w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-cyan-400 hover:bg-cyan-500/20 transition-all">
+                            {showInfo ? <X size={14} /> : <Info size={14} />}
+                        </button>
                     </div>
-                    <div className="text-[10px] font-mono text-fuchsia-400 uppercase tracking-widest px-5 pb-3">HYPERTROPHY TRACKING ACTIVE</div>
                     
-                    <div className="relative bg-[#050505] flex items-center justify-center p-4 h-[360px] overflow-hidden">
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[240px] h-[240px] rounded-full bg-fuchsia-600/10 blur-[60px]"></div>
+                    <div className="relative bg-[#020202] flex items-center justify-center p-2 h-[380px] overflow-hidden">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(6,182,212,0.08)_0%,_transparent_70%)]"></div>
+                        <canvas ref={canvasRef} width={340} height={340} className="absolute inset-0 w-full h-full pointer-events-none opacity-60" />
                         
-                        <svg viewBox="0 0 320 320" className="w-full h-full max-w-[320px] z-10">
+                        <svg className="relative w-full aspect-square max-w-[340px] z-10 overflow-visible" viewBox="0 0 100 100">
                             <defs>
-                                <filter id="kGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                                <filter id="kGlowStrong"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                                <linearGradient id="radarBeamV14" x1="0.5" y1="0.5" x2="1" y2="0.5" gradientTransform={`rotate(${scanAngleRef.current}, 0.5, 0.5)`}>
+                                    <stop offset="0%" stopColor="rgba(34, 211, 238, 0)" />
+                                    <stop offset="100%" stopColor="rgba(34, 211, 238, 0.15)" />
+                                </linearGradient>
+                                <filter id="glowPathV14"><feGaussianBlur stdDeviation="0.6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                             </defs>
                             
-                            {[0.3, 0.5, 0.7, 0.9].map((scale, i) => (
-                                <circle key={i} cx={center} cy={center} r={radarRadius * scale} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
-                            ))}
+                            <circle cx="50" cy="50" r="48" fill="url(#radarBeamV14)" className="pointer-events-none animate-spin" style={{ transformOrigin: 'center', animationDuration: '6s' }} />
                             
-                            <g ref={ringRef}>
-                                <circle cx={center} cy={center} r={radarRadius} fill="none" stroke="#d946ef" strokeWidth="1.5" filter="url(#kGlow)" />
-                            </g>
-                            
-                            <g ref={scanLineRef}>
-                                <line x1={center} y1={center} x2={center + radarRadius - 5} y2={center} stroke="#d946ef" strokeWidth="1" opacity="0.12" />
-                                <circle cx={center + radarRadius - 8} cy={center} r="2" fill="#d946ef" opacity="0.25" />
-                            </g>
-                            
-                            {animReady && pathData && (
-                                <>
-                                    <path d={pathData} fill="rgba(34,211,238,0.015)" stroke="none" />
-                                    <path d={pathData} fill="none" stroke="#22d3ee" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" filter="url(#kGlowStrong)" opacity="0.8" />
-                                </>
-                            )}
-                            
-                            {weekPositions.map((pos, i) => {
-                                const isSelected = i === selectedWeek;
-                                const color = weekColors[i % weekColors.length];
-                                const r = pos.circleSize;
-                                
+                            {HYPER_WEEKS.map((week, i) => {
+                                const r = getRadius(i);
+                                const isActive = activeWeek.id === week.id;
+                                const animSpeed = 25 + (i * 10);
+                                const animDir = i % 2 === 0 ? 'normal' : 'reverse';
                                 return (
-                                    <g key={i} onClick={() => setSelectedWeek(i)} style={{ cursor: 'pointer' }}>
-                                        {isSelected && (
-                                            <circle cx={pos.x} cy={pos.y} r={r + 6} fill="none" stroke={color} strokeWidth="1" opacity="0.3" />
-                                        )}
-                                        <circle cx={pos.x} cy={pos.y} r={r} fill="none" stroke={color} strokeWidth={isSelected ? 3 : 2} filter="url(#kGlow)" />
-                                        {isSelected && (
-                                            <circle cx={pos.x} cy={pos.y} r={r - 3} fill={color} opacity="0.9" />
-                                        )}
+                                    <g key={`ring-${i}`} className="animate-spin" style={{ transformOrigin: 'center', animationDuration: `${animSpeed}s`, animationDirection: animDir }}>
+                                        <circle cx="50" cy="50" r={r} fill="none" stroke={week.color} strokeWidth="0.3" strokeDasharray={isActive ? 'none' : '2 4'} opacity={isActive ? 0.8 : 0.2} />
+                                        {isActive && <circle cx="50" cy={50 - r} r="0.8" fill={week.color} opacity="0.8" />}
                                     </g>
                                 );
                             })}
                             
-                            <foreignObject x={center - 45} y={center - 35} width="90" height="70">
-                                <div className="flex flex-col items-center justify-center h-full text-center">
-                                    <div className="text-[9px] font-mono text-gray-500 uppercase tracking-[0.15em] mb-1">RPE AVG</div>
-                                    <span ref={rpeTextRef} className="text-5xl font-black text-fuchsia-400 leading-none tabular-nums drop-shadow-[0_0_20px_rgba(217,70,239,0.7)]">0.0</span>
-                                </div>
-                            </foreignObject>
+                            <g opacity="0.1" stroke="#fff" strokeWidth="0.2">
+                                <line x1="50" y1="0" x2="50" y2="100" />
+                                <line x1="0" y1="50" x2="100" y2="50" />
+                            </g>
+                            
+                            <path d={pathData} fill="none" stroke="#22d3ee" strokeWidth="1" filter="url(#glowPathV14)" className="opacity-40" />
+                            
+                            {HYPER_WEEKS.map((week, i) => {
+                                const pos = points[i];
+                                const isSelected = activeWeek.id === week.id;
+                                return (
+                                    <g key={week.id} onClick={() => handleNodeClick(week)} className="cursor-pointer">
+                                        {isSelected && (
+                                            <circle cx={pos.x} cy={pos.y} r="6" fill="none" stroke={week.color} strokeWidth="0.3" opacity="0.5">
+                                                <animate attributeName="r" values="3;8;3" dur="2s" repeatCount="indefinite" />
+                                                <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite" />
+                                            </circle>
+                                        )}
+                                        <circle cx={pos.x} cy={pos.y} r={isSelected ? 4 : 2.5} fill={isSelected ? '#fff' : '#000'} stroke={week.color} strokeWidth="1.5" className="transition-all duration-300" />
+                                    </g>
+                                );
+                            })}
                         </svg>
+                        
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none z-20">
+                            <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest mb-1">RPE AVG</div>
+                            <span ref={rpeTextRef} className="text-4xl font-black leading-none drop-shadow-lg tabular-nums" style={{ color: activeWeek.color }}>0.0</span>
+                        </div>
+                        
+                        {showInfo && (
+                            <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md p-6 flex flex-col justify-center animate-[fadeIn_0.3s_ease-out]">
+                                <h3 className="text-white font-display font-bold text-lg mb-4 border-b border-white/20 pb-2">GLOSSAIRE</h3>
+                                <div className="space-y-3 text-sm">
+                                    <div className="flex items-start gap-2"><Zap size={14} className="text-yellow-400 mt-0.5" /><div><span className="text-white font-bold">RPE (Effort)</span><p className="text-gray-400 text-xs">Difficulté perçue sur 10. Cible: 8-9.</p></div></div>
+                                    <div className="flex items-start gap-2"><Target size={14} className="text-fuchsia-400 mt-0.5" /><div><span className="text-white font-bold">EFF. REPS</span><p className="text-gray-400 text-xs">Répétitions proches de l'échec.</p></div></div>
+                                    <div className="flex items-start gap-2"><Activity size={14} className="text-red-400 mt-0.5" /><div><span className="text-white font-bold">FATIGUE</span><p className="text-gray-400 text-xs">Impact nerveux. Danger si &gt; 90%.</p></div></div>
+                                </div>
+                                <div className="mt-6 text-center text-xs text-gray-500 font-mono">tap to close</div>
+                            </div>
+                        )}
                     </div>
                     
-                    <div className="bg-[#080808] border-t border-white/5 px-5 py-4">
-                        <div className="flex items-center justify-between mb-4">
+                    <div className="flex-1 bg-[#0a0a0a] border-t border-white/10 p-5">
+                        <div className="flex justify-between items-center mb-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-1 h-12 rounded-full" style={{ background: `linear-gradient(to bottom, ${weekColors[selectedWeek]}, ${weekColors[selectedWeek]}44)` }}></div>
+                                <div className="w-1.5 h-8 rounded-full" style={{ backgroundColor: activeWeek.color, boxShadow: `0 0 10px ${activeWeek.color}` }}></div>
                                 <div>
-                                    <div className="text-2xl font-black text-white tracking-tight">SEM {selectedWeek + 1}</div>
-                                    <div className="text-[10px] font-mono uppercase" style={{ color: weekColors[selectedWeek] }}>PEAK LOAD</div>
+                                    <h3 className="text-white font-display font-bold text-xl tracking-wide leading-none">{activeWeek.label}</h3>
+                                    <p className="text-[10px] font-mono uppercase mt-1" style={{ color: activeWeek.color }}>{activeWeek.phase}</p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <div className="text-2xl font-black text-white tabular-nums">{(selectedStats.volume / 1000).toFixed(1)}<span className="text-sm text-gray-500 ml-0.5">k</span></div>
+                                <div className="text-2xl font-black text-white tabular-nums">{(activeWeek.volume / 1000).toFixed(1)}<span className="text-sm text-gray-500 ml-0.5">k</span></div>
                                 <div className="text-[10px] font-mono text-gray-500 uppercase">VOLUME</div>
                             </div>
                         </div>
                         
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-3 gap-2 mb-4">
                             <div className="bg-[#0c0c0c] rounded-xl p-3 border border-white/5 flex flex-col items-center">
-                                <div className="flex items-center gap-1 text-gray-500 mb-1.5">
-                                    <RotateCcw size={12} />
-                                    <span className="text-[8px] uppercase font-bold tracking-wider">RPE AVG</span>
-                                </div>
-                                <div className="text-xl font-black text-white tabular-nums">{selectedStats.rpe.toFixed(1)}<span className="text-[10px] text-gray-500 ml-0.5">/10</span></div>
+                                <div className="flex items-center gap-1 text-gray-500 mb-1.5"><RotateCcw size={12} /><span className="text-[8px] uppercase font-bold tracking-wider">RPE AVG</span></div>
+                                <div className="text-xl font-black text-white tabular-nums">{activeWeek.rpeAvg.toFixed(1)}<span className="text-[10px] text-gray-500 ml-0.5">/10</span></div>
                             </div>
                             <div className="bg-[#0c0c0c] rounded-xl p-3 border border-white/5 flex flex-col items-center">
-                                <div className="flex items-center gap-1 text-gray-500 mb-1.5">
-                                    <Dumbbell size={12} />
-                                    <span className="text-[8px] uppercase font-bold tracking-wider">EFF. REPS</span>
-                                </div>
-                                <div className="text-xl font-black text-white tabular-nums">{selectedStats.effReps}<span className="text-[10px] text-gray-500 ml-1">Total</span></div>
+                                <div className="flex items-center gap-1 text-gray-500 mb-1.5"><Dumbbell size={12} /><span className="text-[8px] uppercase font-bold tracking-wider">EFF. REPS</span></div>
+                                <div className="text-xl font-black text-white tabular-nums">{activeWeek.effectiveReps}<span className="text-[10px] text-gray-500 ml-1">Total</span></div>
                             </div>
                             <div className="bg-[#0c0c0c] rounded-xl p-3 border border-white/5 flex flex-col items-center">
-                                <div className="flex items-center gap-1 text-gray-500 mb-1.5">
-                                    <Activity size={12} />
-                                    <span className="text-[8px] uppercase font-bold tracking-wider">FATIGUE</span>
-                                </div>
-                                <div className="text-xl font-black text-white tabular-nums">{selectedStats.fatigue}<span className="text-[10px] text-gray-500 ml-0.5">%</span></div>
-                                <div className="text-[8px] text-orange-400 font-mono -mt-0.5">Systemic</div>
+                                <div className="flex items-center gap-1 text-gray-500 mb-1.5"><Activity size={12} /><span className="text-[8px] uppercase font-bold tracking-wider">FATIGUE</span></div>
+                                <div className="text-xl font-black text-white tabular-nums">{activeWeek.fatigue}<span className="text-[10px] text-gray-500 ml-0.5">%</span></div>
+                                <div className={`text-[8px] font-mono -mt-0.5 ${activeWeek.fatigue > 85 ? 'text-red-400' : 'text-orange-400'}`}>{activeWeek.fatigue > 85 ? 'CRITICAL' : 'Systemic'}</div>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-[#080808] rounded-xl p-3 border border-white/5">
+                            <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-500 font-mono uppercase">Intensity</span>
+                                <span className="text-white font-bold">{activeWeek.intensity}%</span>
+                            </div>
+                            <div className="mt-2 h-2 bg-black rounded-full overflow-hidden">
+                                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${activeWeek.intensity}%`, background: `linear-gradient(to right, ${activeWeek.color}66, ${activeWeek.color})` }}></div>
                             </div>
                         </div>
                     </div>
