@@ -507,17 +507,25 @@
       document.getElementById('home-xp-next').textContent = '→ ' + nextRank.min.toLocaleString() + ' pour ' + nextRank.name;
       
       var sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-      var recentSets = history.filter(function(h) { return new Date(h.date).getTime() > sevenDaysAgo; });
+      var recentSets = history.filter(function(h) { 
+        var dateField = h.completedAt || h.date;
+        return dateField && new Date(dateField).getTime() > sevenDaysAgo; 
+      });
       var volume = 0;
       var sessionDates = {};
       recentSets.forEach(function(s) {
         volume += (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0);
-        sessionDates[new Date(s.date).toDateString()] = true;
+        var dateField = s.completedAt || s.date;
+        if (dateField) sessionDates[new Date(dateField).toDateString()] = true;
       });
       document.getElementById('home-volume').textContent = (volume / 1000).toFixed(1);
       document.getElementById('home-sessions').textContent = Object.keys(sessionDates).length + ' séances';
       document.getElementById('home-total-sessions').textContent = Object.keys(
-        history.reduce(function(acc, h) { acc[new Date(h.date).toDateString()] = true; return acc; }, {})
+        history.reduce(function(acc, h) { 
+          var dateField = h.completedAt || h.date;
+          if (dateField) acc[new Date(dateField).toDateString()] = true; 
+          return acc; 
+        }, {})
       ).length;
       
       loadAICoachMessage();
