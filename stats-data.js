@@ -2,17 +2,22 @@ const STATS_STORAGE_KEY = 'neon_fit_workout_history';
 
 const MUSCLE_MAPPING = {
   'dos': { id: 'm1', name: 'DOS', color: '#3b82f6' },
-  'pectoraux': { id: 'm2', name: 'PECTORAUX', color: '#22d3ee' },
-  'quadriceps': { id: 'm3', name: 'JAMBES', color: '#8b5cf6' },
-  'jambes': { id: 'm3', name: 'JAMBES', color: '#8b5cf6' },
-  'fessiers': { id: 'm3', name: 'JAMBES', color: '#8b5cf6' },
-  'ischios': { id: 'm3', name: 'JAMBES', color: '#8b5cf6' },
-  'épaules': { id: 'm4', name: 'ÉPAULES', color: '#d946ef' },
+  'pectoraux': { id: 'm2', name: 'PECT', color: '#22d3ee' },
+  'pecs': { id: 'm2', name: 'PECT', color: '#22d3ee' },
+  'quadriceps': { id: 'm3', name: 'JAMB', color: '#8b5cf6' },
+  'jambes': { id: 'm3', name: 'JAMB', color: '#8b5cf6' },
+  'fessiers': { id: 'm3', name: 'JAMB', color: '#8b5cf6' },
+  'ischios': { id: 'm3', name: 'JAMB', color: '#8b5cf6' },
+  'épaules': { id: 'm4', name: 'ÉPAU', color: '#d946ef' },
+  'epaules': { id: 'm4', name: 'ÉPAU', color: '#d946ef' },
   'biceps': { id: 'm5', name: 'BRAS', color: '#f43f5e' },
   'triceps': { id: 'm5', name: 'BRAS', color: '#f43f5e' },
   'avant-bras': { id: 'm5', name: 'BRAS', color: '#f43f5e' },
-  'abdos': { id: 'm6', name: 'ABDOS', color: '#10b981' }
+  'abdos': { id: 'm6', name: 'ABDO', color: '#10b981' }
 };
+
+const SETS_PER_WEEK = 99;
+const SESSIONS_PER_WEEK = 3;
 
 const ZONE_COLORS = {
   force: { color: 'bg-amber-500', shadow: 'shadow-amber-500/50' },
@@ -225,15 +230,17 @@ const StatsData = {
   getSummary: () => {
     const history = StatsData.getHistory();
     const xp = StatsData.getXP();
+    const currentWeek = StatsData.getCurrentWeek();
 
     const uniqueWorkouts = new Set(history.map(e => `${e.week}-${e.day}`)).size;
     const totalSets = history.length;
     const totalVolume = history.reduce((sum, e) => sum + ((parseFloat(e.weight) || 0) * (parseInt(e.reps) || 0)), 0);
 
-    // Fixed targets for realistic progress display
-    const maxSets = 248;      // Target: ~248 sets for a full program cycle
-    const maxSessions = 12;   // Target: 12 sessions per month
-    const score = totalSets > 0 ? Math.min(100, Math.round((totalSets / maxSets) * 100)) : 0;
+    // DYNAMIC targets based on current week (26 weeks program)
+    // ~99 sets/week × current week, 3 sessions/week × current week
+    const maxSets = currentWeek * SETS_PER_WEEK;
+    const maxSessions = currentWeek * SESSIONS_PER_WEEK;
+    const score = maxSets > 0 ? Math.min(100, Math.round((totalSets / maxSets) * 100)) : 0;
 
     return {
       score,
@@ -242,7 +249,9 @@ const StatsData = {
       sets: totalSets,
       maxSets,
       volume: Math.round(totalVolume),
-      xp
+      xp,
+      currentWeek,
+      totalWeeks: 26
     };
   },
 
