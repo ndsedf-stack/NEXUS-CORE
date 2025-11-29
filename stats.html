@@ -364,7 +364,10 @@
                 const history = JSON.parse(localStorage.getItem('neon_fit_workout_history') || '[]');
                 if (history.length === 0) return 'No data';
                 const lastEntry = history[history.length - 1];
-                const lastDate = new Date(lastEntry.completedAt || lastEntry.date);
+                const dateValue = lastEntry.completedAt || lastEntry.date;
+                if (!dateValue) return 'Just now';
+                const lastDate = new Date(dateValue);
+                if (isNaN(lastDate.getTime())) return 'Just now';
                 const diff = Date.now() - lastDate.getTime();
                 const hours = Math.floor(diff / 3600000);
                 const days = Math.floor(diff / 86400000);
@@ -463,7 +466,11 @@
                     
                     // Find sessions for this day
                     const daySessions = history.filter(h => {
-                        const sessionDate = new Date(h.completedAt || h.date).toISOString().split('T')[0];
+                        const dateVal = h.completedAt || h.date;
+                        if (!dateVal) return false;
+                        const parsed = new Date(dateVal);
+                        if (isNaN(parsed.getTime())) return false;
+                        const sessionDate = parsed.toISOString().split('T')[0];
                         return sessionDate === dateStr;
                     });
                     
@@ -494,7 +501,11 @@
                     const dateStr = date.toISOString().split('T')[0];
                     
                     const hasSession = history.some(h => {
-                        const sessionDate = new Date(h.completedAt || h.date).toISOString().split('T')[0];
+                        const dateVal = h.completedAt || h.date;
+                        if (!dateVal) return false;
+                        const parsed = new Date(dateVal);
+                        if (isNaN(parsed.getTime())) return false;
+                        const sessionDate = parsed.toISOString().split('T')[0];
                         return sessionDate === dateStr;
                     });
                     
