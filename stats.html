@@ -181,11 +181,11 @@
         import { createRoot } from 'react-dom/client';
         import { 
             Activity, Heart, Zap, Flame, Trophy, Calendar, Settings, User, 
-            Menu, X, Play, Pause, ChevronRight, Target, Bot, Plus, Check,
+            Menu, X, Play, Pause, ChevronRight, ChevronLeft, Target, Bot, Plus, Check,
             MessageSquare, Trash2, Download, AlertCircle, TrendingUp, TrendingDown,
             Layers, Clock, Battery, Fan, Disc, Dumbbell, Maximize2, RefreshCw, Cpu,
             RotateCcw, Power, Fingerprint, Hexagon, Crosshair, Scale, ScanLine,
-            Brain, Shield, AlertTriangle, Scan, ShieldCheck
+            Brain, Shield, AlertTriangle, Scan, ShieldCheck, ScanFace, Camera, History
         } from 'lucide-react';
 
         // --- REAL DATA FROM STATSDATA ---
@@ -781,6 +781,149 @@
                         </div>
 
                     </div>
+                </div>
+            );
+        };
+
+        // MORPHO TIMELINE (Evolution Tracker - Before/After)
+        const MorphoTimeline = () => {
+            const [scanPos, setScanPos] = useState(50);
+            const [isDragging, setIsDragging] = useState(false);
+            
+            // Get weight history from localStorage
+            const getWeightData = () => {
+                const history = JSON.parse(localStorage.getItem('neon_fit_workout_history') || '[]');
+                const xp = parseInt(localStorage.getItem('hybrid_xp') || '0');
+                
+                // Calculate estimated metrics based on volume history
+                const totalVolume = history.reduce((sum, w) => {
+                    const sets = w.sets || [];
+                    return sum + sets.reduce((v, s) => v + (s.weight || 0) * (s.reps || 0), 0);
+                }, 0);
+                
+                // Simulated progress based on total volume (1kg per 50000kg volume)
+                const massGain = Math.min(5, (totalVolume / 50000) * 1).toFixed(1);
+                const fatLoss = Math.min(3, (totalVolume / 100000) * 1).toFixed(1);
+                
+                return {
+                    currentMass: (72 + parseFloat(massGain)).toFixed(1),
+                    massChange: `+${massGain}`,
+                    currentBF: (16 - parseFloat(fatLoss)).toFixed(1),
+                    bfChange: `-${fatLoss}`,
+                    snapCount: Math.min(50, Math.floor(history.length / 2))
+                };
+            };
+            
+            const data = getWeightData();
+            
+            // Get current month
+            const currentMonth = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase();
+
+            const handleDrag = (e) => {
+                if (!isDragging) return;
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const pct = Math.max(10, Math.min(90, (x / rect.width) * 100));
+                setScanPos(pct);
+            };
+
+            return (
+                <div className="relative w-full max-w-md bg-[#020202] border border-white/10 rounded-3xl flex flex-col overflow-hidden group min-h-[500px] shadow-2xl">
+                    
+                    {/* HEADER */}
+                    <div className="bg-[#050505] px-6 py-4 border-b border-white/10 flex justify-between items-center z-10 relative">
+                        <div className="absolute inset-0 bg-indigo-900/5"></div>
+                        <div>
+                            <h2 className="font-display font-black text-white tracking-widest uppercase flex items-center gap-2 text-lg">
+                                <ScanFace className="text-indigo-500" size={18} />
+                                MORPHO.TIME
+                            </h2>
+                            <p className="text-[10px] text-indigo-500/60 font-mono font-bold mt-1">EVOLUTION TRACKER</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button className="w-8 h-8 rounded border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors">
+                                <ChevronLeft size={14} className="text-gray-400"/>
+                            </button>
+                            <span className="text-[10px] font-mono font-bold text-white">{currentMonth}</span>
+                            <button className="w-8 h-8 rounded border border-white/10 flex items-center justify-center hover:bg-white/5 transition-colors">
+                                <ChevronRight size={14} className="text-gray-400"/>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* BODY: THE SCANNER */}
+                    <div 
+                        className="flex-1 bg-[#010101] relative flex flex-col items-center justify-center overflow-hidden cursor-ew-resize"
+                        onMouseDown={() => setIsDragging(true)}
+                        onMouseUp={() => setIsDragging(false)}
+                        onMouseLeave={() => setIsDragging(false)}
+                        onMouseMove={handleDrag}
+                    >
+                        
+                        {/* Silhouettes container */}
+                        <div className="relative w-[250px] h-[300px] mt-4 select-none">
+                            {/* "BEFORE" Wireframe Layer */}
+                            <div className="absolute inset-0 opacity-30">
+                                <svg viewBox="0 0 100 200" className="w-full h-full drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">
+                                    <path d="M 30,40 Q 20,50 25,80 Q 20,120 30,180 L 70,180 Q 80,120 75,80 Q 80,50 70,40 Q 50,30 30,40" fill="none" stroke="#555" strokeWidth="1" strokeDasharray="2 2" />
+                                    <circle cx="50" cy="25" r="12" fill="none" stroke="#555" strokeWidth="1" strokeDasharray="2 2" />
+                                </svg>
+                            </div>
+
+                            {/* "AFTER" Hologram Layer (Masked by Slider) */}
+                            <div className="absolute inset-0 overflow-hidden" style={{width: `${scanPos}%`}}>
+                                <svg viewBox="0 0 100 200" className="w-[250px] h-[300px]">
+                                    <defs>
+                                        <filter id="glowMorph">
+                                            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                            <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                        </filter>
+                                    </defs>
+                                    <path d="M 28,40 Q 15,50 22,80 Q 15,120 28,180 L 72,180 Q 85,120 78,80 Q 85,50 72,40 Q 50,28 28,40" fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" strokeWidth="2" filter="url(#glowMorph)" />
+                                    <circle cx="50" cy="25" r="12" fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" strokeWidth="2" filter="url(#glowMorph)" />
+                                    
+                                    {/* Muscle Highlights */}
+                                    <path d="M 30,50 Q 50,55 70,50" fill="none" stroke="#818cf8" strokeWidth="1" opacity="0.6" />
+                                    <path d="M 40,50 L 40,80" fill="none" stroke="#818cf8" strokeWidth="1" opacity="0.4" />
+                                    <path d="M 60,50 L 60,80" fill="none" stroke="#818cf8" strokeWidth="1" opacity="0.4" />
+                                </svg>
+                            </div>
+
+                            {/* The Scanner Bar */}
+                            <div 
+                                className="absolute top-0 bottom-0 w-1 bg-white z-20 shadow-[0_0_20px_white] pointer-events-none"
+                                style={{left: `${scanPos}%`}}
+                            >
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-indigo-500 rounded-full border-2 border-white flex items-center justify-center shadow-lg">
+                                    <div className="w-1 h-3 border-l border-r border-white/50"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Metrics Overlay */}
+                        <div className="absolute bottom-8 left-6">
+                            <div className="text-[8px] font-mono text-gray-500 uppercase mb-1">Mass</div>
+                            <div className="text-xl font-bold text-white">{data.currentMass}kg</div>
+                            <div className="text-[9px] text-green-400">{data.massChange}kg</div>
+                        </div>
+                        <div className="absolute bottom-8 right-6 text-right">
+                            <div className="text-[8px] font-mono text-gray-500 uppercase mb-1">Body Fat</div>
+                            <div className="text-xl font-bold text-white">{data.currentBF}%</div>
+                            <div className="text-[9px] text-green-400">{data.bfChange}%</div>
+                        </div>
+
+                    </div>
+
+                    {/* FOOTER */}
+                    <div className="bg-[#080808] border-t border-white/10 p-4 flex justify-between items-center">
+                        <div className="flex items-center gap-2 text-[9px] text-gray-400 font-mono">
+                            <History size={12}/> {data.snapCount} SNAPS RECORDED
+                        </div>
+                        <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold uppercase rounded-lg transition-colors shadow-[0_0_15px_rgba(79,70,229,0.4)]">
+                            <Camera size={14}/> ADD SCAN
+                        </button>
+                    </div>
+
                 </div>
             );
         };
@@ -2187,6 +2330,7 @@
                             <div className="animate-slideIn" style={{ animationDelay: '1.1s' }}><ConsistencyLog /></div>
                             <div className="animate-slideIn" style={{ animationDelay: '1.2s' }}><HybridCore /></div>
                             <div className="animate-slideIn" style={{ animationDelay: '1.3s' }}><InjuryMap /></div>
+                            <div className="animate-slideIn" style={{ animationDelay: '1.4s' }}><MorphoTimeline /></div>
                         </div>
                     </main>
 
