@@ -2064,25 +2064,25 @@
             </div>
         );
 
-        // 2. KINETIC RADAR - High Performance with useRef + requestAnimationFrame
+        // 2. KINETIC RADAR - 4 week circles with volume-based radius
         const WeeklyProgress = ({ weeksData = [], summary = null }) => {
             const WEEKS = weeksData.length > 0 ? weeksData : getWeeksData();
             const peakWeekIdx = WEEKS.reduce((maxIdx, w, i, arr) => w.volume > arr[maxIdx].volume ? i : maxIdx, 0);
             const currentWeekIdx = WEEKS.findIndex(w => w.status === 'current');
             
-            const [selectedWeek, setSelectedWeek] = useState(currentWeekIdx >= 0 ? currentWeekIdx : peakWeekIdx);
+            const [selectedWeek, setSelectedWeek] = useState(peakWeekIdx >= 0 ? peakWeekIdx : 0);
             const [animReady, setAnimReady] = useState(false);
             
             const scanLineRef = useRef(null);
             const rpeTextRef = useRef(null);
             const ringRef = useRef(null);
             const requestRef = useRef(0);
-            const dataRef = useRef({ rotation: 0, currentRpe: 0, targetRpe: 8.5, ringScale: 1 });
+            const dataRef = useRef({ rotation: 0, currentRpe: 0, targetRpe: 8.5 });
             
             const weekColors = ['#22d3ee', '#d946ef', '#f97316', '#ef4444'];
             
             const getWeekStats = (idx) => {
-                const w = WEEKS[idx] || { volume: 0, intensity: 0 };
+                const w = WEEKS[idx] || { volume: 0 };
                 const rpe = Math.min(9.5, 6.5 + (idx * 0.5) + ((idx * 17) % 10) / 10);
                 const effReps = Math.round(w.volume / 150);
                 const fatigue = Math.min(95, 50 + (idx * 10) + ((idx * 13) % 15));
@@ -2095,11 +2095,10 @@
             
             useEffect(() => {
                 const animate = () => {
-                    dataRef.current.rotation = (dataRef.current.rotation + 0.3) % 360;
+                    dataRef.current.rotation = (dataRef.current.rotation + 0.25) % 360;
                     if (scanLineRef.current) {
                         scanLineRef.current.setAttribute('transform', `rotate(${dataRef.current.rotation}, 160, 160)`);
                     }
-                    
                     const diff = dataRef.current.targetRpe - dataRef.current.currentRpe;
                     if (Math.abs(diff) > 0.01) {
                         dataRef.current.currentRpe += diff * 0.08;
@@ -2109,13 +2108,12 @@
                     if (rpeTextRef.current) {
                         rpeTextRef.current.textContent = dataRef.current.currentRpe.toFixed(1);
                     }
-                    
-                    dataRef.current.ringScale = 1 + Math.sin(Date.now() / 1000) * 0.015;
                     if (ringRef.current) {
-                        ringRef.current.setAttribute('transform', `translate(160, 160) scale(${dataRef.current.ringScale}) translate(-160, -160)`);
-                        ringRef.current.setAttribute('opacity', String(0.4 + Math.sin(Date.now() / 800) * 0.2));
+                        const scale = 1 + Math.sin(Date.now() / 1000) * 0.012;
+                        const opacity = 0.4 + Math.sin(Date.now() / 800) * 0.15;
+                        ringRef.current.setAttribute('transform', `translate(160,160) scale(${scale}) translate(-160,-160)`);
+                        ringRef.current.setAttribute('opacity', String(opacity));
                     }
-                    
                     requestRef.current = requestAnimationFrame(animate);
                 };
                 requestRef.current = requestAnimationFrame(animate);
@@ -2125,17 +2123,24 @@
             useEffect(() => { setTimeout(() => setAnimReady(true), 100); }, []);
             
             const center = 160;
-            const radius = 115;
+            const radarRadius = 110;
             const maxVol = Math.max(...WEEKS.map(w => w.volume), 1);
             
+            const weekAngles = [180, 315, 225, 45];
             const weekPositions = WEEKS.map((w, i) => {
-                const angle = (-90 + (i * 90)) * (Math.PI / 180);
-                const dist = radius * (0.45 + (w.volume / maxVol) * 0.55);
-                return { x: center + Math.cos(angle) * dist, y: center + Math.sin(angle) * dist };
+                const angle = weekAngles[i] * (Math.PI / 180);
+                const normVol = w.volume / maxVol;
+                const dist = radarRadius * (0.5 + normVol * 0.45);
+                return { 
+                    x: center + Math.cos(angle) * dist, 
+                    y: center + Math.sin(angle) * dist,
+                    circleSize: 6 + normVol * 8
+                };
             });
             
-            const pathData = weekPositions.length > 0 
-                ? `M ${weekPositions[0].x},${weekPositions[0].y} ` + weekPositions.slice(1).map(p => `L ${p.x},${p.y}`).join(' ') + ` L ${weekPositions[0].x},${weekPositions[0].y}`
+            const pathPoints = weekPositions.map(p => `${p.x},${p.y}`);
+            const pathData = pathPoints.length >= 4 
+                ? `M ${pathPoints[0]} L ${pathPoints[1]} L ${pathPoints[3]} L ${pathPoints[2]} Z`
                 : '';
             
             return (
@@ -2161,44 +2166,44 @@
                             </defs>
                             
                             {[0.3, 0.5, 0.7, 0.9].map((scale, i) => (
-                                <circle key={i} cx={center} cy={center} r={radius * scale} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+                                <circle key={i} cx={center} cy={center} r={radarRadius * scale} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
                             ))}
                             
                             <g ref={ringRef}>
-                                <circle cx={center} cy={center} r={radius} fill="none" stroke="#d946ef" strokeWidth="1.5" filter="url(#kGlow)" />
+                                <circle cx={center} cy={center} r={radarRadius} fill="none" stroke="#d946ef" strokeWidth="1.5" filter="url(#kGlow)" />
                             </g>
                             
                             <g ref={scanLineRef}>
-                                <line x1={center} y1={center} x2={center + radius - 10} y2={center} stroke="#d946ef" strokeWidth="1" opacity="0.15" />
-                                <circle cx={center + radius - 15} cy={center} r="3" fill="#d946ef" opacity="0.3" />
+                                <line x1={center} y1={center} x2={center + radarRadius - 5} y2={center} stroke="#d946ef" strokeWidth="1" opacity="0.12" />
+                                <circle cx={center + radarRadius - 8} cy={center} r="2" fill="#d946ef" opacity="0.25" />
                             </g>
                             
                             {animReady && pathData && (
                                 <>
-                                    <path d={pathData} fill="rgba(34,211,238,0.02)" stroke="none" />
-                                    <path d={pathData} fill="none" stroke="#22d3ee" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" filter="url(#kGlowStrong)" opacity="0.85" />
+                                    <path d={pathData} fill="rgba(34,211,238,0.015)" stroke="none" />
+                                    <path d={pathData} fill="none" stroke="#22d3ee" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" filter="url(#kGlowStrong)" opacity="0.8" />
                                 </>
                             )}
                             
                             {weekPositions.map((pos, i) => {
                                 const isSelected = i === selectedWeek;
                                 const color = weekColors[i % weekColors.length];
-                                const baseSize = isSelected ? 11 : 8;
+                                const r = pos.circleSize;
                                 
                                 return (
                                     <g key={i} onClick={() => setSelectedWeek(i)} style={{ cursor: 'pointer' }}>
                                         {isSelected && (
-                                            <circle cx={pos.x} cy={pos.y} r={baseSize + 8} fill="none" stroke={color} strokeWidth="1" opacity="0.25" />
+                                            <circle cx={pos.x} cy={pos.y} r={r + 6} fill="none" stroke={color} strokeWidth="1" opacity="0.3" />
                                         )}
-                                        <circle cx={pos.x} cy={pos.y} r={baseSize} fill="none" stroke={color} strokeWidth={isSelected ? 3 : 2.5} filter="url(#kGlow)" />
+                                        <circle cx={pos.x} cy={pos.y} r={r} fill="none" stroke={color} strokeWidth={isSelected ? 3 : 2} filter="url(#kGlow)" />
                                         {isSelected && (
-                                            <circle cx={pos.x} cy={pos.y} r={baseSize - 4} fill={color} />
+                                            <circle cx={pos.x} cy={pos.y} r={r - 3} fill={color} opacity="0.9" />
                                         )}
                                     </g>
                                 );
                             })}
                             
-                            <foreignObject x={center - 50} y={center - 40} width="100" height="80">
+                            <foreignObject x={center - 45} y={center - 35} width="90" height="70">
                                 <div className="flex flex-col items-center justify-center h-full text-center">
                                     <div className="text-[9px] font-mono text-gray-500 uppercase tracking-[0.15em] mb-1">RPE AVG</div>
                                     <span ref={rpeTextRef} className="text-5xl font-black text-fuchsia-400 leading-none tabular-nums drop-shadow-[0_0_20px_rgba(217,70,239,0.7)]">0.0</span>
