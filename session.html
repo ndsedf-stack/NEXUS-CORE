@@ -353,9 +353,21 @@
               <button 
                 onMouseDown={handleAbortStart} onMouseUp={handleAbortEnd} onMouseLeave={handleAbortEnd}
                 onTouchStart={handleAbortStart} onTouchEnd={handleAbortEnd}
-                className="relative text-red-500 font-black text-xs tracking-wider flex items-center gap-1 bg-red-950/30 px-3 py-1.5 rounded border border-red-900/50 active:scale-95 transition-all overflow-hidden"
+                className="relative font-black text-xs tracking-wider flex items-center gap-1 px-4 py-2 rounded-lg border overflow-hidden active:scale-95 transition-all"
+                style={{
+                  backgroundColor: 'rgba(127,29,29,0.3)',
+                  borderColor: abortProgress > 0 ? '#ef4444' : 'rgba(127,29,29,0.5)',
+                  color: '#ef4444',
+                  boxShadow: abortProgress > 0 ? '0 0 20px rgba(239,68,68,0.5)' : '0 0 10px rgba(239,68,68,0.2)'
+                }}
               >
-                <div className="absolute inset-0 bg-red-600/30 transition-all duration-75" style={{ width: abortProgress + '%' }}></div>
+                <div 
+                  className="absolute inset-0 transition-all duration-75" 
+                  style={{ 
+                    width: abortProgress + '%',
+                    background: 'linear-gradient(to right, rgba(220,38,38,0.4), rgba(239,68,68,0.6))'
+                  }}
+                ></div>
                 <span className="relative z-10">ABORT</span>
                 <span className="relative z-10 text-lg leading-none">→</span>
               </button>
