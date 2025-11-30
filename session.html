@@ -435,30 +435,18 @@
             <div className="flex-1 flex items-stretch gap-3 min-h-0">
               
               <div className="flex-none w-14 flex flex-col items-center relative">
-                <div className={`relative w-full h-full rounded-xl border overflow-hidden`} style={{ borderColor: isResting && breathPhase === 'in' ? '#22d3ee' : '#0e7490', background: 'rgba(0,10,20,0.9)' }}>
-                  <div className="absolute inset-1 flex flex-col gap-[2px]">
-                    {Array.from({ length: 12 }, (_, idx) => {
-                      const cellStart = ((11 - idx) / 12) * 100;
-                      const cellEnd = ((12 - idx) / 12) * 100;
-                      const fill = getEccFill();
-                      let cellFill = 0;
-                      if (fill >= cellEnd) cellFill = 100;
-                      else if (fill > cellStart) cellFill = ((fill - cellStart) / (cellEnd - cellStart)) * 100;
-                      return (
-                        <div key={idx} className="flex-1 relative rounded-[3px] overflow-hidden" style={{ border: '1px solid rgba(34,211,238,0.3)', background: 'rgba(10,30,40,0.7)' }}>
-                          <div className="absolute inset-x-0 bottom-0 transition-all duration-100" style={{
-                            height: cellFill + '%',
-                            background: 'linear-gradient(to top, #22d3ee, #06b6d4)',
-                            boxShadow: cellFill > 0 ? 'inset 0 0 8px rgba(34,211,238,0.5)' : 'none'
-                          }}></div>
-                        </div>
-                      );
-                    })}
+                <div className="relative w-full h-full rounded-[18px] border-2 overflow-hidden" style={{ borderColor: isResting && breathPhase === 'in' ? '#22d3ee' : '#0e7490', background: '#021622' }}>
+                  <div className="absolute inset-[4px] rounded-[14px] overflow-hidden">
+                    <div className="absolute inset-x-0 bottom-0 transition-all duration-150" style={{ 
+                      height: `${getEccFill()}%`, 
+                      background: 'linear-gradient(180deg, #22d3ee 0%, #0ea5e9 30%, #064e6e 70%, #021622 100%)',
+                      boxShadow: getEccFill() > 0 ? '0 0 40px rgba(34,211,238,0.5), inset 0 0 30px rgba(34,211,238,0.4), inset 0 2px 10px rgba(255,255,255,0.1)' : 'none'
+                    }} />
+                    <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(34,211,238,0.2), transparent 60%)' }} />
                   </div>
-                  <ArrowDown className={`absolute top-2 left-1/2 -translate-x-1/2 w-4 h-4 z-10 ${phase === 'ecc' && !isResting ? 'text-white' : 'text-cyan-400/60'}`} />
-                  <ArrowUp className={`absolute bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 z-10 ${isResting && breathPhase === 'in' ? 'text-cyan-400' : 'text-cyan-400/40'}`} />
+                  <ArrowDown className={`absolute top-3 left-1/2 -translate-x-1/2 w-5 h-5 z-10 ${phase === 'ecc' && !isResting ? 'text-white' : 'text-cyan-300/50'}`} />
+                  <ArrowUp className={`absolute bottom-3 left-1/2 -translate-x-1/2 w-5 h-5 z-10 ${isResting && breathPhase === 'in' ? 'text-cyan-300' : 'text-cyan-300/40'}`} />
                 </div>
-                <span className="absolute -right-6 top-1/2 -translate-y-1/2 text-[7px] font-bold tracking-[0.15em] text-cyan-500/60" style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}>EXCENTRIQUE</span>
               </div>
 
               <div className="flex-1 flex flex-col items-center justify-center min-w-0">
@@ -610,47 +598,48 @@
               </div>
 
               <div className="flex-none w-14 flex flex-col items-center relative">
-                <div className={`relative w-full h-full rounded-xl border overflow-hidden`} style={{ borderColor: isResting && breathPhase === 'out' ? '#e879f9' : '#7e22ce', background: 'rgba(10,0,20,0.9)' }}>
-                  <div className="absolute inset-1 flex flex-col gap-[2px]">
-                    {Array.from({ length: 12 }, (_, idx) => {
-                      const cellStart = ((11 - idx) / 12) * 100;
-                      const cellEnd = ((12 - idx) / 12) * 100;
-                      const fill = getConFill();
-                      let cellFill = 0;
-                      if (fill >= cellEnd) cellFill = 100;
-                      else if (fill > cellStart) cellFill = ((fill - cellStart) / (cellEnd - cellStart)) * 100;
-                      return (
-                        <div key={idx} className="flex-1 relative rounded-[3px] overflow-hidden" style={{ border: '1px solid rgba(232,121,249,0.3)', background: 'rgba(20,10,30,0.7)' }}>
-                          <div className="absolute inset-x-0 bottom-0 transition-all duration-100" style={{
-                            height: cellFill + '%',
-                            background: 'linear-gradient(to top, #e879f9, #c026d3)',
-                            boxShadow: cellFill > 0 ? 'inset 0 0 8px rgba(232,121,249,0.5)' : 'none'
-                          }}></div>
-                        </div>
-                      );
-                    })}
+                <div className="relative w-full h-full rounded-[18px] border-2 overflow-hidden" style={{ borderColor: isResting && breathPhase === 'out' ? '#e879f9' : '#7e22ce', background: '#0f0518' }}>
+                  <div className="absolute inset-[4px] rounded-[14px] overflow-hidden">
+                    <div className="absolute inset-x-0 bottom-0 transition-all duration-150" style={{ 
+                      height: `${getConFill()}%`, 
+                      background: 'linear-gradient(180deg, #e879f9 0%, #c026d3 30%, #581c87 70%, #0f0518 100%)',
+                      boxShadow: getConFill() > 0 ? '0 0 40px rgba(232,121,249,0.5), inset 0 0 30px rgba(232,121,249,0.4), inset 0 2px 10px rgba(255,255,255,0.1)' : 'none'
+                    }} />
+                    <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 100%, rgba(232,121,249,0.2), transparent 60%)' }} />
                   </div>
-                  <ArrowUp className={`absolute bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 z-10 ${phase === 'con' && !isResting ? 'text-white' : 'text-fuchsia-400/60'}`} />
-                  <ArrowDown className={`absolute top-2 left-1/2 -translate-x-1/2 w-4 h-4 z-10 ${isResting && breathPhase === 'out' ? 'text-fuchsia-400' : 'text-fuchsia-400/40'}`} />
+                  <ArrowUp className={`absolute bottom-3 left-1/2 -translate-x-1/2 w-5 h-5 z-10 ${phase === 'con' && !isResting ? 'text-white' : 'text-fuchsia-300/50'}`} />
+                  <ArrowDown className={`absolute top-3 left-1/2 -translate-x-1/2 w-5 h-5 z-10 ${isResting && breathPhase === 'out' ? 'text-fuchsia-300' : 'text-fuchsia-300/40'}`} />
                 </div>
-                <span className="absolute -left-6 top-1/2 -translate-y-1/2 text-[7px] font-bold tracking-[0.15em] text-fuchsia-500/60" style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'translateY(-50%) rotate(180deg)' }}>CONCENTRIQUE</span>
               </div>
 
             </div>
 
             {isSetFinished && !isResting && (
               <div className="mt-3 animate-slideIn">
+                <button
+                  onClick={handleValidate}
+                  className="relative w-full py-3 mb-3 rounded-xl font-black text-lg tracking-[0.2em] uppercase overflow-hidden active:scale-[0.98] transition-all group"
+                  style={{
+                    background: 'rgba(3,24,38,0.5)',
+                    border: '2px solid #22d3ee',
+                    color: '#22d3ee',
+                    boxShadow: '0 0 30px rgba(34,211,238,0.4), inset 0 0 20px rgba(34,211,238,0.08)'
+                  }}
+                >
+                  <span className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/15 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  <span className="relative z-10">VALIDER SÉRIE</span>
+                </button>
                 <div className="text-[10px] font-bold text-slate-500 text-center mb-2">ÉCHELLE RPE</div>
-                <div className="flex gap-2 justify-center mb-2">
+                <div className="flex gap-2 justify-center">
                   {[6, 7, 8, 9, 10].map((rpe) => (
                     <button
                       key={rpe}
                       onClick={() => handleRPESelect(rpe)}
-                      className="w-12 h-12 rounded-lg font-black text-lg border transition-all duration-200 active:scale-95"
+                      className="w-12 h-12 rounded-xl font-black text-lg border-2 transition-all duration-200 active:scale-95"
                       style={{
-                        backgroundColor: selectedRPE === rpe ? '#22d3ee' : 'rgba(30,41,59,0.8)',
-                        color: selectedRPE === rpe ? '#000000' : '#ffffff',
-                        borderColor: selectedRPE === rpe ? '#06b6d4' : 'rgba(71,85,105,0.5)',
+                        backgroundColor: selectedRPE === rpe ? '#22d3ee' : 'rgba(15,23,42,0.9)',
+                        color: selectedRPE === rpe ? '#000000' : '#94a3b8',
+                        borderColor: selectedRPE === rpe ? '#06b6d4' : 'rgba(51,65,85,0.6)',
                         boxShadow: selectedRPE === rpe ? '0 0 25px rgba(34,211,238,0.5), inset 0 0 10px rgba(255,255,255,0.2)' : 'none',
                         transform: selectedRPE === rpe ? 'scale(1.1)' : 'scale(1)'
                       }}
@@ -659,16 +648,6 @@
                     </button>
                   ))}
                 </div>
-                <button
-                  onClick={handleValidate}
-                  className="w-full py-3 rounded-xl font-black text-base uppercase text-white active:scale-[0.98] transition-all"
-                  style={{
-                    background: 'linear-gradient(to right, #059669, #10b981)',
-                    boxShadow: '0 0 25px rgba(16,185,129,0.4)'
-                  }}
-                >
-                  VALIDER SÉRIE
-                </button>
               </div>
             )}
 
