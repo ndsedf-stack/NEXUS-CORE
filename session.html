@@ -2,7 +2,6 @@
 <html lang="fr" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <!-- Meta Viewport optimisé pour iOS sans zoom et plein écran -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -11,100 +10,73 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&family=Inter:wght@400;500;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <script src="scramble-effect.js"></script>
   <script src="starfield.js"></script>
   
   <style>
     :root { 
-      --cyan: #00eaff; 
-      --magenta: #ff2d95; 
+      --cyan: #22d3ee; 
+      --magenta: #c084fc; 
       --orange: #f97316; 
-      --bg: #050510; 
-      --panel-bg: rgba(20, 25, 40, 0.95); 
+      --bg: #000000; 
     }
     
-    html {
+    html, body {
       height: 100%;
-      overflow: hidden; /* Empêche le rebond élastique sur iOS */
-    }
-
-    body { 
-      background-color: var(--bg); 
-      font-family: 'Inter', sans-serif; 
-      color: white; 
-      /* Utilisation de 100dvh pour s'adapter dynamiquement aux barres Safari */
-      height: 100vh;
-      height: 100dvh; 
-      width: 100vw;
-      overflow: hidden; 
-      display: flex; 
-      flex-direction: column; 
-      /* Padding top géré pour l'encoche */
-      padding-top: env(safe-area-inset-top); 
-      /* IMPORTANT: Pas de padding bottom sur body, on le gère dans le panel du bas */
-      touch-action: manipulation; 
-      position: fixed; /* Fixe le viewport pour éviter tout scroll accidentel */
+      height: 100dvh;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      color: white;
+      touch-action: manipulation;
+      position: fixed;
       inset: 0;
+      width: 100%;
     }
     
     .font-hud { font-family: 'Rajdhani', sans-serif; }
     .font-mono-tech { font-family: 'Share Tech Mono', monospace; }
     
-    /* Optimisation GPU iOS */
-    .accel-gpu { 
-      transform: translateZ(0); 
-      will-change: transform; 
+    .touch-btn { 
+      transition: transform 0.05s; 
+      cursor: pointer; 
+      -webkit-tap-highlight-color: transparent;
+    }
+    .touch-btn:active { transform: scale(0.95); }
+    
+    .tempo-bar-container {
+      width: 20px;
+      height: 55%;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      position: relative;
+      overflow: hidden;
     }
     
-    .cockpit-svg-container { 
-      width: 100%; 
-      height: 100%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      position: relative; 
-      z-index: 10;
+    .tempo-bar-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      border-radius: 10px;
+      transition: height 0.05s linear;
     }
     
-    .reactor-ring { 
-      fill: none; 
-      stroke: rgba(255,255,255,0.1); 
-      stroke-width: 1; 
-      transform-origin: center; 
-      animation: spin 30s linear infinite; 
+    .tempo-label {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
     
-    .reactor-core { 
-      fill: var(--cyan); 
-      opacity: 0.2; 
-      filter: blur(20px); 
-      -webkit-filter: blur(20px);
-      transition: fill 0.5s, opacity 0.5s; 
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(34,211,238,0.3); }
+      50% { box-shadow: 0 0 40px rgba(34,211,238,0.6); }
     }
     
-    .reactor-core.resting { 
-      fill: var(--orange); 
-      opacity: 0.4; 
-      animation: pulseCore 1s infinite alternate; 
-    }
-    
-    @keyframes spin { 
-      100% { transform: rotate(360deg); } 
-    }
-    
-    @keyframes pulseCore { 
-      0% { opacity: 0.2; transform: scale(1); } 
-      100% { opacity: 0.5; transform: scale(1.1); } 
-    }
-    
-    .intel-panel { 
-      background: var(--panel-bg); 
-      border: 1px solid rgba(0, 234, 255, 0.15); 
-      border-left: 4px solid var(--cyan); 
-      backdrop-filter: blur(10px); 
-      -webkit-backdrop-filter: blur(10px);
-      box-shadow: 0 5px 20px rgba(0,0,0,0.5); 
-    }
+    .glow-active { animation: pulse-glow 1.5s ease-in-out infinite; }
     
     .flash-screen { 
       position: fixed; 
@@ -114,574 +86,270 @@
       background: white; 
       opacity: 0; 
     }
-    
     .flash-screen.hit { animation: flashHit 0.2s ease-out; }
+    @keyframes flashHit { 0% { opacity: 0.15; } 100% { opacity: 0; } }
     
-    @keyframes flashHit { 
-      0% { opacity: 0.2; } 
-      100% { opacity: 0; } 
-    }
-    
-    .touch-btn { 
-      transition: transform 0.05s, filter 0.1s; 
-      cursor: pointer; 
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    .touch-btn:active { 
-      transform: scale(0.95); 
-      filter: brightness(1.3); 
-    }
-    
-    .lcd-panel { 
-      background: #0a0a15; 
-      border: 1px solid #334155; 
-      border-radius: 12px; 
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.8); 
-      position: relative; 
-    }
-    
-    .lcd-panel::before { 
-      content: ''; 
-      position: absolute; 
-      inset: 0; 
-      background: linear-gradient(rgba(255,255,255,0.03) 50%, transparent 50%); 
-      background-size: 100% 4px; 
-      pointer-events: none; 
-    }
-
-    /* === CONTROLS PANEL === */
-    .controls-panel-container {
-      background-color: #0f0f1a;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      border-radius: 30px 30px 0 0;
-      padding: 1.25rem; /* p-5 */
-      /* Gestion critique de la safe area bottom */
-      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
-      box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-      z-index: 20;
-      flex-shrink: 0; /* Ne jamais réduire */
-    }
-  
-    
-    /* ========================================
-       iOS OPTIMIZATIONS
-       ======================================== */
-    
-    .touch-pop, button, .animate-entry {
-      transform: translateZ(0);
-      -webkit-backface-visibility: hidden;
-      backface-visibility: hidden;
-    }
-    
-    /* XP Flash animation - Toast style */
-    @-webkit-keyframes xp-toast {
-      0% { opacity: 0; -webkit-transform: translateX(-50%) translateY(-20px); transform: translateX(-50%) translateY(-20px); }
-      15% { opacity: 1; -webkit-transform: translateX(-50%) translateY(0); transform: translateX(-50%) translateY(0); }
-      85% { opacity: 1; -webkit-transform: translateX(-50%) translateY(0); transform: translateX(-50%) translateY(0); }
-      100% { opacity: 0; -webkit-transform: translateX(-50%) translateY(-10px); transform: translateX(-50%) translateY(-10px); }
-    }
     @keyframes xp-toast {
       0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
       15% { opacity: 1; transform: translateX(-50%) translateY(0); }
-      85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      85% { opacity: 1; }
       100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
     }
+    .xp-flash { animation: xp-toast 1.5s ease-out forwards; }
     
-    .xp-flash {
-      -webkit-animation: xp-toast 1.5s ease-out forwards;
-      animation: xp-toast 1.5s ease-out forwards;
-    }
-    
-    /* Particle explosion effect (with iOS Safari prefixes) */
-    @-webkit-keyframes particle-burst {
-      0% { -webkit-transform: scale(0); transform: scale(0); opacity: 1; }
-      50% { opacity: 0.8; }
-      100% { -webkit-transform: scale(3); transform: scale(3); opacity: 0; }
-    }
-    @keyframes particle-burst {
-      0% { -webkit-transform: scale(0); transform: scale(0); opacity: 1; }
-      50% { opacity: 0.8; }
-      100% { -webkit-transform: scale(3); transform: scale(3); opacity: 0; }
+    .rest-overlay {
+      background: rgba(0,0,0,0.98);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
     
-    /* Energy wave effect on validate (with iOS Safari prefixes) */
-    @-webkit-keyframes energy-wave {
-      0% { -webkit-transform: scale(1); transform: scale(1); opacity: 0.6; }
-      100% { -webkit-transform: scale(2.5); transform: scale(2.5); opacity: 0; }
-    }
-    @keyframes energy-wave {
-      0% { -webkit-transform: scale(1); transform: scale(1); opacity: 0.6; }
-      100% { -webkit-transform: scale(2.5); transform: scale(2.5); opacity: 0; }
-    }
-    
-    .energy-wave {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      background: linear-gradient(135deg, var(--cyan), var(--magenta));
-      -webkit-animation: energy-wave 0.6s ease-out forwards;
-      animation: energy-wave 0.6s ease-out forwards;
-    }
-    
-    /* Glowing border animation (with iOS Safari prefixes) */
-    @-webkit-keyframes glow-pulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(0, 234, 255, 0.3), inset 0 0 20px rgba(0, 234, 255, 0.1); }
-      50% { box-shadow: 0 0 40px rgba(0, 234, 255, 0.5), inset 0 0 30px rgba(0, 234, 255, 0.2); }
-    }
-    @keyframes glow-pulse {
-      0%, 100% { box-shadow: 0 0 20px rgba(0, 234, 255, 0.3), inset 0 0 20px rgba(0, 234, 255, 0.1); }
-      50% { box-shadow: 0 0 40px rgba(0, 234, 255, 0.5), inset 0 0 30px rgba(0, 234, 255, 0.2); }
-    }
-    
-    .glow-active {
-      -webkit-animation: glow-pulse 2s ease-in-out infinite;
-      animation: glow-pulse 2s ease-in-out infinite;
-    }
-    
-    /* Progress bar shimmer (with iOS Safari prefixes) */
-    @-webkit-keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    @keyframes shimmer {
-      0% { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    
-    .progress-shimmer {
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      background-size: 200% 100%;
-      -webkit-animation: shimmer 1.5s infinite;
-      animation: shimmer 1.5s infinite;
-    }
-    
-    /* Countdown pulse for last 3 seconds (with iOS Safari prefixes) */
-    @-webkit-keyframes countdown-pulse {
-      0%, 100% { -webkit-transform: scale(1); transform: scale(1); }
-      50% { -webkit-transform: scale(1.15); transform: scale(1.15); color: #ef4444; }
-    }
     @keyframes countdown-pulse {
-      0%, 100% { -webkit-transform: scale(1); transform: scale(1); }
-      50% { -webkit-transform: scale(1.15); transform: scale(1.15); color: #ef4444; }
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); color: #ef4444; }
     }
-    
-    .countdown-critical {
-      -webkit-animation: countdown-pulse 0.5s ease-in-out infinite;
-      animation: countdown-pulse 0.5s ease-in-out infinite;
-    }
-    
-    /* Success checkmark animation (with iOS Safari prefixes) */
-    @-webkit-keyframes check-pop {
-      0% { -webkit-transform: scale(0) rotate(-45deg); transform: scale(0) rotate(-45deg); opacity: 0; }
-      50% { -webkit-transform: scale(1.3) rotate(0deg); transform: scale(1.3) rotate(0deg); }
-      100% { -webkit-transform: scale(1) rotate(0deg); transform: scale(1) rotate(0deg); opacity: 1; }
-    }
-    @keyframes check-pop {
-      0% { -webkit-transform: scale(0) rotate(-45deg); transform: scale(0) rotate(-45deg); opacity: 0; }
-      50% { -webkit-transform: scale(1.3) rotate(0deg); transform: scale(1.3) rotate(0deg); }
-      100% { -webkit-transform: scale(1) rotate(0deg); transform: scale(1) rotate(0deg); opacity: 1; }
-    }
-    
-    .check-animate {
-      -webkit-animation: check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-      animation: check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
-    
-    /* Holographic effect on core (with iOS Safari prefixes) */
-    @-webkit-keyframes holo-shift {
-      0% { -webkit-filter: hue-rotate(0deg) blur(20px); filter: hue-rotate(0deg) blur(20px); }
-      50% { -webkit-filter: hue-rotate(30deg) blur(25px); filter: hue-rotate(30deg) blur(25px); }
-      100% { -webkit-filter: hue-rotate(0deg) blur(20px); filter: hue-rotate(0deg) blur(20px); }
-    }
-    @keyframes holo-shift {
-      0% { -webkit-filter: hue-rotate(0deg) blur(20px); filter: hue-rotate(0deg) blur(20px); }
-      50% { -webkit-filter: hue-rotate(30deg) blur(25px); filter: hue-rotate(30deg) blur(25px); }
-      100% { -webkit-filter: hue-rotate(0deg) blur(20px); filter: hue-rotate(0deg) blur(20px); }
-    }
-    
-    .holo-core {
-      -webkit-animation: holo-shift 4s ease-in-out infinite;
-      animation: holo-shift 4s ease-in-out infinite;
-    }
-    
-    /* Skip Rest Button - Premium Orange Shimmer */
-    @-webkit-keyframes shimmer-orange {
-      0% { -webkit-transform: translateX(-100%); transform: translateX(-100%); }
-      100% { -webkit-transform: translateX(100%); transform: translateX(100%); }
-    }
-    @keyframes shimmer-orange {
-      0% { -webkit-transform: translateX(-100%); transform: translateX(-100%); }
-      100% { -webkit-transform: translateX(100%); transform: translateX(100%); }
-    }
-    
-    .shimmer-orange {
-      -webkit-animation: shimmer-orange 2s infinite;
-      animation: shimmer-orange 2s infinite;
-    }
-    
-    /* Skip Rest Premium Glow Pulse */
-    @-webkit-keyframes skip-glow {
-      0%, 100% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(249, 115, 22, 0.2); }
-      50% { box-shadow: 0 0 30px rgba(249, 115, 22, 0.6), 0 0 60px rgba(249, 115, 22, 0.3); }
-    }
-    @keyframes skip-glow {
-      0%, 100% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(249, 115, 22, 0.2); }
-      50% { box-shadow: 0 0 30px rgba(249, 115, 22, 0.6), 0 0 60px rgba(249, 115, 22, 0.3); }
-    }
-    
-    .skip-rest-premium {
-      -webkit-animation: skip-glow 1.5s ease-in-out infinite;
-      animation: skip-glow 1.5s ease-in-out infinite;
-    }
-    
-    .skip-rest-premium:active {
-      -webkit-transform: scale(0.97);
-      transform: scale(0.97);
-    }
-    
-    /* Glass Stat Card - Ultra Transparent */
-    .glass-stat-card {
-      background: rgba(255, 255, 255, 0.003);
-      -webkit-backdrop-filter: blur(30px);
-      backdrop-filter: blur(30px);
-      border: 1px solid rgba(255, 255, 255, 0.02);
-      border-radius: 16px;
-      padding: 12px 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    }
-    
-    .stat-value {
-      font-family: 'Rajdhani', 'Chakra Petch', sans-serif;
-      font-size: 22px;
-      font-weight: 700;
-      line-height: 1;
-    }
-    
-    .stat-label {
-      font-size: 9px;
-      color: rgba(255, 255, 255, 0.4);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-    
-    .stat-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 3px;
-      border-radius: 0 3px 0 0;
-      opacity: 0.6;
-    }
-    
-    /* Rest overlay critical state */
-    .rest-critical #rest-overlay-timer {
-      color: #ef4444 !important;
-      text-shadow: 0 0 30px rgba(239,68,68,0.8), 0 0 60px rgba(239,68,68,0.4) !important;
-      -webkit-animation: countdown-pulse 0.5s ease-in-out infinite;
-      animation: countdown-pulse 0.5s ease-in-out infinite;
-    }
-    
-    .rest-critical #rest-circle-progress {
-      stroke: #ef4444 !important;
-      filter: drop-shadow(0 0 12px rgba(239,68,68,0.8)) !important;
-    }
-    
-    .rest-critical .timer-circle-svg {
-      filter: drop-shadow(0 0 30px rgba(239,68,68,0.4)) !important;
-    }
-    
-    @supports (-webkit-touch-callout: none) {
-      /* Fixes spécifiques iOS Safari */
-      * { -webkit-tap-highlight-color: rgba(0, 234, 255, 0.2); }
-      /* Empêche le zoom sur input */
-      input, select, textarea { font-size: 16px !important; }
-    }
-    </style>
+    .countdown-critical { animation: countdown-pulse 0.5s infinite; }
+  </style>
 </head>
 
-<body>
-  <canvas id="starfield-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
-  <script>document.addEventListener("touchstart", function(){}, {passive: true});</script>
+<body class="flex flex-col">
+  <canvas id="starfield-canvas" class="fixed inset-0 w-full h-full z-0 pointer-events-none"></canvas>
   
-  <!-- XP Flash Animation - Toast style en haut -->
+  <!-- XP Flash -->
   <div id="xp-flash" class="fixed top-20 left-1/2 -translate-x-1/2 pointer-events-none z-[100] opacity-0">
-    <div class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-black/80 backdrop-blur-xl border border-[var(--cyan)]/30" style="box-shadow: 0 0 30px rgba(34,211,238,0.3);">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--cyan)] to-[var(--magenta)] flex items-center justify-center">
-        <span class="text-lg font-black text-white">⚡</span>
+    <div class="flex items-center gap-3 px-5 py-3 rounded-2xl bg-black/80 backdrop-blur-xl border border-cyan-500/30">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center">
+        <span class="text-lg font-black">⚡</span>
       </div>
       <div>
-        <div class="text-xl font-black font-hud text-transparent bg-clip-text bg-gradient-to-r from-[var(--cyan)] to-[var(--magenta)]" style="-webkit-background-clip: text;">+50 XP</div>
+        <div class="text-xl font-black font-hud text-cyan-400">+50 XP</div>
         <div class="text-[10px] font-bold text-white/50 uppercase tracking-widest">Série validée</div>
       </div>
     </div>
   </div>
   
-  <!-- Flash Screen Effect -->
   <div class="flash-screen" id="flash-fx"></div>
   
-  <!-- REST TIMER OVERLAY - NEON FIT STYLE -->
-  <div id="rest-overlay" class="fixed inset-0 z-[90] hidden">
-    <!-- Background matching app void color -->
-    <div class="absolute inset-0 bg-[#020408]/98 backdrop-blur-xl"></div>
+  <!-- REST OVERLAY -->
+  <div id="rest-overlay" class="fixed inset-0 z-[90] hidden rest-overlay">
+    <div class="absolute top-[-20%] left-[-20%] w-[600px] h-[600px] rounded-full bg-cyan-500 opacity-5 blur-[120px]"></div>
+    <div class="absolute bottom-[-20%] right-[-20%] w-[500px] h-[500px] rounded-full bg-purple-500 opacity-5 blur-[120px]"></div>
     
-    <!-- Nebula effects like index.html -->
-    <div class="absolute top-[-20%] left-[-20%] w-[600px] h-[600px] rounded-full bg-[#164e63] opacity-10 blur-[120px] pointer-events-none"></div>
-    <div class="absolute bottom-[-20%] right-[-20%] w-[500px] h-[500px] rounded-full bg-[#581c87] opacity-10 blur-[120px] pointer-events-none"></div>
-    
-    <!-- Content -->
-    <div class="relative z-10 h-full flex flex-col items-center justify-center px-6 safe-area-padding">
-      
-      <!-- Timer Circle - Simple and clean -->
-      <div class="relative w-64 h-64 mb-6" style="filter: drop-shadow(0 0 40px rgba(34,211,238,0.3));">
+    <div class="relative z-10 h-full flex flex-col items-center justify-center px-6">
+      <div class="relative w-64 h-64 mb-8">
         <svg width="100%" height="100%" viewBox="0 0 280 280">
+          <circle cx="140" cy="140" r="115" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" />
+          <circle id="rest-circle-progress" cx="140" cy="140" r="115" fill="none" stroke="url(#timerGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="722.57" stroke-dashoffset="0" transform="rotate(-90 140 140)" />
           <defs>
-            <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#22d3ee" />
-              <stop offset="50%" stop-color="#a855f7" />
               <stop offset="100%" stop-color="#c084fc" />
             </linearGradient>
           </defs>
-          
-          <!-- Background track -->
-          <circle cx="140" cy="140" r="115" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" />
-          
-          <!-- Progress circle -->
-          <circle id="rest-circle-progress" cx="140" cy="140" r="115" fill="none" stroke="url(#timerGradient)" stroke-width="10" stroke-linecap="round" stroke-dasharray="722.57" stroke-dashoffset="0" transform="rotate(-90 140 140)" />
         </svg>
-        
-        <!-- Timer text -->
         <div class="absolute inset-0 flex flex-col items-center justify-center">
-          <span class="text-xs font-bold text-[var(--cyan)] uppercase tracking-[0.3em] mb-2 opacity-80">REPOS</span>
-          <span id="rest-overlay-timer" class="text-6xl font-hud font-black text-white" style="text-shadow: 0 0 30px rgba(34,211,238,0.5), 0 0 60px rgba(34,211,238,0.3);">
-            01:30
-          </span>
+          <span class="text-xs font-bold text-cyan-400 uppercase tracking-[0.3em] mb-2">REPOS</span>
+          <span id="rest-overlay-timer" class="text-6xl font-hud font-black text-white">01:30</span>
         </div>
       </div>
       
-      <!-- Exercise Details - Glass Cards Style -->
-      <div class="grid grid-cols-3 gap-3 w-full max-w-sm mb-6">
-        <!-- Séries Card -->
-        <div class="glass-stat-card">
-          <span class="stat-value text-[var(--cyan)]" id="rest-sets-display">3/5</span>
-          <span class="stat-label">SÉRIES</span>
-          <div class="stat-bar bg-[var(--cyan)]" style="width: 60%"></div>
+      <div class="grid grid-cols-3 gap-3 w-full max-w-sm mb-8">
+        <div class="bg-white/5 backdrop-blur rounded-xl p-3 text-center border border-white/10">
+          <div class="text-lg font-bold text-cyan-400" id="rest-sets-display">3/5</div>
+          <div class="text-[9px] text-gray-500 uppercase">Séries</div>
         </div>
-        
-        <!-- Charge Card -->
-        <div class="glass-stat-card">
-          <span class="stat-value text-[var(--magenta)]" id="rest-weight-display">75kg</span>
-          <span class="stat-label">CHARGE</span>
-          <div class="stat-bar bg-[var(--magenta)]" style="width: 75%"></div>
+        <div class="bg-white/5 backdrop-blur rounded-xl p-3 text-center border border-white/10">
+          <div class="text-lg font-bold text-purple-400" id="rest-weight-display">75kg</div>
+          <div class="text-[9px] text-gray-500 uppercase">Charge</div>
         </div>
-        
-        <!-- Tempo Card -->
-        <div class="glass-stat-card">
-          <span class="stat-value text-[var(--orange)] text-lg whitespace-nowrap" id="rest-tempo-display">3-1-2</span>
-          <span class="stat-label">TEMPO</span>
-          <div class="stat-bar bg-[var(--orange)]" style="width: 100%"></div>
+        <div class="bg-white/5 backdrop-blur rounded-xl p-3 text-center border border-white/10">
+          <div class="text-lg font-bold text-orange-400" id="rest-tempo-display">3-1-2</div>
+          <div class="text-[9px] text-gray-500 uppercase">Tempo</div>
         </div>
       </div>
       
-      <!-- Next exercise info - Glass Card -->
-      <div class="w-full max-w-sm mb-6 p-4 rounded-2xl bg-white/[0.02] backdrop-blur-md border border-white/10 border-t-white/20">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-[var(--cyan)]/10 border border-[var(--cyan)]/30 flex items-center justify-center">
-            <i data-lucide="arrow-right" class="w-5 h-5 text-[var(--cyan)]"></i>
-          </div>
-          <div>
-            <span class="text-[10px] font-bold text-white/40 uppercase tracking-widest">PROCHAIN</span>
-            <p id="rest-next-exercise" class="text-sm font-bold text-white leading-tight">Série suivante</p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Skip Button - Matching App Style -->
-      <button onclick="skipRest()" class="w-full max-w-sm h-14 rounded-2xl flex items-center justify-center gap-3 touch-btn relative overflow-hidden transition-all duration-300 group" style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(192, 132, 252, 0.1) 100%); border: 1px solid rgba(34, 211, 238, 0.3);">
-        <div class="absolute inset-0 bg-gradient-to-r from-[var(--cyan)]/0 via-[var(--cyan)]/20 to-[var(--cyan)]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
-        <i data-lucide="skip-forward" class="w-5 h-5 text-[var(--cyan)] relative z-10"></i>
-        <span class="text-base font-hud font-bold text-[var(--cyan)] uppercase tracking-wider relative z-10">Passer le repos</span>
+      <button onclick="skipRest()" class="w-full max-w-sm h-14 rounded-2xl flex items-center justify-center gap-3 touch-btn bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 transition-colors">
+        <i data-lucide="skip-forward" class="w-5 h-5 text-cyan-400"></i>
+        <span class="text-base font-hud font-bold text-cyan-400 uppercase tracking-wider">Passer le repos</span>
       </button>
     </div>
   </div>
   
-  <!-- Header Premium - Photo 2 Style -->
-  <header class="flex-none px-4 pt-2 pb-3 bg-[#010101] border-b border-white/5 z-50">
-    <!-- Top Row: Day + Abort -->
+  <!-- HEADER -->
+  <header class="flex-none px-4 pt-3 pb-3 bg-black/80 backdrop-blur border-b border-white/5 z-50 relative">
     <div class="flex justify-between items-start mb-3">
       <div>
-        <h1 class="text-2xl font-hud font-black text-white uppercase tracking-tight leading-none" id="day-title">DIMANCHE</h1>
+        <h1 class="text-2xl font-hud font-black text-white uppercase tracking-tight" id="day-title">DIMANCHE</h1>
         <div class="flex items-center gap-2 mt-1">
-          <span class="text-[var(--cyan)] font-bold">//</span>
-          <span class="text-[10px] font-mono-tech font-bold text-[var(--cyan)] uppercase tracking-widest" id="workout-muscles">DOS + JAMBES</span>
+          <span class="text-cyan-400 font-bold">//</span>
+          <span class="text-[10px] font-mono-tech font-bold text-cyan-400 uppercase tracking-widest" id="workout-muscles">DOS + JAMBES</span>
         </div>
       </div>
-      <button onclick="window.location.href='workouts.html'" class="px-3 py-1.5 bg-red-950/20 border border-red-900/50 rounded flex items-center gap-2 text-[10px] font-bold text-red-500 uppercase tracking-widest hover:bg-red-950/40 transition-colors touch-btn">
+      <button onclick="window.location.href='workouts.html'" class="px-3 py-1.5 bg-red-950/30 border border-red-900/50 rounded flex items-center gap-2 text-[10px] font-bold text-red-500 uppercase touch-btn">
         ABORT <i data-lucide="arrow-right" class="w-3 h-3"></i>
       </button>
     </div>
     
-    <!-- Stats Card -->
-    <div class="bg-[#080c14] border border-white/10 rounded-xl p-3 flex items-center justify-between relative overflow-hidden">
-      <div class="absolute left-0 top-0 bottom-0 w-1 bg-[var(--cyan)]"></div>
-      <div class="flex items-center gap-3 pl-2">
-        <div class="w-10 h-10 bg-cyan-900/20 rounded-lg border border-cyan-500/20 flex items-center justify-center">
-          <i data-lucide="user" class="w-5 h-5 text-[var(--cyan)]"></i>
+    <div class="bg-slate-900/50 border border-white/10 rounded-xl p-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-cyan-900/30 rounded-lg border border-cyan-500/30 flex items-center justify-center">
+          <i data-lucide="user" class="w-5 h-5 text-cyan-400"></i>
         </div>
         <div>
-          <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">CIBLE <span class="text-[var(--cyan)]" id="header-muscle">DOS</span></div>
+          <div class="text-[9px] font-bold text-gray-500 uppercase">CIBLE <span class="text-cyan-400" id="header-muscle">DOS</span></div>
           <div class="flex items-center gap-2 mt-1">
-            <span class="text-[9px] font-bold text-gray-600">DENSITÉ</span>
-            <div class="w-12 h-1 bg-gray-800 rounded-full"><div class="w-[80%] h-full bg-green-500 rounded-full" id="density-bar"></div></div>
+            <span class="text-[9px] text-gray-600">DENSITÉ</span>
+            <div class="w-12 h-1 bg-gray-800 rounded-full"><div class="w-[80%] h-full bg-green-500 rounded-full"></div></div>
           </div>
         </div>
       </div>
       <div class="text-right">
-        <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest">VOLUME ACTUEL</div>
+        <div class="text-[9px] font-bold text-gray-500 uppercase">VOLUME SESSION</div>
         <div class="text-xl font-mono-tech font-bold text-white"><span id="volume-display">0</span> <span class="text-xs text-gray-500">KG</span></div>
       </div>
     </div>
   </header>
   
-  <!-- Main Content - Photo 2 Style with Tempo Bars -->
-  <main class="flex-1 flex flex-col relative overflow-hidden w-full">
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 flex flex-col relative overflow-hidden">
     
-    <!-- Info Strip - Series + Target Lock -->
-    <div class="pt-3 px-4 relative z-10 mb-2">
+    <!-- Series + Instruction -->
+    <div class="px-4 pt-3 relative z-10">
       <div class="flex items-center gap-3 mb-2">
-        <span class="px-2 py-1 rounded bg-cyan-900/30 border border-cyan-500/30 text-[10px] font-bold text-[var(--cyan)] font-mono-tech" id="series-badge">
-          SÉRIE 1 / 5
-        </span>
-        <span class="text-[10px] font-mono-tech text-slate-500 uppercase tracking-widest flex items-center gap-1">
-          <i data-lucide="zap" class="w-3 h-3"></i>
-          TARGET LOCK
+        <span class="px-2 py-1 rounded bg-cyan-900/30 border border-cyan-500/30 text-[10px] font-bold text-cyan-400 font-mono-tech" id="series-badge">SÉRIE 1 / 5</span>
+        <span class="text-[10px] font-mono-tech text-slate-500 uppercase flex items-center gap-1">
+          <i data-lucide="target" class="w-3 h-3"></i> TARGET LOCK
         </span>
       </div>
-      <h2 class="text-sm font-hud font-bold text-white uppercase leading-tight max-w-[90%]" id="ex-notes">
-        CONTRÔLER LA DESCENTE. PAS DE REBOND.
-      </h2>
+      <p class="text-sm text-gray-300 font-medium leading-relaxed" id="ex-notes">CONTRÔLE LA DESCENTE. PAS DE REBOND.</p>
     </div>
-
-    <!-- MAIN VISUALIZER with Tempo Bars -->
-    <div class="flex-1 flex items-center justify-between px-3 relative z-10 w-full pb-2 min-h-0">
+    
+    <!-- TEMPO ZONE - Central Rep Counter with Side Bars -->
+    <div class="flex-1 flex items-center justify-between px-4 relative z-10">
       
-      <!-- Left Column: ECCENTRIC GAUGE (Cyan) -->
-      <div class="h-full flex flex-col items-center justify-between py-4" style="min-height: 250px;">
-        <span class="text-[10px] font-black font-mono-tech uppercase tracking-widest text-slate-700 transition-colors duration-300" id="ecc-label" style="writing-mode: vertical-rl; transform: rotate(180deg);">
-          EXCENTRIQUE
-        </span>
-        
-        <!-- Tempo Bar (fills top to bottom) -->
-        <div class="h-[60%] w-5 bg-[#080c14] rounded-full overflow-hidden relative border border-white/10">
-          <div id="ecc-bar" class="w-full absolute top-0 left-0 bg-[var(--cyan)] shadow-[0_0_15px_rgba(0,234,255,0.6)] transition-all duration-75" style="height: 0%; opacity: 0.3;"></div>
+      <!-- LEFT BAR - EXCENTRIQUE (Cyan) -->
+      <div class="flex flex-col items-center gap-2">
+        <span class="tempo-label text-cyan-400" id="ecc-label">EXCENTRIQUE</span>
+        <div class="tempo-bar-container" style="box-shadow: 0 0 15px rgba(34,211,238,0.2);">
+          <div id="ecc-bar" class="tempo-bar-fill bg-gradient-to-t from-cyan-600 to-cyan-400" style="height: 0%;"></div>
         </div>
-        
-        <i data-lucide="arrow-down" class="w-5 h-5 text-slate-700 transition-colors duration-300" id="ecc-arrow"></i>
+        <i data-lucide="arrow-down" class="w-5 h-5 text-cyan-400" id="ecc-arrow"></i>
       </div>
-
-      <!-- Center: BIG COUNTDOWN & LOAD -->
-      <div class="flex flex-col items-center justify-center flex-1 px-2">
-        <!-- Countdown Timer (Reps remaining) -->
-        <div class="relative flex items-center justify-center">
-          <span class="text-[8rem] leading-none font-black font-hud text-white tracking-tighter drop-shadow-[0_0_30px_rgba(255,255,255,0.2)] tabular-nums" id="reps-countdown">
-            8
-          </span>
-          <!-- Decorative ring -->
-          <div class="absolute inset-0 border-2 border-dashed border-white/5 rounded-full pointer-events-none scale-110" style="animation: spin 20s linear infinite;"></div>
+      
+      <!-- CENTER - Rep Counter + Load -->
+      <div class="flex flex-col items-center">
+        <!-- TARGET badge -->
+        <div class="absolute top-[15%] right-[30%] text-[8px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1 rotate-[-15deg]">
+          <span class="text-gray-600">T</span><span class="text-gray-600">A</span><span class="text-gray-600">R</span><span class="text-gray-600">G</span><span class="text-gray-600">E</span><span class="text-gray-600">T</span>
         </div>
-
-        <!-- Load Display Card -->
-        <div class="mt-2 bg-[#080c14] border border-white/10 px-5 py-2 rounded-2xl flex items-center gap-3 shadow-2xl relative overflow-hidden">
-          <div class="absolute inset-0 bg-gradient-to-r from-[var(--cyan)]/5 to-transparent pointer-events-none"></div>
-          <span class="text-4xl font-mono-tech font-bold text-[var(--cyan)] tracking-tighter" id="load-display">75</span>
-          <div class="flex flex-col border-l border-white/10 pl-3 h-8 justify-center">
-            <span class="text-sm font-black text-white uppercase">KG</span>
-            <span class="text-[8px] font-mono-tech text-slate-500 uppercase tracking-wider">LOAD</span>
+        
+        <!-- REPS COUNTDOWN -->
+        <span id="reps-countdown" class="text-[10rem] leading-none font-black font-hud text-white tracking-tighter drop-shadow-[0_0_30px_rgba(255,255,255,0.15)]">8</span>
+        
+        <!-- LOAD CARD -->
+        <div class="mt-4 px-6 py-3 rounded-xl bg-slate-900/60 border border-cyan-500/20 flex items-center gap-3">
+          <span id="load-display" class="text-4xl font-mono-tech font-bold text-cyan-400">75</span>
+          <div class="border-l border-gray-700 pl-3">
+            <div class="text-xs font-bold text-gray-400">KG</div>
+            <div class="text-[9px] text-gray-600 uppercase">LOAD</div>
           </div>
         </div>
-
-        <!-- Tempo Phase Indicators -->
-        <div class="mt-3 flex gap-6 opacity-80">
-          <div class="flex flex-col items-center gap-0.5 transition-all duration-300 text-slate-700" id="tempo-ecc">
-            <span class="text-xl font-black font-hud" id="tempo-ecc-val">3</span>
-            <span class="text-[7px] font-bold tracking-widest">ECC</span>
+        
+        <!-- TEMPO INDICATORS -->
+        <div class="flex items-center gap-4 mt-4">
+          <div class="text-center transition-all duration-200" id="tempo-ecc">
+            <span class="text-2xl font-bold text-cyan-400" id="tempo-ecc-val">3</span>
+            <div class="text-[8px] font-bold text-gray-600 uppercase">ECC</div>
           </div>
-          <div class="flex flex-col items-center gap-0.5 transition-all duration-300 text-slate-700" id="tempo-iso">
-            <span class="text-xl font-black font-hud" id="tempo-iso-val">1</span>
-            <span class="text-[7px] font-bold tracking-widest">ISO</span>
+          <div class="text-center transition-all duration-200" id="tempo-iso">
+            <span class="text-2xl font-bold text-gray-500" id="tempo-iso-val">1</span>
+            <div class="text-[8px] font-bold text-gray-600 uppercase">ISO</div>
           </div>
-          <div class="flex flex-col items-center gap-0.5 transition-all duration-300 text-slate-700" id="tempo-con">
-            <span class="text-xl font-black font-hud" id="tempo-con-val">2</span>
-            <span class="text-[7px] font-bold tracking-widest">CON</span>
+          <div class="text-center transition-all duration-200" id="tempo-con">
+            <span class="text-2xl font-bold text-purple-400" id="tempo-con-val">2</span>
+            <div class="text-[8px] font-bold text-gray-600 uppercase">CON</div>
           </div>
         </div>
       </div>
-
-      <!-- Right Column: CONCENTRIC GAUGE (Purple) -->
-      <div class="h-full flex flex-col items-center justify-between py-4" style="min-height: 250px;">
-        <i data-lucide="arrow-up" class="w-5 h-5 text-slate-700 transition-colors duration-300" id="con-arrow"></i>
-        
-        <!-- Tempo Bar (fills bottom to top) -->
-        <div class="h-[60%] w-5 bg-[#080c14] rounded-full overflow-hidden relative border border-white/10 flex flex-col justify-end">
-          <div id="con-bar" class="w-full bg-[var(--magenta)] shadow-[0_0_15px_rgba(255,45,149,0.6)] transition-all duration-75" style="height: 0%; opacity: 0.3;"></div>
+      
+      <!-- RIGHT BAR - CONCENTRIQUE (Magenta) -->
+      <div class="flex flex-col items-center gap-2">
+        <span class="tempo-label text-purple-400" id="con-label">CONCENTRIQUE</span>
+        <div class="tempo-bar-container" style="box-shadow: 0 0 15px rgba(192,132,252,0.2);">
+          <div id="con-bar" class="tempo-bar-fill bg-gradient-to-t from-purple-600 to-purple-400" style="height: 0%;"></div>
         </div>
-        
-        <span class="text-[10px] font-black font-mono-tech uppercase tracking-widest text-slate-700 transition-colors duration-300" id="con-label" style="writing-mode: vertical-rl; transform: rotate(180deg);">
-          CONCENTRIQUE
-        </span>
+        <i data-lucide="arrow-up" class="w-5 h-5 text-purple-400" id="con-arrow"></i>
       </div>
     </div>
     
-    <!-- Exercise Name + Dots (above controls) -->
-    <div class="px-4 pb-2 pointer-events-none z-20">
-      <div class="flex items-center justify-between mb-1">
-        <span class="px-2 py-0.5 rounded bg-[var(--cyan)]/10 border border-[var(--cyan)]/30 text-[9px] font-bold text-[var(--cyan)] uppercase" id="muscle-tag">PECTORAUX</span>
-        <div class="flex gap-1" id="dots-container"></div>
-      </div>
-      <h1 class="text-2xl font-hud font-black text-white uppercase leading-none drop-shadow-md truncate" id="ex-name">DUMBBELL PRESS</h1>
-    </div>
-    
-    <!-- Hidden elements for compatibility -->
-    <div id="superset-badge" class="hidden"><span id="superset-name"></span></div>
-    <span id="block-tech" class="hidden">TEMPO</span>
-    <span id="current-set-disp" class="hidden">1</span>
-    
-    <!-- Bottom Control Panel - Photo 2 Style with RPE Rating -->
-    <div class="controls-panel-container">
+    <!-- BOTTOM CONTROLS -->
+    <div class="flex-none px-4 pb-6 pt-4 bg-gradient-to-t from-black via-black/80 to-transparent relative z-20">
       
-      <!-- RPE Rating Row -->
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex flex-col">
-          <span class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">RPE RATING</span>
-          <div class="flex gap-2" id="rpe-selector">
-            <button onclick="setRpe(6)" class="rpe-btn w-10 h-10 rounded-lg bg-black/40 border border-white/10 text-white font-hud font-bold text-lg transition-all duration-150 hover:border-green-500/50" data-rpe="6">6</button>
-            <button onclick="setRpe(7)" class="rpe-btn w-10 h-10 rounded-lg bg-black/40 border border-white/10 text-white font-hud font-bold text-lg transition-all duration-150 hover:border-green-500/50" data-rpe="7">7</button>
-            <button onclick="setRpe(8)" class="rpe-btn w-10 h-10 rounded-lg bg-green-500 border border-green-400 text-black font-hud font-bold text-lg shadow-[0_0_15px_rgba(34,197,94,0.4)]" data-rpe="8">8</button>
-            <button onclick="setRpe(9)" class="rpe-btn w-10 h-10 rounded-lg bg-black/40 border border-white/10 text-white font-hud font-bold text-lg transition-all duration-150 hover:border-green-500/50" data-rpe="9">9</button>
-            <button onclick="setRpe(10)" class="rpe-btn w-10 h-10 rounded-lg bg-black/40 border border-white/10 text-white font-hud font-bold text-lg transition-all duration-150 hover:border-green-500/50" data-rpe="10">10</button>
+      <!-- Target Info Strip -->
+      <div class="flex justify-between items-center mb-4 px-2 py-2 rounded-lg bg-slate-900/50 border border-white/5">
+        <div class="text-center flex-1">
+          <div class="text-[9px] font-bold text-gray-500 uppercase">CIBLE</div>
+          <div class="text-sm font-bold text-white"><span id="t-sets">5</span>×<span id="t-reps">10</span></div>
+        </div>
+        <div class="w-px h-8 bg-gray-700"></div>
+        <div class="text-center flex-1">
+          <div class="text-[9px] font-bold text-gray-500 uppercase">CHARGE</div>
+          <div class="text-sm font-bold text-cyan-400"><span id="t-load">75</span>kg</div>
+        </div>
+        <div class="w-px h-8 bg-gray-700"></div>
+        <div class="text-center flex-1">
+          <div class="text-[9px] font-bold text-gray-500 uppercase">REPOS</div>
+          <div class="text-sm font-bold text-orange-400" id="t-rest">90s</div>
+        </div>
+      </div>
+      
+      <!-- Weight/Reps Adjusters + Validate -->
+      <div class="flex items-center justify-between gap-3 mb-4">
+        
+        <!-- CHARGE KG -->
+        <div class="flex-1 bg-slate-900/60 rounded-xl border border-white/10 p-3">
+          <div class="text-[9px] font-bold text-purple-400 uppercase text-center mb-2">CHARGE KG</div>
+          <div class="flex items-center justify-between">
+            <button onclick="modWeight(-2.5)" class="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center touch-btn hover:border-purple-500/50">
+              <i data-lucide="minus" class="w-5 h-5 text-gray-400"></i>
+            </button>
+            <span id="in-weight" class="text-3xl font-mono-tech font-bold text-white">75</span>
+            <button onclick="modWeight(2.5)" class="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center touch-btn hover:border-purple-500/50">
+              <i data-lucide="plus" class="w-5 h-5 text-gray-400"></i>
+            </button>
           </div>
         </div>
         
-        <!-- Big Green Validate Button -->
-        <button id="btn-validate" onclick="logSet()" class="w-16 h-16 rounded-full flex items-center justify-center touch-btn overflow-hidden relative shadow-[0_0_30px_rgba(34,197,94,0.5)]" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
-          <i data-lucide="check" class="w-8 h-8 text-white relative z-10"></i>
-        </button>
+        <!-- REPETITIONS -->
+        <div class="flex-1 bg-slate-900/60 rounded-xl border border-white/10 p-3">
+          <div class="text-[9px] font-bold text-cyan-400 uppercase text-center mb-2">RÉPÉTITIONS</div>
+          <div class="flex items-center justify-between">
+            <button onclick="modReps(-1)" class="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center touch-btn hover:border-cyan-500/50">
+              <i data-lucide="minus" class="w-5 h-5 text-gray-400"></i>
+            </button>
+            <span id="in-reps" class="text-3xl font-mono-tech font-bold text-white">10</span>
+            <button onclick="modReps(1)" class="w-10 h-10 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center touch-btn hover:border-cyan-500/50">
+              <i data-lucide="plus" class="w-5 h-5 text-gray-400"></i>
+            </button>
+          </div>
+        </div>
       </div>
       
-      <!-- Hidden inputs for weight/reps (keep for compatibility) -->
+      <!-- VALIDATE BUTTON -->
+      <button id="btn-validate" onclick="validateSet()" class="w-full h-14 rounded-2xl flex items-center justify-center gap-3 touch-btn overflow-hidden relative" style="background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);">
+        <i data-lucide="zap" class="w-6 h-6 text-white"></i>
+        <span class="text-lg font-hud font-bold text-white uppercase tracking-wider">VALIDER</span>
+        <span class="text-sm font-bold text-white/70">+50 XP</span>
+      </button>
+      
+      <!-- Hidden compatibility elements -->
       <div class="hidden">
-        <span id="in-weight">0</span>
-        <span id="in-reps">0</span>
-        <span id="t-sets">0</span>
-        <span id="t-reps">0</span>
-        <span id="t-load">0</span>
-        <span id="t-rest">90s</span>
+        <span id="current-set-disp">1</span>
+        <span id="ex-name"></span>
+        <span id="muscle-tag"></span>
+        <span id="block-tech"></span>
+        <span id="session-timer">00:00</span>
+        <div id="dots-container"></div>
+        <div id="superset-badge" class="hidden"><span id="superset-name"></span></div>
         <div id="energy-wave-container"></div>
       </div>
     </div>
@@ -690,7 +358,7 @@
   <script type="module">
     import programData from './program-data.js';
     import { WorkoutHistory } from './workout-history.js';
-    import { Gamification, Inputs, Utils, initIcons, CONSTANTS } from './app.js';
+    import { Gamification, initIcons, CONSTANTS } from './app.js';
     
     // ========================================
     // STATE
@@ -704,121 +372,179 @@
     };
     
     let workout = null;
-    let restTimer = null;
     let weekData = null;
+    let restTimer = null;
     
-    // ========================================
-    // TEMPO ANIMATION STATE
-    // ========================================
-    let tempoAnimation = null;
-    let currentRpe = 8;
-    let sessionVolume = 0;
-    
-    // ========================================
-    // GLOBAL FUNCTIONS (called from HTML onclick)
-    // ========================================
-    
-    window.modWeight = (delta) => Inputs.modifyWeight(delta);
-    window.modReps = (delta) => Inputs.modifyReps(delta);
-    
-    // RPE Selector
-    window.setRpe = (rpe) => {
-      currentRpe = rpe;
-      document.querySelectorAll('.rpe-btn').forEach(btn => {
-        const btnRpe = parseInt(btn.dataset.rpe);
-        if (btnRpe === rpe) {
-          btn.className = 'rpe-btn w-10 h-10 rounded-lg bg-green-500 border border-green-400 text-black font-hud font-bold text-lg shadow-[0_0_15px_rgba(34,197,94,0.4)]';
-        } else {
-          btn.className = 'rpe-btn w-10 h-10 rounded-lg bg-black/40 border border-white/10 text-white font-hud font-bold text-lg transition-all duration-150 hover:border-green-500/50';
-        }
-      });
+    // Tempo Engine State
+    let tempoEngine = {
+      running: false,
+      intervalId: null,
+      phase: 'ecc',
+      phaseProgress: 0,
+      repsRemaining: 8,
+      targetReps: 8,
+      tempo: { ecc: 3, iso: 1, con: 2 },
+      totalTUT: 0,
+      sessionVolume: 0
     };
     
-    // Start tempo animation
-    function startTempoAnimation(tempo) {
-      if (tempoAnimation) cancelAnimationFrame(tempoAnimation);
-      
-      // Parse tempo (e.g., "3-1-2" or default)
-      const parts = (tempo || '3-1-2').split('-').map(Number);
-      const eccentric = parts[0] || 3;
-      const pause = parts[1] || 1;
-      const concentric = parts[2] || 2;
-      const totalCycle = (eccentric + pause + concentric) * 1000;
-      
-      // Update tempo display
-      document.getElementById('tempo-ecc-val').textContent = eccentric;
-      document.getElementById('tempo-iso-val').textContent = pause;
-      document.getElementById('tempo-con-val').textContent = concentric;
-      
-      const startTime = Date.now();
-      
-      function animate() {
-        const elapsed = (Date.now() - startTime) % totalCycle;
-        const eccTime = eccentric * 1000;
-        const isoTime = pause * 1000;
-        
-        // Get elements
-        const eccBar = document.getElementById('ecc-bar');
-        const conBar = document.getElementById('con-bar');
-        const eccLabel = document.getElementById('ecc-label');
-        const conLabel = document.getElementById('con-label');
-        const eccArrow = document.getElementById('ecc-arrow');
-        const conArrow = document.getElementById('con-arrow');
-        const tempoEcc = document.getElementById('tempo-ecc');
-        const tempoIso = document.getElementById('tempo-iso');
-        const tempoCon = document.getElementById('tempo-con');
-        
-        let phase = 'ECC';
-        let progress = 0;
-        
-        if (elapsed < eccTime) {
-          phase = 'ECC';
-          progress = (elapsed / eccTime) * 100;
-        } else if (elapsed < eccTime + isoTime) {
-          phase = 'ISO';
-          progress = ((elapsed - eccTime) / isoTime) * 100;
-        } else {
-          phase = 'CON';
-          progress = ((elapsed - eccTime - isoTime) / (concentric * 1000)) * 100;
-        }
-        
-        // Update bars
-        if (eccBar) {
-          eccBar.style.height = phase === 'ECC' ? progress + '%' : (phase === 'ISO' || phase === 'CON' ? '100%' : '0%');
-          eccBar.style.opacity = phase === 'ECC' ? '1' : '0.3';
-        }
-        if (conBar) {
-          conBar.style.height = phase === 'CON' ? progress + '%' : (phase === 'ECC' || phase === 'ISO' ? '0%' : '100%');
-          conBar.style.opacity = phase === 'CON' ? '1' : '0.3';
-        }
-        
-        // Update labels/arrows
-        if (eccLabel) eccLabel.style.color = phase === 'ECC' ? 'var(--cyan)' : '#374151';
-        if (conLabel) conLabel.style.color = phase === 'CON' ? 'var(--magenta)' : '#374151';
-        if (eccArrow) eccArrow.style.color = phase === 'ECC' ? 'var(--cyan)' : '#374151';
-        if (conArrow) conArrow.style.color = phase === 'CON' ? 'var(--magenta)' : '#374151';
-        
-        // Update tempo indicators
-        if (tempoEcc) tempoEcc.style.color = phase === 'ECC' ? 'var(--cyan)' : '#374151';
-        if (tempoIso) tempoIso.style.color = phase === 'ISO' ? '#ffffff' : '#374151';
-        if (tempoCon) tempoCon.style.color = phase === 'CON' ? 'var(--magenta)' : '#374151';
-        if (tempoEcc) tempoEcc.style.transform = phase === 'ECC' ? 'scale(1.1)' : 'scale(1)';
-        if (tempoIso) tempoIso.style.transform = phase === 'ISO' ? 'scale(1.1)' : 'scale(1)';
-        if (tempoCon) tempoCon.style.transform = phase === 'CON' ? 'scale(1.1)' : 'scale(1)';
-        
-        tempoAnimation = requestAnimationFrame(animate);
+    // ========================================
+    // GLOBAL FUNCTIONS
+    // ========================================
+    
+    window.modWeight = (delta) => {
+      const el = document.getElementById('in-weight');
+      const current = parseFloat(el.textContent) || 0;
+      const newVal = Math.max(0, current + delta);
+      el.textContent = newVal;
+      document.getElementById('load-display').textContent = newVal;
+    };
+    
+    window.modReps = (delta) => {
+      const el = document.getElementById('in-reps');
+      const current = parseInt(el.textContent) || 1;
+      const newVal = Math.max(1, current + delta);
+      el.textContent = newVal;
+      tempoEngine.targetReps = newVal;
+      if (!tempoEngine.running) {
+        tempoEngine.repsRemaining = newVal;
+        document.getElementById('reps-countdown').textContent = newVal;
       }
+    };
+    
+    window.validateSet = () => {
+      if (tempoEngine.running) {
+        stopTempoEngine();
+      }
+      logAndCompleteSet();
+    };
+    
+    window.skipRest = () => {
+      clearInterval(restTimer);
+      document.getElementById('rest-overlay').classList.add('hidden');
+      loadNextSetOrExercise();
+    };
+    
+    // ========================================
+    // TEMPO ENGINE
+    // ========================================
+    
+    function startTempoEngine() {
+      if (tempoEngine.running) return;
       
-      tempoAnimation = requestAnimationFrame(animate);
+      tempoEngine.running = true;
+      tempoEngine.phase = 'ecc';
+      tempoEngine.phaseProgress = 0;
+      
+      const { ecc, iso, con } = tempoEngine.tempo;
+      const totalRepDuration = (ecc + iso + con) * 1000;
+      const eccDuration = ecc * 1000;
+      const isoDuration = iso * 1000;
+      
+      tempoEngine.intervalId = setInterval(() => {
+        if (!tempoEngine.running) return;
+        
+        tempoEngine.totalTUT += 0.05;
+        tempoEngine.phaseProgress += 50;
+        
+        const progress = tempoEngine.phaseProgress;
+        
+        // Determine phase
+        let newPhase = 'ecc';
+        if (progress < eccDuration) {
+          newPhase = 'ecc';
+        } else if (progress < eccDuration + isoDuration) {
+          newPhase = 'iso';
+        } else if (progress < totalRepDuration) {
+          newPhase = 'con';
+        } else {
+          // Rep complete
+          tempoEngine.repsRemaining--;
+          document.getElementById('reps-countdown').textContent = tempoEngine.repsRemaining;
+          
+          if (navigator.vibrate) navigator.vibrate([50, 50]);
+          
+          if (tempoEngine.repsRemaining <= 0) {
+            stopTempoEngine();
+            logAndCompleteSet();
+            return;
+          }
+          
+          tempoEngine.phaseProgress = 0;
+          newPhase = 'ecc';
+        }
+        
+        if (newPhase !== tempoEngine.phase) {
+          tempoEngine.phase = newPhase;
+          if (navigator.vibrate) navigator.vibrate([20]);
+        }
+        
+        updateTempoBars();
+      }, 50);
     }
     
-    window.logSet = () => { 
-      const ex = workout.exercises[s.exIdx];
+    function stopTempoEngine() {
+      tempoEngine.running = false;
+      if (tempoEngine.intervalId) {
+        clearInterval(tempoEngine.intervalId);
+        tempoEngine.intervalId = null;
+      }
+    }
+    
+    function updateTempoBars() {
+      const { ecc, iso, con } = tempoEngine.tempo;
+      const eccDuration = ecc * 1000;
+      const isoDuration = iso * 1000;
+      const conDuration = con * 1000;
+      const progress = tempoEngine.phaseProgress;
       
-      // ===== LOG HISTORIQUE =====
+      const eccBar = document.getElementById('ecc-bar');
+      const conBar = document.getElementById('con-bar');
+      const tempoEcc = document.getElementById('tempo-ecc');
+      const tempoIso = document.getElementById('tempo-iso');
+      const tempoCon = document.getElementById('tempo-con');
+      
+      // Reset styles
+      tempoEcc.querySelector('span').style.color = '#6b7280';
+      tempoIso.querySelector('span').style.color = '#6b7280';
+      tempoCon.querySelector('span').style.color = '#6b7280';
+      
+      if (tempoEngine.phase === 'ecc') {
+        const pct = (progress / eccDuration) * 100;
+        eccBar.style.height = pct + '%';
+        conBar.style.height = '0%';
+        tempoEcc.querySelector('span').style.color = '#22d3ee';
+        tempoEcc.style.transform = 'scale(1.1)';
+        tempoIso.style.transform = 'scale(1)';
+        tempoCon.style.transform = 'scale(1)';
+      } else if (tempoEngine.phase === 'iso') {
+        eccBar.style.height = '100%';
+        conBar.style.height = '0%';
+        tempoIso.querySelector('span').style.color = '#ffffff';
+        tempoEcc.style.transform = 'scale(1)';
+        tempoIso.style.transform = 'scale(1.1)';
+        tempoCon.style.transform = 'scale(1)';
+      } else {
+        const pct = ((progress - eccDuration - isoDuration) / conDuration) * 100;
+        eccBar.style.height = '100%';
+        conBar.style.height = pct + '%';
+        tempoCon.querySelector('span').style.color = '#c084fc';
+        tempoEcc.style.transform = 'scale(1)';
+        tempoIso.style.transform = 'scale(1)';
+        tempoCon.style.transform = 'scale(1.1)';
+      }
+    }
+    
+    // ========================================
+    // SET COMPLETION
+    // ========================================
+    
+    function logAndCompleteSet() {
+      const ex = workout.exercises[s.exIdx];
       const weight = parseFloat(document.getElementById('in-weight').textContent);
       const reps = parseInt(document.getElementById('in-reps').textContent);
       
+      // Log to history
       WorkoutHistory.logSet({
         week: s.week,
         day: s.day,
@@ -832,131 +558,121 @@
         technique: weekData.technique,
         notes: ex.notes || ''
       });
-      // ===== FIN LOG =====
+      
+      // Update volume
+      tempoEngine.sessionVolume += weight * reps;
+      document.getElementById('volume-display').textContent = tempoEngine.sessionVolume.toLocaleString();
       
       // Flash effect
-      document.getElementById('flash-fx').classList.add('hit'); 
-      setTimeout(() => document.getElementById('flash-fx').classList.remove('hit'), 200); 
+      document.getElementById('flash-fx').classList.add('hit');
+      setTimeout(() => document.getElementById('flash-fx').classList.remove('hit'), 200);
       
-      // Energy Wave effect on button
-      const waveContainer = document.getElementById('energy-wave-container');
-      const wave = document.createElement('div');
-      wave.className = 'energy-wave';
-      waveContainer.appendChild(wave);
-      setTimeout(() => wave.remove(), 600);
-      
-      // Haptic feedback (if available)
-      if (navigator.vibrate) navigator.vibrate([50, 30, 100]);
-      
-      // XP animation - PREMIUM
-      const xpFlash = document.getElementById('xp-flash'); 
+      // XP animation
+      const xpFlash = document.getElementById('xp-flash');
       xpFlash.classList.add('xp-flash');
-      xpFlash.style.opacity = '1'; 
-      
-      setTimeout(() => { 
+      xpFlash.style.opacity = '1';
+      setTimeout(() => {
         xpFlash.style.opacity = '0';
         xpFlash.classList.remove('xp-flash');
-      }, 1200); 
+      }, 1500);
       
-      // Add XP using Gamification module
       Gamification.addXP(CONSTANTS.XP_PER_SET);
       
-      // Mark dot as completed
-      const dots = document.getElementById('dots-container').children; 
+      // Mark dot
+      const dots = document.getElementById('dots-container').children;
       if (dots[s.setIdx]) {
-        dots[s.setIdx].classList.add('bg-[var(--cyan)]', 'shadow-[0_0_5px_var(--cyan)]'); 
+        dots[s.setIdx].classList.add('bg-cyan-400');
       }
       
-      // Update session volume
-      sessionVolume += weight * reps;
-      document.getElementById('volume-display').textContent = sessionVolume.toLocaleString();
+      s.setIdx++;
+      document.getElementById('series-badge').textContent = `SÉRIE ${s.setIdx + 1} / ${ex.sets}`;
       
-      // Move to next set
-      s.setIdx++; 
-      document.getElementById('current-set-disp').textContent = s.setIdx + 1;
-      
-      // Update series badge
-      const seriesBadge = document.getElementById('series-badge');
-      if (seriesBadge) {
-        seriesBadge.textContent = `SÉRIE ${s.setIdx + 1} / ${ex.sets}`;
-      } 
-      
-      // Check if exercise is finished
-      const isFinished = s.setIdx >= ex.sets; 
-      
-      // Start rest timer
-      startRest(ex.rest || 90, isFinished); 
-    };
-    
-    window.skipRest = () => { 
-      clearInterval(restTimer); 
-      
-      // Hide NeuroFit overlay
-      const overlay = document.getElementById('rest-overlay');
-      overlay.classList.add('hidden');
-      overlay.classList.remove('rest-critical');
-      
-      // Re-init icons in overlay for next time
-      initIcons();
-      
-      // Load next exercise if this one is done
-      if (window._nextEx) {
-        loadEx(s.exIdx + 1); 
-      }
-    };
-    
-    // ========================================
-    // INITIALIZATION
-    // ========================================
-    
-    function init() { 
-      initIcons(); 
-      
-      // Get URL parameters
-      const p = new URLSearchParams(window.location.search); 
-      s.week = parseInt(p.get('week')) || 1; 
-      s.day = p.get('day') || 'dimanche'; 
-      
-      // Load workout data
-      try { 
-        weekData = programData.getWeek(s.week); 
-        workout = programData.getWorkout(s.week, s.day); 
-      } catch(e) { 
-        console.error('Error loading workout:', e);
-        window.location.href = 'workouts.html'; 
-        return; 
-      } 
-      
-      // Set block technique
-      document.getElementById('block-tech').textContent = weekData.technique || "STANDARD"; 
-      
-      // Start session timer
-      setInterval(() => { 
-        const d = Math.floor((Date.now() - s.startTime) / 1000); 
-        document.getElementById('session-timer').textContent = Utils.formatTime(d);
-      }, 1000); 
-      
-      // Load first exercise
-      loadEx(0); 
+      const isFinished = s.setIdx >= ex.sets;
+      startRest(ex.rest || 90, isFinished);
     }
     
     // ========================================
-    // EXERCISE MANAGEMENT
+    // REST TIMER
     // ========================================
     
-    function loadEx(idx) { 
-      // Check if workout is complete
-      if (idx >= workout.exercises.length) { 
-        // Stop tempo animation
-        if (tempoAnimation) cancelAnimationFrame(tempoAnimation);
+    function startRest(duration, isExerciseComplete) {
+      const overlay = document.getElementById('rest-overlay');
+      overlay.classList.remove('hidden');
+      
+      const ex = workout.exercises[s.exIdx];
+      document.getElementById('rest-sets-display').textContent = `${s.setIdx}/${ex.sets}`;
+      document.getElementById('rest-weight-display').textContent = document.getElementById('in-weight').textContent + 'kg';
+      document.getElementById('rest-tempo-display').textContent = `${tempoEngine.tempo.ecc}-${tempoEngine.tempo.iso}-${tempoEngine.tempo.con}`;
+      
+      window._nextEx = isExerciseComplete;
+      
+      let remaining = duration;
+      const circumference = 722.57;
+      const timerEl = document.getElementById('rest-overlay-timer');
+      const progressEl = document.getElementById('rest-circle-progress');
+      
+      updateRestDisplay();
+      
+      restTimer = setInterval(() => {
+        remaining--;
+        updateRestDisplay();
         
-        // Add workout completion XP
+        if (remaining <= 0) {
+          clearInterval(restTimer);
+          overlay.classList.add('hidden');
+          loadNextSetOrExercise();
+        }
+      }, 1000);
+      
+      function updateRestDisplay() {
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        timerEl.textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+        
+        const offset = circumference * (1 - remaining / duration);
+        progressEl.style.strokeDashoffset = offset;
+        
+        if (remaining <= 5) {
+          overlay.classList.add('countdown-critical');
+        } else {
+          overlay.classList.remove('countdown-critical');
+        }
+      }
+      
+      initIcons();
+    }
+    
+    function loadNextSetOrExercise() {
+      if (window._nextEx) {
+        loadEx(s.exIdx + 1);
+      } else {
+        resetForNextSet();
+      }
+    }
+    
+    function resetForNextSet() {
+      const ex = workout.exercises[s.exIdx];
+      tempoEngine.repsRemaining = tempoEngine.targetReps;
+      tempoEngine.phaseProgress = 0;
+      tempoEngine.phase = 'ecc';
+      document.getElementById('reps-countdown').textContent = tempoEngine.targetReps;
+      document.getElementById('ecc-bar').style.height = '0%';
+      document.getElementById('con-bar').style.height = '0%';
+      startTempoEngine();
+    }
+    
+    // ========================================
+    // EXERCISE LOADING
+    // ========================================
+    
+    function loadEx(idx) {
+      if (idx >= workout.exercises.length) {
+        stopTempoEngine();
         Gamification.addXP(CONSTANTS.XP_PER_WORKOUT);
         
-        // Save session data for debrief
-        var sessionDuration = Math.floor((Date.now() - s.startTime) / 60000);
-        var sessionData = {
-          name: workout.name || (s.day.toUpperCase()),
+        const sessionDuration = Math.floor((Date.now() - s.startTime) / 60000);
+        const sessionData = {
+          name: workout.name || s.day.toUpperCase(),
           duration: sessionDuration,
           week: s.week,
           day: s.day,
@@ -965,168 +681,100 @@
         };
         localStorage.setItem('last_session_data', JSON.stringify(sessionData));
         
-        // Redirect to debrief page
-        window.location.href = 'debrief.html'; 
-        return; 
-      } 
+        window.location.href = 'debrief.html';
+        return;
+      }
       
-      // Update state
-      s.exIdx = idx; 
-      s.setIdx = 0; 
+      s.exIdx = idx;
+      s.setIdx = 0;
       
-      const ex = workout.exercises[idx]; 
+      const ex = workout.exercises[idx];
       const targetReps = typeof ex.reps === 'string' ? parseInt(ex.reps.split('-').pop()) : ex.reps;
       
-      // Update Photo 2 Style elements
+      // Parse tempo
+      const tempoStr = ex.tempo || '3-1-2';
+      const tempoParts = tempoStr.split('-').map(Number);
+      tempoEngine.tempo = {
+        ecc: tempoParts[0] || 3,
+        iso: tempoParts[1] || 1,
+        con: tempoParts[2] || 2
+      };
+      tempoEngine.targetReps = targetReps;
+      tempoEngine.repsRemaining = targetReps;
+      
+      // Update UI
       document.getElementById('day-title').textContent = s.day.toUpperCase();
-      document.getElementById('workout-muscles').textContent = workout.name || 'DOS + JAMBES';
+      document.getElementById('workout-muscles').textContent = workout.name || 'WORKOUT';
       document.getElementById('header-muscle').textContent = ex.muscle[0].toUpperCase();
       document.getElementById('series-badge').textContent = `SÉRIE 1 / ${ex.sets}`;
       document.getElementById('reps-countdown').textContent = targetReps;
       document.getElementById('load-display').textContent = ex.weight;
-      document.getElementById('volume-display').textContent = sessionVolume.toLocaleString();
+      document.getElementById('volume-display').textContent = tempoEngine.sessionVolume.toLocaleString();
       
-      // Update display (keep for compatibility)
-      document.getElementById('ex-name').textContent = ex.name; 
-      document.getElementById('muscle-tag').textContent = ex.muscle[0]; 
-      document.getElementById('t-sets').textContent = ex.sets; 
-      document.getElementById('t-reps').textContent = ex.reps; 
-      document.getElementById('t-load').textContent = ex.weight + 'kg'; 
-      document.getElementById('t-rest').textContent = (ex.rest || 90) + 's'; 
-      document.getElementById('in-weight').textContent = ex.weight; 
-      document.getElementById('in-reps').textContent = targetReps; 
-      document.getElementById('current-set-disp').textContent = "1"; 
-      document.getElementById('ex-notes').textContent = ex.notes || "Contrôler la descente. Pas de rebond."; 
+      document.getElementById('ex-name').textContent = ex.name;
+      document.getElementById('muscle-tag').textContent = ex.muscle[0];
+      document.getElementById('t-sets').textContent = ex.sets;
+      document.getElementById('t-reps').textContent = ex.reps;
+      document.getElementById('t-load').textContent = ex.weight;
+      document.getElementById('t-rest').textContent = (ex.rest || 90) + 's';
+      document.getElementById('in-weight').textContent = ex.weight;
+      document.getElementById('in-reps').textContent = targetReps;
+      document.getElementById('ex-notes').textContent = ex.notes || 'CONTRÔLE LA DESCENTE. PAS DE REBOND.';
       
-      // Handle superset badge
-      const ssBadge = document.getElementById('superset-badge'); 
-      if (ex.isSuperset) { 
-        ssBadge.classList.remove('hidden'); 
-        ssBadge.classList.add('flex'); 
-        document.getElementById('superset-name').textContent = ex.supersetWith || "NEXT"; 
-      } else { 
-        ssBadge.classList.add('hidden'); 
-        ssBadge.classList.remove('flex'); 
-      } 
+      document.getElementById('tempo-ecc-val').textContent = tempoEngine.tempo.ecc;
+      document.getElementById('tempo-iso-val').textContent = tempoEngine.tempo.iso;
+      document.getElementById('tempo-con-val').textContent = tempoEngine.tempo.con;
       
-      // Create progress dots
-      const dc = document.getElementById('dots-container'); 
-      dc.innerHTML = ''; 
-      for (let i = 0; i < ex.sets; i++) { 
-        const d = document.createElement('div'); 
-        d.className = 'w-2 h-2 rounded-full bg-white/20 transition-all'; 
-        dc.appendChild(d); 
+      // Create dots
+      const dc = document.getElementById('dots-container');
+      dc.innerHTML = '';
+      for (let i = 0; i < ex.sets; i++) {
+        const d = document.createElement('div');
+        d.className = 'w-2 h-2 rounded-full bg-white/20';
+        dc.appendChild(d);
       }
       
-      // Start tempo animation
-      const tempo = weekData.technique === 'TEMPO 3-1-2' ? '3-1-2' : 
-                    weekData.technique === 'REST-PAUSE' ? '2-0-1' :
-                    ex.tempo || '3-1-2';
-      startTempoAnimation(tempo);
+      // Reset bars
+      document.getElementById('ecc-bar').style.height = '0%';
+      document.getElementById('con-bar').style.height = '0%';
+      
+      // Start tempo engine
+      startTempoEngine();
     }
     
     // ========================================
-    // REST TIMER - NEUROFIT STYLE
+    // INIT
     // ========================================
     
-    function startRest(duration, isExDone) { 
-      window._nextEx = isExDone; 
-      let rem = duration; 
-      const total = duration; 
-      const circumference = 722.57; // 2 * PI * 115
-      
-      // Clear existing timer
-      if (restTimer) clearInterval(restTimer); 
-      
-      // Show NeuroFit overlay
-      const overlay = document.getElementById('rest-overlay');
-      overlay.classList.remove('hidden');
-      overlay.classList.remove('rest-critical');
-      
-      // Init icons in overlay
+    function init() {
       initIcons();
       
-      // Get overlay elements
-      const timerText = document.getElementById('rest-overlay-timer');
-      const progressCircle = document.getElementById('rest-circle-progress');
-      const nextExText = document.getElementById('rest-next-exercise');
+      const p = new URLSearchParams(window.location.search);
+      s.week = parseInt(p.get('week')) || 1;
+      s.day = p.get('day') || 'dimanche';
       
-      // Set next exercise info
-      if (isExDone && s.exIdx + 1 < workout.exercises.length) {
-        nextExText.textContent = workout.exercises[s.exIdx + 1].name;
-      } else if (!isExDone) {
-        nextExText.textContent = `${workout.exercises[s.exIdx].name} • Série ${s.setIdx + 1}`;
-      } else {
-        nextExText.textContent = "Fin de l'entraînement";
+      try {
+        weekData = programData.getWeek(s.week);
+        workout = programData.getWorkout(s.week, s.day);
+      } catch(e) {
+        console.error('Error loading workout:', e);
+        window.location.href = 'workouts.html';
+        return;
       }
       
-      // Update detail circles
-      const currentEx = workout.exercises[s.exIdx];
-      document.getElementById('rest-sets-display').textContent = `${s.setIdx}/${currentEx.sets}`;
-      document.getElementById('rest-weight-display').textContent = `${currentEx.weight}kg`;
-      document.getElementById('rest-tempo-display').textContent = weekData.technique || currentEx.tempo || '2-0-2';
+      document.getElementById('block-tech').textContent = weekData.technique || 'STANDARD';
       
-      // Format time helper
-      const formatTime = (secs) => {
-        const m = Math.floor(secs / 60);
-        const s = secs % 60;
-        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-      };
+      setInterval(() => {
+        const d = Math.floor((Date.now() - s.startTime) / 1000);
+        const m = Math.floor(d / 60);
+        const sec = d % 60;
+        document.getElementById('session-timer').textContent = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+      }, 1000);
       
-      // Initial display - cercle plein au départ (offset = 0 signifie plein)
-      timerText.textContent = formatTime(rem);
-      progressCircle.style.strokeDashoffset = '0'; // 0 = cercle plein visible
-      
-      const updateTimer = () => { 
-        rem--; 
-        
-        // Update timer display
-        timerText.textContent = formatTime(rem);
-        
-        // Update progress circle (depleting)
-        const progress = rem / total;
-        const offset = circumference * (1 - progress);
-        progressCircle.style.strokeDashoffset = offset;
-        
-        // Critical countdown effect (last 3 seconds)
-        if (rem <= 3 && rem > 0) {
-          overlay.classList.add('rest-critical');
-          // Vibrate on each second
-          if (navigator.vibrate) navigator.vibrate(100);
-        }
-        
-        // Check if timer finished
-        if (rem <= 0) { 
-          overlay.classList.remove('rest-critical');
-          if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
-          skipRest(); 
-        } 
-      }; 
-      
-      restTimer = setInterval(updateTimer, 1000); 
+      loadEx(0);
     }
     
-    // ========================================
-    // SCRAMBLE EFFECT
-    // ========================================
-    
-    function initScrambleEffects() {
-      if (!window.ScrambleEffect) return;
-      const workoutName = document.getElementById('workout-name');
-      const exName = document.getElementById('ex-name');
-      const setsInfo = document.getElementById('sets-info');
-      
-      if (workoutName) ScrambleEffect.scramble(workoutName, { delay: 50, speed: 30 });
-      if (exName) ScrambleEffect.scramble(exName, { delay: 200, speed: 25 });
-      if (setsInfo) ScrambleEffect.scramble(setsInfo, { delay: 350, speed: 35 });
-    }
-    
-    // ========================================
-    // START APP
-    // ========================================
-    
-    init();
-    setTimeout(initScrambleEffects, 100);
+    document.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
