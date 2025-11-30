@@ -476,17 +476,20 @@
 
                 <div className="relative mb-3 w-44 h-44 flex items-center justify-center overflow-visible">
                   <div 
-                    className={`absolute w-80 h-80 rounded-full blur-3xl pointer-events-none transition-all duration-700 ${
+                    key={isResting ? `rest-${breathPhase}` : `work-${phase}-${repsRemaining}`}
+                    className={`absolute w-80 h-80 rounded-full blur-3xl pointer-events-none ${
                       isResting 
-                        ? 'bg-gradient-to-br from-cyan-500/30 to-fuchsia-500/30' 
+                        ? breathPhase === 'in' ? 'bg-cyan-500/35' 
+                          : breathPhase === 'hold' ? 'bg-white/25' 
+                          : 'bg-fuchsia-500/35'
                         : phase === 'ecc' 
-                          ? 'bg-cyan-500/30'
+                          ? 'bg-cyan-500/35'
                           : phase === 'con'
-                            ? 'bg-fuchsia-500/30'
-                            : 'bg-white/20'
+                            ? 'bg-fuchsia-500/35'
+                            : 'bg-white/25'
                     }`}
                     style={{ 
-                      animation: 'pulse 2.5s ease-in-out infinite',
+                      animation: `pulseGlow ${isResting ? 4000 : (phase === 'ecc' ? ecc : phase === 'iso' ? iso : con) * 1000}ms ease-in-out infinite`,
                     }}
                   ></div>
 
@@ -521,18 +524,14 @@
                   <div className="relative font-black text-center leading-none" style={{ 
                     fontSize: '90px',
                     color: isResting ? '#ffffff' : phase === 'ecc' ? '#22d3ee' : phase === 'iso' ? '#ffffff' : '#e879f9',
-                    textShadow: '0 4px 30px rgba(0,0,0,0.6)'
+                    textShadow: isResting 
+                      ? '0 0 40px rgba(255,255,255,0.3)' 
+                      : phase === 'ecc' 
+                        ? '0 0 50px rgba(34,211,238,0.5), 0 0 80px rgba(34,211,238,0.3)' 
+                        : phase === 'con' 
+                          ? '0 0 50px rgba(232,121,249,0.5), 0 0 80px rgba(232,121,249,0.3)' 
+                          : '0 0 40px rgba(255,255,255,0.4)'
                   }}>
-                    {!isResting && (
-                      <div 
-                        className="absolute inset-0 animate-shimmer pointer-events-none"
-                        style={{ 
-                          background: 'linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.15), rgba(255,255,255,0))',
-                          backgroundSize: '200% 100%',
-                          mixBlendMode: 'overlay'
-                        }}
-                      ></div>
-                    )}
                     {isResting ? restTimeRemaining : repsRemaining}
                   </div>
                   {isResting && <div className="absolute bottom-6 text-[10px] font-bold text-slate-500">SECONDES</div>}
