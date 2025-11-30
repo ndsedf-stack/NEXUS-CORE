@@ -150,7 +150,10 @@
               newPhase = 'con';
             } else {
               setRepsRemaining((r) => {
-                if (r - 1 <= 0) { setIsSetFinished(true); return 0; }
+                if (r - 1 <= 0) { 
+                  setIsSetFinished(true); 
+                  return 0; 
+                }
                 return r - 1;
               });
               phaseRef.current = 'ecc';
@@ -247,6 +250,7 @@
         setRepsRemaining(currentTargetReps);
         setIsSetFinished(false);
         setPhase('ecc');
+        phaseRef.current = 'ecc';
         setPhaseProgress(0);
         if (currentSet >= totalSets) {
           onNextExercise && onNextExercise();
