@@ -11,6 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700;800&family=Inter:wght@400;500;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script src="starfield.js"></script>
+  <script src="program-data-v2.js"></script>
+  <script src="app-v2.js"></script>
   
   <style>
     :root { 
@@ -355,10 +357,14 @@
     </div>
   </main>
   
-  <script type="module">
-    import programData from './program-data.js';
-    import { WorkoutHistory } from './workout-history.js';
-    import { Gamification, initIcons, CONSTANTS } from './app.js';
+  <script>
+    // Use window globals from classic scripts
+    const programData = window.programData;
+    const Gamification = window.Gamification;
+    const initIcons = window.initIcons;
+    const CONSTANTS = window.CONSTANTS;
+    
+    console.log('[SESSION] Using window globals');
     
     // ========================================
     // STATE
@@ -544,20 +550,26 @@
       const weight = parseFloat(document.getElementById('in-weight').textContent);
       const reps = parseInt(document.getElementById('in-reps').textContent);
       
-      // Log to history
-      WorkoutHistory.logSet({
-        week: s.week,
-        day: s.day,
-        exercise: ex.name,
-        exerciseIndex: s.exIdx,
-        setNumber: s.setIdx + 1,
-        weight: weight,
-        reps: reps,
-        targetWeight: ex.weight,
-        targetReps: typeof ex.reps === 'string' ? 8 : ex.reps,
-        technique: weekData.technique,
-        notes: ex.notes || ''
-      });
+      // Log to history using localStorage
+      try {
+        const history = JSON.parse(localStorage.getItem('neon_fit_workout_history') || '[]');
+        history.push({
+          id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+          timestamp: new Date().toISOString(),
+          week: s.week,
+          day: s.day,
+          exercise: ex.name,
+          exerciseIndex: s.exIdx,
+          setNumber: s.setIdx + 1,
+          weight: weight,
+          reps: reps,
+          targetWeight: ex.weight,
+          targetReps: typeof ex.reps === 'string' ? 8 : ex.reps,
+          technique: weekData.technique,
+          muscle: ex.muscle
+        });
+        localStorage.setItem('neon_fit_workout_history', JSON.stringify(history));
+      } catch(e) { console.error('Log error:', e); }
       
       // Update volume
       tempoEngine.sessionVolume += weight * reps;
@@ -754,11 +766,14 @@
       s.day = p.get('day') || 'dimanche';
       
       try {
+        console.log('[SESSION] Getting week data for week', s.week);
         weekData = programData.getWeek(s.week);
+        console.log('[SESSION] Week data:', weekData);
         workout = programData.getWorkout(s.week, s.day);
+        console.log('[SESSION] Workout:', workout);
       } catch(e) {
-        console.error('Error loading workout:', e);
-        window.location.href = 'workouts.html';
+        console.error('[SESSION] Error loading workout:', e);
+        alert('Erreur: ' + e.message);
         return;
       }
       
