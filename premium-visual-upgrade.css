@@ -1,0 +1,124 @@
+/* ============================================
+   NEON FIT - PREMIUM EFFECTS V4
+   EFFETS ULTRA-VISIBLES
+============================================ */
+
+/* WORKOUT CARDS - Glow INTENSE au hover */
+.workout-card:hover {
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.8),
+    0 0 80px rgba(34, 211, 238, 0.6),
+    inset 0 0 40px rgba(34, 211, 238, 0.2) !important;
+  border: 2px solid var(--cyan) !important;
+  transform: translateY(-8px) scale(1.02) !important;
+}
+
+/* XP BADGES - Animation pulsante TRÈS visible */
+span[style*="rgba(34, 211, 238"] {
+  animation: xp-mega-pulse 1s ease-in-out infinite !important;
+}
+
+@keyframes xp-mega-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.8),
+                0 0 40px rgba(34, 211, 238, 0.6);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(34, 211, 238, 1),
+                0 0 80px rgba(34, 211, 238, 0.8),
+                0 0 120px rgba(34, 211, 238, 0.6);
+    transform: scale(1.05);
+  }
+}
+
+/* RANK DISPLAY - Néon ULTRA intense */
+#rank-display {
+  text-shadow: 
+    0 0 30px var(--cyan),
+    0 0 60px var(--cyan),
+    0 0 90px var(--cyan),
+    0 0 120px var(--cyan) !important;
+  animation: rank-mega-glow 2s ease-in-out infinite;
+  font-size: 120% !important;
+}
+
+@keyframes rank-mega-glow {
+  0%, 100% { 
+    text-shadow: 0 0 30px var(--cyan),
+                 0 0 60px var(--cyan);
+  }
+  50% { 
+    text-shadow: 0 0 50px var(--cyan),
+                 0 0 100px var(--cyan),
+                 0 0 150px var(--cyan),
+                 0 0 200px var(--cyan);
+  }
+}
+
+/* PROTOCOL BAR - Segments qui explosent */
+#protocol-bar > div[style*="--cyan"] {
+  box-shadow: 
+    0 0 30px var(--cyan),
+    0 0 50px var(--cyan) !important;
+  animation: segment-explode 1.5s ease-in-out infinite;
+}
+
+@keyframes segment-explode {
+  0%, 100% { 
+    box-shadow: 0 0 30px var(--cyan);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 50px var(--cyan),
+                0 0 80px var(--cyan),
+                0 0 100px var(--cyan);
+    transform: scale(1.1);
+  }
+}
+
+/* TITRES - Glow arc-en-ciel */
+h1, h2, h3, .font-hud {
+  animation: rainbow-glow 3s ease-in-out infinite !important;
+}
+
+@keyframes rainbow-glow {
+  0% { 
+    text-shadow: 0 0 40px #22d3ee, 0 0 80px #22d3ee;
+  }
+  33% { 
+    text-shadow: 0 0 40px #c084fc, 0 0 80px #c084fc;
+  }
+  66% { 
+    text-shadow: 0 0 40px #f59e0b, 0 0 80px #f59e0b;
+  }
+  100% { 
+    text-shadow: 0 0 40px #22d3ee, 0 0 80px #22d3ee;
+  }
+}
+
+/* SCAN BUTTONS - Rotation au hover */
+.scan-btn:hover {
+  animation: scan-rotate 0.6s ease-in-out !important;
+  box-shadow: 0 0 40px var(--cyan) !important;
+}
+
+@keyframes scan-rotate {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+}
+
+/* GLASS CARDS - Border animée */
+.glass-card {
+  border: 2px solid transparent !important;
+  background-image: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)),
+                    linear-gradient(90deg, #22d3ee, #c084fc, #f59e0b, #22d3ee) !important;
+  background-origin: border-box !important;
+  background-clip: padding-box, border-box !important;
+  animation: border-rotate 3s linear infinite !important;
+}
+
+@keyframes border-rotate {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}

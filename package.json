@@ -1,26 +1,23 @@
 {
-  "name": "workspace",
+  "name": "nexus-core",
   "version": "1.0.0",
-  "description": "🔥 NEON FIT V3.0 - Documentation Complète & Mise à Jour Date de dernière mise à jour : 28 novembre 2024 Version actuelle : V3.0 - Architecture Modulaire Stabilisée Repo GitHub : ndsedf-stack/neon-fit2",
-  "main": "app-v2-premium.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@awesome-cordova-plugins/health": "^8.1.0",
-    "connect-pg-simple": "^10.0.0",
-    "cordova-plugin-health": "^3.2.4",
-    "express": "^5.1.0",
-    "express-session": "^1.18.2",
-    "framer-motion": "^12.23.25",
-    "http-server": "^14.1.1",
-    "lucide-react": "^0.555.0",
-    "memoizee": "^0.4.17",
-    "openid-client": "^5.7.1",
-    "passport": "^0.7.0",
-    "pg": "^8.16.3"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.1.1",
+    "framer-motion": "^11.15.0",
+    "zustand": "^5.0.2",
+    "lucide-react": "^0.468.0",
+    "recharts": "^2.15.0"
+  },
+  "devDependencies": {
+    "vite": "^7.2.6",
+    "@vitejs/plugin-react": "^4.3.4"
   }
 }

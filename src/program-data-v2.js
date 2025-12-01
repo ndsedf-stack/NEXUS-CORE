@@ -965,3 +965,4 @@ class ProgramData {
 const programData = new ProgramData();
 window.programData = programData;
 
+export default programData;
