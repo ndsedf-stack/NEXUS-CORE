@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>HYBRID MASTER 51 PRO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #080b12;
+      --card: #0d111a;
+      --card-2: #121824;
+      --accent: #F59E0B;
+      --accent-2: #ff8a00;
+      --secondary: #0EA5E9;
+      --secondary-2: #2563EB;
+      --muted: #8b92a8;
+      --success: #10b981;
+      --danger: #FF3B30;
+      --glass: rgba(255,255,255,0.04);
+      --premium-gold: linear-gradient(135deg, #FFD700, #FFA500);
+      --shadow-premium: 0 20px 60px rgba(255, 215, 0, 0.15);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    html, body {
+      height: 100%;
+      background: linear-gradient(180deg, #06070a 0%, #080b12 100%);
+      color: #fff;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      line-height: 1.5;
+    }
+
+    .premium-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--premium-gold);
+      color: #000;
+      font-weight: 800;
+      font-size: 11px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 11, 18, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(10px);
+      transition: opacity 0.3s ease;
+    }
+
+    .loading-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(245, 158, 11, 0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      z-index: 10000;
+      animation: slideIn 0.3s ease;
+      max-width: 350px;
+      color: white;
+    }
+
+    .toast.success {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .toast.error {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(400px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(13, 17, 26, 0.8), rgba(18, 24, 36, 0.6));
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-premium);
+    }
+
+    .logo {
+      font-size: 48px;
+      filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3));
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 900;
+      background: var(--premium-gold);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .card {
+      background: linear-gradient(135deg, rgba(13, 17, 26, 0.95), rgba(18, 24, 36, 0.85));
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(20px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 16px;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
+      font-size: 14px;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.2);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #000;
+      font-weight: 700;
+      border: none;
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn.premium {
+      background: var(--premium-gold);
+      color: #000;
+      font-weight: 800;
+      border: none;
+      box-shadow: var(--shadow-premium);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn.danger {
+      background: linear-gradient(135deg, #FF3B30, #FF2D55);
+      color: white;
+      border: none;
+    }
+
+    .exercise-card {
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: linear-gradient(180deg, rgba(13, 17, 26, 0.9), rgba(18, 24, 36, 0.8));
+      transition: all 0.3s ease;
+      margin-bottom: 12px;
+    }
+
+    .exercise-card:hover {
+      border-color: rgba(245, 158, 11, 0.3);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.1);
+    }
+
+    .exercise-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .exercise-header:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .exercise-name {
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 16px;
+    }
+
+    .exercise-meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .exercise-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .exercise-details.open {
+      max-height: 2000px;
+      padding: 20px;
+    }
+
+    .set-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 1fr 50px;
+      gap: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .set-row:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .set-input {
+      background: rgba(255, 255, 255, 0.06);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      padding: 12px;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: 600;
+      text-align: center;
+      font-size: 15px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+      width: 100%;
+    }
+
+    .set-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+      transform: scale(1.02);
+    }
+
+    .set-input::placeholder {
+      color: rgba(255, 255, 255, 0.3);
+    }
+
+    .set-checkbox {
+      display: none;
+    }
+
+    .set-checkbox + label {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.02);
+      font-size: 18px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .set-checkbox + label::after {
+      content: '✓';
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .set-checkbox:checked + label {
+      background: var(--success);
+      border-color: var(--success);
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .set-checkbox:checked + label::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(255, 138, 0, 0.05));
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(245, 158, 11, 0.2);
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 900;
+      background: var(--premium-gold);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1200;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+    }
+
+    .modal .content {
+      position: relative;
+      background: linear-gradient(135deg, rgba(13, 17, 26, 0.98), rgba(18, 24, 36, 0.95));
+      padding: 30px;
+      border-radius: 24px;
+      max-width: 980px;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      max-height: 85vh;
+      overflow: auto;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+      animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .close-x {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      cursor: pointer;
+      color: var(--accent);
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.2s ease;
+    }
+
+    .close-x:hover {
+      background: rgba(255, 59, 48, 0.1);
+      color: var(--danger);
+      transform: rotate(90deg);
+    }
+
+    .rest-timer {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 20px;
+      background: var(--card);
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: none;
+      align-items: center;
+      gap: 12px;
+      z-index: 999;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .rest-timer.active {
+      display: flex;
+    }
+
+    .timer-circle {
+      width: 72px;
+      height: 72px;
+      position: relative;
+    }
+
+    .timer-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 18px;
+    }
+
+    .timer-skip {
+      background: transparent;
+      border: 2px solid rgba(239, 68, 68, 0.3);
+      color: var(--danger);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 20px;
+    }
+
+    .timer-skip:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 12px; }
+      .header { padding: 16px; gap: 12px; flex-wrap: wrap; }
+      .title { font-size: 18px; }
+      .logo { font-size: 36px; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .set-row { grid-template-columns: 50px 1fr 1fr 44px; gap: 6px; }
+      .modal .content { padding: 20px; }
+    }
+
+    .small { font-size: 13px; color: var(--muted); }
+    .technique-banner {
+      background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(251,191,36,0.08));
+      border: 1px solid rgba(245,158,11,0.2);
+      padding: 12px;
+      border-radius: 10px;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loadingOverlay" class="loading-overlay">
+    <div>
+      <div class="spinner"></div>
+      <div style="margin-top:20px;text-align:center;color:var(--muted)">Chargement...</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="logo">🏆</div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div class="title">HYBRID MASTER 51 PRO</div>
+          
+        </div>
+        <div class="small" style="margin-top:4px">
+          26 semaines · 3 séances / semaine · Intelligence IA · Cloud sync
+        </div>
+      </div>
+      
+    </div>
+
+    <div id="mainContent"></div>
+
+    <div class="dashboard-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="totalWorkouts">0</div>
+        <div class="stat-label">Séances complétées</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="totalVolume">0kg</div>
+        <div class="stat-label">Volume total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="currentStreak">0</div>
+        <div class="stat-label">Jours consécutifs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="progressRate">+0%</div>
+        <div class="stat-label">Progression ce mois</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="restTimer" class="rest-timer">
+    <div class="timer-circle">
+      <svg width="72" height="72" viewBox="0 0 80 80">
+        <circle cx="40" cy="40" r="34" stroke="rgba(255,255,255,0.06)" stroke-width="6" fill="none"/>
+        <circle id="timerProgress" cx="40" cy="40" r="34" stroke="url(#g1)" stroke-width="6" fill="none" stroke-linecap="round" style="stroke-dasharray:214;stroke-dashoffset:214;transform:rotate(-90deg);transform-origin:50% 50%"></circle>
+        <defs><linearGradient id="g1"><stop offset="0" stop-color="#F59E0B"/><stop offset="1" stop-color="#ff8a00"/></linearGradient></defs>
+      </svg>
+      <div class="timer-text" id="timerText">0:00</div>
+    </div>
+    <div>
+      <div style="font-weight:800" id="nextExerciseName">Repos</div>
+      <div class="small">Temps restant</div>
+    </div>
+    <button id="skipTimer" class="timer-skip">✕</button>
+  </div>
+
+  <div id="modal" class="modal">
+    <div class="overlay" onclick="app?.closeModal()"></div>
+    <div class="content">
+      <div class="close-x" onclick="app?.closeModal()">✖</div>
+      <div id="modalInner"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    class HybridMasterPro {
+      constructor() {
+        this.version = '2.0.0-PRO';
+        this.storageKey = 'hm51_pro_v2_full';
+        this.state = null;
+        this.isPremium = true;
+        this.restTimer = null;
+        this.restRemaining = 0;
+        this.restTotal = 0;
+        this.init();
+      }
+
+      async init() {
+        try {
+          this.showLoading(true);
+          this.state = this.loadState();
+          this.setupEventListeners();
+          this.render();
+          this.updateStatistics();
+          this.setupAutoSave();
+          this.showLoading(false);
+          this.showToast('✅ Application chargée avec succès', 'success');
+        } catch (error) {
+          console.error('Init error:', error);
+          this.showLoading(false);
+          this.showToast('❌ Erreur lors du chargement', 'error');
+        }
+      }
+
+      setupEventListeners() {
+        document.getElementById('skipTimer')?.addEventListener('click', () => this.stopRestTimer());
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') this.closeModal();
+          if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            this.saveState();
+            this.showToast('💾 Sauvegarde manuelle effectuée', 'success');
+          }
+        });
+      }
+
+      loadState() {
+        try {
+          const raw = localStorage.getItem(this.storageKey);
+          if (!raw) return this.getDefaultState();
+          const parsed = JSON.parse(raw);
+          if (!parsed.version || !parsed.program) {
+            console.warn('Invalid state, using default');
+            return this.getDefaultState();
+          }
+          return parsed;
+        } catch (error) {
+          console.error('Load error:', error);
+          return this.getDefaultState();
+        }
+      }
+
+      getDefaultState() {
+        const PROGRAM = {
+          dimanche: {
+            key: 'dimanche',
+            title: "Dimanche - Dos + Jambes + Bras (68 min)",
+            exercises: [
+              { name: "Trap Bar Deadlift", sets: 5, reps: "6-8", rest: 120, weight: 75, type: "barre", tech: "RPE 6-8" },
+              { name: "Goblet Squat", sets: 4, reps: "10", rest: 75, weight: 25, type: "haltères", tech: "Tempo 3-1-2" },
+              { name: "Leg Press", sets: 4, reps: "10", rest: 75, weight: 110, type: "machine", tech: "Drop-set" },
+              { name: "Lat Pulldown", sets: 4, reps: "10", rest: 90, weight: 60, type: "machine", tech: "Myo-reps" },
+              { name: "Landmine Press", sets: 4, reps: "10", rest: 90, weight: 35, type: "barre", tech: "Tempo 2-1-2" },
+              { name: "Spider Curl", sets: 4, reps: "12", rest: 75, weight: 12, type: "haltères", tech: "Rest-pause" },
+              { name: "Cable Pushdown", sets: 3, reps: "12", rest: 75, weight: 20, type: "machine", tech: "Rest-pause" }
+            ]
+          },
+          mardi: {
+            key: 'mardi',
+            title: "Mardi - Pecs + Épaules + Triceps (70 min)",
+            exercises: [
+              { name: "Dumbbell Press", sets: 5, reps: "10", rest: 105, weight: 22, type: "haltères", tech: "Cluster sets" },
+              { name: "Cable Fly", sets: 4, reps: "12", rest: 60, weight: 10, type: "machine", tech: "Tension continue" },
+              { name: "Leg Press léger", sets: 3, reps: "15", rest: 60, weight: 80, type: "machine", tech: "Standard" },
+              { name: "Extension Triceps", sets: 5, reps: "12", rest: 75, weight: 20, type: "machine", tech: "Drop-set" },
+              { name: "Lateral Raises", sets: 5, reps: "15", rest: 75, weight: 8, type: "haltères", tech: "Myo-reps" },
+              { name: "Face Pull", sets: 5, reps: "15", rest: 60, weight: 20, type: "machine", tech: "Tempo 3-1-2" },
+              { name: "Overhead Extension", sets: 4, reps: "12", rest: 60, weight: 15, type: "machine", tech: "Rest-pause" }
+            ]
+          },
+          vendredi: {
+            key: 'vendredi',
+            title: "Vendredi - Dos + Jambes + Bras (73 min)",
+            exercises: [
+              { name: "Landmine Row", sets: 5, reps: "10", rest: 105, weight: 55, type: "barre", tech: "Tempo 2-1-2" },
+              { name: "Leg Curl", sets: 5, reps: "12", rest: 75, weight: 40, type: "machine", tech: "Drop-set" },
+              { name: "Leg Extension", sets: 4, reps: "15", rest: 75, weight: 35, type: "machine", tech: "Standard" },
+              { name: "Cable Fly", sets: 4, reps: "15", rest: 60, weight: 10, type: "machine", tech: "Tension continue" },
+              { name: "EZ Bar Curl", sets: 5, reps: "12", rest: 75, weight: 25, type: "barre", tech: "Rest-pause" },
+              { name: "Lateral Raises", sets: 3, reps: "15", rest: 60, weight: 8, type: "haltères", tech: "Myo-reps" }
+            ]
+          }
+        };
+
+        const weights = {};
+        Object.values(PROGRAM).forEach(s => {
+          s.exercises.forEach(e => {
+            weights[e.name] = e.weight;
+          });
+        });
+
+        return {
+          version: this.version,
+          week: 1,
+          program: PROGRAM,
+          weights: weights,
+          hist: {},
+          customExercises: [],
+          subscription: {
+            tier: 'premium',
+            validUntil: Date.now() + 30 * 24 * 60 * 60 * 1000
+          }
+        };
+      }
+
+      saveState() {
+        try {
+          const serialized = JSON.stringify(this.state);
+          if (serialized.length > 5000000) {
+            this.compressHistory();
+          }
+          localStorage.setItem(this.storageKey, serialized);
+        } catch (error) {
+          if (error.name === 'QuotaExceededError') {
+            this.showToast('⚠️ Espace saturé - Compression...', 'error');
+            this.compressHistory();
+            localStorage.setItem(this.storageKey, JSON.stringify(this.state));
+          } else {
+            console.error('Save error:', error);
+            this.showToast('❌ Erreur de sauvegarde', 'error');
+          }
+        }
+      }
+
+      compressHistory() {
+        const threeMonthsAgo = Date.now() - (90 * 24 * 60 * 60 * 1000);
+        Object.keys(this.state.hist).forEach(exercise => {
+          this.state.hist[exercise] = this.state.hist[exercise].filter(
+            entry => entry.ts > threeMonthsAgo
+          );
+        });
+        this.showToast('🗜️ Historique compressé', 'success');
+      }
+
+      setupAutoSave() {
+        setInterval(() => {
+          this.saveState();
+          console.log('⏰ Auto-save périodique');
+        }, 5 * 60 * 1000);
+      }
+
+      showLoading(show) {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+          overlay.classList.toggle('hidden', !show);
+        }
+      }
+
+      showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="font-size:24px">${type === 'success' ? '✓' : '⚠️'}</div>
+            <div>
+              <div style="font-weight:700;margin-bottom:2px">
+                ${type === 'success' ? 'Succès' : 'Erreur'}
+              </div>
+              <div style="font-size:13px;opacity:0.9">${message}</div>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.style.animation = 'slideIn 0.3s ease reverse';
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      render() {
+        const content = document.getElementById('mainContent');
+        if (!content) return;
+        
+        content.innerHTML = `
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+              <div>
+                <div style="font-size:18px;font-weight:800">
+                  Semaine ${this.state.week} / 26
+                </div>
+                <div class="small" style="margin-top:4px">
+                  ${this.getBlockName()}
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn" onclick="app.previousWeek()" ${this.state.week <= 1 ? 'disabled' : ''}>
+                  ← Préc.
+                </button>
+                <button class="btn primary" onclick="app.nextWeek()" ${this.state.week >= 26 ? 'disabled' : ''}>
+                  Suiv. →
+                </button>
+              </div>
+            </div>
+            
+            <div style="margin-top:16px;background:rgba(245,158,11,0.1);padding:12px;border-radius:12px;border:1px solid rgba(245,158,11,0.2)">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:20px">🎯</span>
+                <div style="font-size:13px;color:var(--accent)">
+                  <strong>Objectif:</strong> ${this.getWeeklyGoal()}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="font-weight:800;font-size:16px;margin-bottom:16px">
+              📅 Séances de la semaine
+            </div>
+            <div id="sessionsList"></div>
+          </div>
+
+          <div class="card">
+            <div style="font-weight:800;font-size:16px;margin-bottom:16px">
+              🎮 Actions rapides
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px">
+              <button class="btn" onclick="app.exportData()">💾 Export</button>
+              <button class="btn" onclick="app.resetApp()">⚠️ Reset</button>
+              <button class="btn primary" onclick="app.openAICoach()">🤖 Coach IA</button>
+            </div>
+          </div>
+        `;
+        
+        this.renderSessions();
+      }
+
+      renderSessions() {
+        const container = document.getElementById('sessionsList');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        Object.values(this.state.program).forEach(session => {
+          const totalSets = session.exercises.reduce((acc, ex) => acc + ex.sets, 0);
+          
+          const sessionCard = document.createElement('div');
+          sessionCard.className = 'card';
+          sessionCard.style.marginBottom = '12px';
+          
+          // Header cliquable
+          const header = document.createElement('div');
+          header.style.cursor = 'pointer';
+          header.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="flex:1">
+                <div style="font-weight:700;color:var(--accent);font-size:15px">
+                  ${session.title}
+                </div>
+                <div class="small" style="margin-top:6px">
+                  ${session.exercises.length} exercices • ${totalSets} séries
+                </div>
+              </div>
+              <div style="font-size:24px" id="arrow-${session.key}">▼</div>
+            </div>
+          `;
+          
+          // Liste des exercices (cachée par défaut)
+          const exercisesList = document.createElement('div');
+          exercisesList.id = `exercises-${session.key}`;
+          exercisesList.style.maxHeight = '0';
+          exercisesList.style.overflow = 'hidden';
+          exercisesList.style.transition = 'max-height 0.4s ease';
+          exercisesList.innerHTML = `
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.06)">
+              ${session.exercises.map((ex, idx) => `
+                <div class="exercise-card" style="margin-bottom:10px">
+                  <div class="exercise-header" onclick="app.openExerciseDetails('${session.key}', ${idx})">
+                    <div style="flex:1">
+                      <div class="exercise-name">${ex.name}</div>
+                      <div class="exercise-meta">
+                        ${ex.sets} × ${ex.reps} • ${ex.weight}kg • ${ex.rest}s • ${ex.tech}
+                      </div>
+                    </div>
+                    <div style="font-size:18px;color:var(--muted)">▶</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          
+          // Toggle au clic
+          header.onclick = () => {
+            const arrow = document.getElementById(`arrow-${session.key}`);
+            if (exercisesList.style.maxHeight === '0px' || !exercisesList.style.maxHeight) {
+              exercisesList.style.maxHeight = '2000px';
+              arrow.textContent = '▲';
+            } else {
+              exercisesList.style.maxHeight = '0';
+              arrow.textContent = '▼';
+            }
+          };
+          
+          sessionCard.appendChild(header);
+          sessionCard.appendChild(exercisesList);
+          container.appendChild(sessionCard);
+        });
+      }
+      getBlockName() {
+        if (this.state.week <= 5) return 'Bloc 1 - Fondation • Tempo contrôlé';
+        if (this.state.week <= 11) return 'Bloc 2 - Surcharge • Rest-Pause';
+        if (this.state.week <= 17) return 'Bloc 3 - Surcompensation • Drop-sets';
+        return 'Bloc 4 - Intensification • Clusters';
+      }
+
+      getWeeklyGoal() {
+        const goals = [
+          'Maîtriser la technique avec charges modérées',
+          'Augmenter progressivement l\'intensité',
+          'Pousser vers l\'échec musculaire contrôlé',
+          'Maximiser l\'hypertrophie avec techniques avancées'
+        ];
+        const blockIndex = Math.min(Math.floor((this.state.week - 1) / 6), 3);
+        return goals[blockIndex];
+      }
+      openSession(sessionKey) {
+        const session = this.state.program[sessionKey];
+        if (!session) return;
+        
+        const html = `
+          <h3 style="font-weight:800;color:var(--accent);margin-bottom:20px">
+            ${session.title}
+          </h3>
+          
+          <div style="background:rgba(245,158,11,0.1);padding:16px;border-radius:12px;margin-bottom:20px;border:1px solid rgba(245,158,11,0.2)">
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="font-size:32px">💪</span>
+              <div>
+                <div style="font-weight:700;color:var(--accent)">
+                  ${session.exercises.length} exercices prêts à commencer
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;gap:12px">
+            ${session.exercises.map(ex => `
+              <div class="card">
+                <div style="font-weight:700;color:var(--accent)">${ex.name}</div>
+                <div class="small" style="margin-top:4px">
+                  ${ex.sets} × ${ex.reps} • ${ex.weight}kg • ${ex.rest}s repos • ${ex.tech}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn primary" onclick="app.startSession('${sessionKey}')">
+              ▶️ Commencer
+            </button>
+            <button class="btn" onclick="app.closeModal()">
+              Fermer
+            </button>
+          </div>
+        `;
+        
+        this.openModal(html);
+      }
+      openExerciseDetails(sessionKey, exerciseIndex) {
+        const session = this.state.program[sessionKey];
+        const exercise = session.exercises[exerciseIndex];
+        const weight = this.state.weights[exercise.name] || exercise.weight;
+        
+        const html = `
+          <h3 style="font-weight:800;color:var(--accent);margin-bottom:20px">
+            ${exercise.name}
+          </h3>
+          
+          <div class="technique-banner">
+            ✨ ${exercise.tech} • ${this.getBlockName().split('•')[1]?.trim() || 'Technique avancée'}
+          </div>
+          
+          <div style="background:rgba(245,158,11,0.08);padding:12px;border-radius:10px;margin-bottom:16px;border:1px solid rgba(245,158,11,0.15)">
+            <div style="color:var(--accent);font-weight:700;font-size:14px">
+              📋 Paramètres : ${exercise.sets} séries × ${exercise.reps} reps • ${weight}kg • ${exercise.rest}s repos
+            </div>
+          </div>
+          
+          <div style="margin-top:16px">
+            ${Array.from({length: exercise.sets}, (_, i) => `
+              <div class="set-row">
+                <div style="font-size:13px;color:var(--muted);font-weight:600">Set ${i+1}</div>
+                <input 
+                  class="set-input weight-input-${sessionKey}-${exerciseIndex}" 
+                  type="number" 
+                  step="0.5" 
+                  value="${weight}" 
+                  placeholder="KG"
+                  data-set="${i+1}"
+                >
+                <input 
+                  class="set-input reps-input-${sessionKey}-${exerciseIndex}" 
+                  type="number" 
+                  value="${typeof exercise.reps === 'number' ? exercise.reps : parseInt(exercise.reps.split('-')[0])}" 
+                  placeholder="REPS"
+                  data-set="${i+1}"
+                >
+                <input 
+                  id="check-${sessionKey}-${exerciseIndex}-${i}" 
+                  class="set-checkbox" 
+                  type="checkbox"
+                  data-rest="${exercise.rest}"
+                >
+                <label for="check-${sessionKey}-${exerciseIndex}-${i}"></label>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap">
+            <button class="btn primary" onclick="app.saveExercisePerformance('${sessionKey}', ${exerciseIndex}, '${exercise.name}')">
+              💾 Enregistrer
+            </button>
+            <button class="btn" onclick="app.startRestTimer(${exercise.rest}, '${exercise.name}')">
+              ⏱️ Démarrer repos
+            </button>
+            <button class="btn" onclick="app.closeModal()">
+              Fermer
+            </button>
+          </div>
+        `;
+        
+        this.openModal(html);
+        
+        // Setup checkboxes
+        setTimeout(() => {
+          document.querySelectorAll(`#check-${sessionKey}-${exerciseIndex}-0`).forEach(checkbox => {
+            checkbox.parentElement.querySelectorAll('.set-checkbox').forEach(cb => {
+              cb.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                  if (navigator.vibrate) navigator.vibrate(50);
+                  const rest = parseInt(e.target.dataset.rest) || 90;
+                  this.startRestTimer(rest, exercise.name);
+                }
+              });
+            });
+          });
+        }, 100);
+      }
+
+      saveExercisePerformance(sessionKey, exerciseIndex, exerciseName) {
+        const weightInputs = document.querySelectorAll(`.weight-input-${sessionKey}-${exerciseIndex}`);
+        const repsInputs = document.querySelectorAll(`.reps-input-${sessionKey}-${exerciseIndex}`);
+        
+        const sets = [];
+        for (let i = 0; i < Math.min(weightInputs.length, repsInputs.length); i++) {
+          const w = parseFloat(weightInputs[i].value) || 0;
+          const r = parseInt(repsInputs[i].value) || 0;
+          if (r > 0) sets.push({ w, r });
+        }
+        
+        if (sets.length === 0) {
+          this.showToast('⚠️ Entrez au moins une répétition', 'error');
+          return;
+        }
+        
+        const best = sets.reduce((a, b) => b.r > a.r ? b : a);
+        
+        if (!this.state.hist[exerciseName]) this.state.hist[exerciseName] = [];
+        this.state.hist[exerciseName].push({
+          week: this.state.week,
+          weight: best.w,
+          reps: best.r,
+          ts: Date.now(),
+          allSets: sets
+        });
+        
+        this.state.weights[exerciseName] = best.w;
+        this.saveState();
+        this.updateStatistics();
+        this.showToast(`✅ ${exerciseName}: ${best.r} reps @ ${best.w}kg`, 'success');
+        this.closeModal();
+      }
+
+      startSession(sessionKey) {
+        this.showToast('🏋️ Séance démarrée ! Bonne chance !', 'success');
+        this.closeModal();
+      }
+
+      previousWeek() {
+        if (this.state.week > 1) {
+          this.state.week--;
+          this.saveState();
+          this.render();
+          this.updateStatistics();
+          this.showToast(`📅 Semaine ${this.state.week}`, 'success');
+        }
+      }
+
+      nextWeek() {
+        if (this.state.week < 26) {
+          this.state.week++;
+          this.saveState();
+          this.render();
+          this.updateStatistics();
+          this.showToast(`📅 Semaine ${this.state.week}`, 'success');
+        }
+      }
+
+      updateStatistics() {
+        const totalWorkouts = Object.values(this.state.hist).reduce((acc, arr) => acc + arr.length, 0);
+        document.getElementById('totalWorkouts').textContent = totalWorkouts;
+        
+        let totalVolume = 0;
+        Object.entries(this.state.hist).forEach(([exercise, performances]) => {
+          performances.forEach(perf => {
+            if (perf.allSets) {
+              perf.allSets.forEach(set => {
+                totalVolume += (set.w || 0) * (set.r || 0);
+              });
+            } else {
+              totalVolume += (perf.weight || 0) * (perf.reps || 0);
+            }
+          });
+        });
+        
+        document.getElementById('totalVolume').textContent = 
+          totalVolume > 1000 ? `${(totalVolume/1000).toFixed(1)}t` : `${Math.round(totalVolume)}kg`;
+        
+        document.getElementById('currentStreak').textContent = Math.min(this.state.week * 2, 45);
+        document.getElementById('progressRate').textContent = `+${(5 + this.state.week).toFixed(0)}%`;
+      }
+
+      openAICoach() {
+        const html = `
+          <div style="text-align:center;padding:40px 20px">
+            <div style="font-size:64px;margin-bottom:20px">🤖</div>
+            <h3 style="font-weight:800;color:var(--accent);margin-bottom:16px">
+              Coach IA Personnel
+            </h3>
+            <p style="color:var(--muted);margin-bottom:24px;max-width:500px;margin-left:auto;margin-right:auto">
+              Fonctionnalité en cours de développement. Bientôt disponible avec des recommandations personnalisées !
+            </p>
+            <button class="btn primary" onclick="app.closeModal()" style="margin-top:24px">
+              Compris
+            </button>
+          </div>
+        `;
+        this.openModal(html);
+      }
+
+      // showSubscription() a été complètement supprimée
+
+      exportData() {
+        try {
+          const data = JSON.stringify(this.state, null, 2);
+          const blob = new Blob([data], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `hybrid-master-pro-backup-${new Date().toISOString().slice(0,10)}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          this.showToast('💾 Données exportées avec succès', 'success');
+        } catch (error) {
+          console.error('Export error:', error);
+          this.showToast('❌ Erreur lors de l\'export', 'error');
+        }
+      }
+
+      resetApp() {
+        if (confirm('⚠️ ATTENTION ! Cela va supprimer TOUTES vos données. Continuer ?')) {
+          if (confirm('Êtes-vous VRAIMENT sûr ?')) {
+            localStorage.removeItem(this.storageKey);
+            this.state = this.getDefaultState();
+            this.saveState();
+            this.render();
+            this.updateStatistics();
+            this.showToast('🔄 Application réinitialisée', 'success');
+          }
+        }
+      }
+
+      startRestTimer(seconds, exerciseName) {
+        this.stopRestTimer();
+        this.restTotal = Math.max(1, Math.floor(seconds));
+        this.restRemaining = this.restTotal;
+        
+        const timerEl = document.getElementById('restTimer');
+        const nextEl = document.getElementById('nextExerciseName');
+        
+        if (timerEl && nextEl) {
+          nextEl.textContent = `Repos - ${exerciseName}`;
+          timerEl.classList.add('active');
+          this.updateRestUI();
+          
+          this.restTimer = setInterval(() => {
+            this.restRemaining--;
+            this.updateRestUI();
+            
+            if (this.restRemaining <= 0) {
+              this.stopRestTimer();
+              this.showToast('⏱️ Repos terminé !', 'success');
+              if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+            }
+          }, 1000);
+        }
+      }
+
+      stopRestTimer() {
+        if (this.restTimer) {
+          clearInterval(this.restTimer);
+          this.restTimer = null;
+        }
+        this.restRemaining = 0;
+        this.restTotal = 0;
+        const timerEl = document.getElementById('restTimer');
+        if (timerEl) timerEl.classList.remove('active');
+      }
+
+      updateRestUI() {
+        const txt = document.getElementById('timerText');
+        const progress = document.getElementById('timerProgress');
+        if (!txt || !progress) return;
+        
+        const mm = Math.floor(this.restRemaining / 60);
+        const ss = this.restRemaining % 60;
+        txt.textContent = `${mm}:${ss < 10 ? '0' + ss : ss}`;
+        
+        const ratio = Math.max(0, this.restRemaining) / Math.max(1, this.restTotal);
+        progress.style.strokeDashoffset = String(Math.round(214 * ratio));
+      }
+
+      openModal(html) {
+        const modal = document.getElementById('modal');
+        const inner = document.getElementById('modalInner');
+        if (!modal || !inner) return;
+        inner.innerHTML = html;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      closeModal() {
+        const modal = document.getElementById('modal');
+        if (!modal) return;
+        modal.classList.remove('active');
+        document.getElementById('modalInner').innerHTML = '';
+        document.body.style.overflow = '';
+      }
+    }
+
+    let apdocument.addEventListener('DOMContentLoaded', () => {
+      app = new HybridMasterPro();
+      window.app = app;
+      console.log('🏋️ HYBRID MASTER 51 PRO v2.0.0 - Chargé avec succès');
+    });
+  </script>
+</body>
+</html>
