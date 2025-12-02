@@ -1,0 +1,119 @@
+.recovery-dashboard {
+  padding: 2rem 1rem;
+}
+
+.dashboard-title {
+  font-size: 1.5rem;
+  text-align: center;
+  color: #22d3ee;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 20px rgba(34, 211, 238, 0.6);
+}
+
+.recovery-circle-container {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  margin: 0 auto 2rem;
+}
+
+.recovery-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.recovery-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.recovery-score {
+  font-size: 5rem;
+  font-weight: 900;
+  font-family: 'Chakra Petch', monospace;
+  line-height: 1;
+  text-shadow: 0 0 30px currentColor;
+}
+
+.recovery-label {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: -0.5rem;
+}
+
+.recovery-trend {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.recovery-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  margin: 0 auto 2rem;
+  max-width: 300px;
+  background: rgba(16, 24, 39, 0.6);
+  backdrop-filter: blur(20px);
+  border: 2px solid;
+  border-radius: 16px;
+}
+
+.status-icon {
+  font-size: 2rem;
+}
+
+.status-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.recovery-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.metric-card {
+  background: rgba(16, 24, 39, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+  border-color: rgba(34, 211, 238, 0.5);
+  transform: translateY(-4px);
+}
+
+.metric-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.metric-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+}
+
+.metric-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #22d3ee;
+  font-family: 'Chakra Petch', monospace;
+}

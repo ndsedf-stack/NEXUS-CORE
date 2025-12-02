@@ -1,0 +1,105 @@
+/* Bottom Navigation Styles */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(2, 4, 8, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(34, 211, 238, 0.2);
+  padding: 0 1rem;
+  z-index: 1000;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  position: relative;
+  flex: 1;
+  max-width: 80px;
+}
+
+.nav-item.active {
+  color: #22d3ee;
+}
+
+.nav-item.primary {
+  transform: scale(1.15);
+}
+
+.nav-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+}
+
+.nav-item.primary .nav-icon-wrapper {
+  background: linear-gradient(135deg, #22d3ee, #0ea5e9);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(34, 211, 238, 0.4);
+}
+
+.nav-item.primary .nav-icon-wrapper svg {
+  color: #020408;
+}
+
+.nav-item:not(.primary):active {
+  transform: scale(0.9);
+}
+
+.nav-item.primary:active {
+  transform: scale(1.05);
+}
+
+.active-indicator {
+  position: absolute;
+  bottom: -8px;
+  width: 4px;
+  height: 4px;
+  background: #22d3ee;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #22d3ee;
+}
+
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nav-item.active .nav-label {
+  font-weight: 700;
+}
+
+/* Responsive adjustments */
+@media (max-width: 375px) {
+  .bottom-nav {
+    padding: 0 0.5rem;
+  }
+  
+  .nav-item {
+    padding: 0.5rem;
+    max-width: 70px;
+  }
+  
+  .nav-label {
+    font-size: 0.6rem;
+  }
+}

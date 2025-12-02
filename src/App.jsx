@@ -1,9 +1,11 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import HomePage from './pages/HomePage'
-import BriefingPage from './pages/BriefingPage'
-import SessionPage from './pages/SessionPage'
-import StatsPage from './pages/StatsPage'
-import DebriefPage from './pages/DebriefPage'
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import BriefingPage from './pages/BriefingPage';
+import SessionPage from './pages/SessionPage';
+import StatsPage from './pages/StatsPage';
+import DebriefPage from './pages/DebriefPage';
+import BottomNav from './components/base/BottomNav';
+import './styles/bottom-nav.css';
 
 function App() {
   return (
@@ -21,10 +23,14 @@ function App() {
           <Route path="/session/:week/:day" element={<SessionPage />} />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/debrief/:sessionId" element={<DebriefPage />} />
+          <Route path="/workouts" element={<div style={{ padding: '2rem', minHeight: '100vh' }}><h1>Workouts Page</h1></div>} />
+          <Route path="/settings" element={<div style={{ padding: '2rem', minHeight: '100vh' }}><h1>Settings Page</h1></div>} />
         </Routes>
+
+        <BottomNav />
       </div>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
